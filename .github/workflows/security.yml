@@ -232,10 +232,12 @@ jobs:
           category: 'trivy-backend'
         continue-on-error: true
 
+      - name: � Instalar dependencias Frontend
+        working-directory: ./front-end/portafolio
+        run: npm ci
+
       - name: 🐳 Construir Imagen Frontend
-        run: |
-          cd $GITHUB_WORKSPACE/front-end/portafolio && npm ci
-          docker build -t portfolio-frontend:scan $GITHUB_WORKSPACE/front-end
+        run: docker build -t portfolio-frontend:scan ./front-end
 
       - name: 🛡️ Trivy - Escaneo Vulnerabilidades Contenedor (Frontend)
         uses: aquasecurity/trivy-action@master
