@@ -1,6 +1,6 @@
 # Stage 1: Build the Angular application
 # NOTA: Mantener Node 18 LTS para compatibilidad con Angular 16
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
