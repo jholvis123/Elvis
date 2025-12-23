@@ -1,0 +1,23 @@
+/* Estilos específicos de code-block: cursor animado */
+.cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background-color: #a855f7;
+    /* Color primary */
+    margin-left: 2px;
+    animation: blink 0.8s infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}

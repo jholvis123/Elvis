@@ -1,0 +1,88 @@
+.ctf-detail {
+  @apply min-h-screen;
+
+  &__header {
+    @apply bg-gradient-to-b from-slate-900 to-background border-b border-slate-800;
+  }
+}
+
+.breadcrumb {
+  @apply text-sm;
+}
+
+.hint-item {
+  @apply p-3 rounded-lg bg-amber-500/5 border border-amber-500/20;
+}
+
+.hint-revealed {
+  @apply text-textSecondary;
+}
+
+.hint-hidden {
+  @apply w-full text-left text-amber-400/70 hover:text-amber-400 transition-colors;
+  @apply flex items-center;
+}
+
+// ==================== RESOURCES SECTION ====================
+
+.resource-item {
+  @apply flex items-center justify-between p-3 rounded-lg;
+  @apply border transition-all duration-200;
+  @apply hover:scale-[1.01];
+
+  &.resource--file {
+    @apply bg-blue-500/5 border-blue-500/20;
+    @apply hover:bg-blue-500/10 hover:border-blue-500/40;
+  }
+
+  &.resource--url {
+    @apply bg-emerald-500/5 border-emerald-500/20;
+    @apply hover:bg-emerald-500/10 hover:border-emerald-500/40;
+  }
+
+  &.resource--docker {
+    @apply bg-cyan-500/5 border-cyan-500/20;
+    @apply hover:bg-cyan-500/10 hover:border-cyan-500/40;
+  }
+}
+
+.resource-info {
+  @apply flex items-center gap-3;
+}
+
+.resource-icon {
+  @apply text-lg;
+}
+
+.resource-details {
+  @apply flex flex-col;
+}
+
+.resource-name {
+  @apply text-sm font-medium text-textPrimary;
+}
+
+.resource-meta {
+  @apply text-xs text-textSecondary;
+}
+
+.resource-action {
+  @apply px-3 py-1.5 text-xs font-medium rounded-lg;
+  @apply transition-all duration-200;
+  @apply flex items-center gap-1;
+
+  .resource--file & {
+    @apply bg-blue-500/20 text-blue-400;
+    @apply hover:bg-blue-500/30;
+  }
+
+  .resource--url & {
+    @apply bg-emerald-500/20 text-emerald-400;
+    @apply hover:bg-emerald-500/30;
+  }
+
+  .resource--docker & {
+    @apply bg-cyan-500/20 text-cyan-400;
+    @apply hover:bg-cyan-500/30;
+  }
+}

@@ -1,0 +1,78 @@
+<!-- URL Input Component Template -->
+<div class="url-input" [class.url-input--disabled]="disabled">
+  <!-- Label -->
+  <label *ngIf="label" class="url-input__label">
+    {{ label }}
+    <span *ngIf="required" class="text-red-400">*</span>
+  </label>
+  
+  <!-- Input Container -->
+  <div class="url-input__container"
+       [class.url-input__container--error]="showError"
+       [class.url-input__container--success]="showSuccess">
+    
+    <!-- Protocol Icon -->
+    <div class="url-input__prefix">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+      </svg>
+    </div>
+    
+    <!-- Input -->
+    <input 
+      type="url"
+      [formControl]="urlControl"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      (blur)="onBlur()"
+      class="url-input__field"
+      autocomplete="url">
+    
+    <!-- Status Icons -->
+    <div class="url-input__suffix">
+      <!-- Validating -->
+      <div *ngIf="isValidating" class="url-input__status url-input__status--loading">
+        <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </div>
+      
+      <!-- Valid -->
+      <div *ngIf="showSuccess && !isValidating" class="url-input__status url-input__status--success">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      
+      <!-- Invalid -->
+      <div *ngIf="showError && !isValidating" class="url-input__status url-input__status--error">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      
+      <!-- Clear Button -->
+      <button 
+        *ngIf="urlControl.value && !disabled"
+        type="button"
+        class="url-input__clear"
+        (click)="clearUrl()"
+        title="Limpiar">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Hint -->
+  <p *ngIf="hint && !showError" class="url-input__hint">{{ hint }}</p>
+  
+  <!-- Error Message -->
+  <p *ngIf="showError && validationResult" class="url-input__error">
+    {{ validationResult.message }}
+  </p>
+</div>

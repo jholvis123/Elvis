@@ -1,0 +1,158 @@
+<!-- CTF List Page -->
+<div class="ctf-page">
+  <!-- Hero Section -->
+  <section class="ctf-hero">
+    <div class="max-w-6xl mx-auto px-6 py-16">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="space-y-4">
+          <p class="text-sm uppercase tracking-[0.25rem] text-primary">Laboratorio CTF</p>
+          <h1 class="text-4xl md:text-5xl font-bold text-textPrimary">
+            Entrena tus habilidades
+          </h1>
+          <p class="text-lg text-textSecondary">
+            Retos de ciberseguridad para todos los niveles. Practica técnicas ofensivas 
+            y mejora tus skills en un entorno controlado.
+          </p>
+          <!-- Admin Button - Solo visible para administradores -->
+          <a *ngIf="isAdmin"
+             routerLink="/ctf/admin/new" 
+             class="inline-flex items-center gap-2 px-5 py-3 bg-primary text-background font-semibold rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 mt-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Crear nuevo reto
+          </a>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="stat-card">
+            <span class="stat-card__value">{{ stats.totalChallenges }}</span>
+            <span class="stat-card__label">Retos disponibles</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">{{ stats.solvedChallenges }}</span>
+            <span class="stat-card__label">Retos resueltos</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">{{ stats.earnedPoints }}</span>
+            <span class="stat-card__label">Puntos ganados</span>
+          </div>
+          <div class="stat-card stat-card--progress">
+            <span class="stat-card__value">{{ progressPercentage }}%</span>
+            <span class="stat-card__label">Progreso</span>
+            <div class="progress-bar">
+              <div class="progress-bar__fill" [style.width.%]="progressPercentage"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters Section -->
+  <section class="filters-section">
+    <div class="max-w-6xl mx-auto px-6 py-6">
+      <div class="filters-bar">
+        <!-- Search -->
+        <div class="filter-group flex-1">
+          <label for="search" class="sr-only">Buscar retos</label>
+          <div class="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-textSecondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+              type="text" 
+              id="search"
+              [(ngModel)]="filter.search"
+              (ngModelChange)="onFilterChange()"
+              placeholder="Buscar por nombre, skill..."
+              class="input pl-10">
+          </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <label for="category" class="sr-only">Categoría</label>
+          <select 
+            id="category"
+            [(ngModel)]="filter.category"
+            (ngModelChange)="onFilterChange()"
+            class="input">
+            <option value="all">Todas las categorías</option>
+            <option *ngFor="let cat of categories" [value]="cat.value">
+              {{ cat.icon }} {{ cat.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Difficulty Filter -->
+        <div class="filter-group">
+          <label for="difficulty" class="sr-only">Dificultad</label>
+          <select 
+            id="difficulty"
+            [(ngModel)]="filter.difficulty"
+            (ngModelChange)="onFilterChange()"
+            class="input">
+            <option value="all">Todas las dificultades</option>
+            <option *ngFor="let diff of difficulties" [value]="diff.value">
+              {{ diff.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Show Solved Toggle -->
+        <label class="filter-toggle">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="filter.showSolved"
+            (ngModelChange)="onFilterChange()"
+            class="sr-only">
+          <span class="filter-toggle__switch" [class.active]="filter.showSolved"></span>
+          <span class="text-sm text-textSecondary">Mostrar resueltos</span>
+        </label>
+
+        <!-- Clear Filters -->
+        <button 
+          (click)="clearFilters()"
+          class="text-sm text-textSecondary hover:text-primary transition-colors">
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Challenges Grid -->
+  <section class="challenges-section">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <!-- Results count -->
+      <div class="flex items-center justify-between mb-6">
+        <p class="text-sm text-textSecondary">
+          Mostrando <span class="text-textPrimary font-medium">{{ challenges.length }}</span> retos
+        </p>
+      </div>
+
+      <!-- Grid -->
+      <div class="challenges-grid" *ngIf="challenges.length > 0; else noResults">
+        <app-ctf-card 
+          *ngFor="let challenge of challenges"
+          [challenge]="challenge"
+          [isSolved]="isSolved(challenge.id)">
+        </app-ctf-card>
+      </div>
+
+      <!-- No Results -->
+      <ng-template #noResults>
+        <div class="no-results">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-textSecondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-textSecondary">No se encontraron retos con los filtros seleccionados</p>
+          <button (click)="clearFilters()" class="btn-primary mt-4">
+            Limpiar filtros
+          </button>
+        </div>
+      </ng-template>
+    </div>
+  </section>
+</div>

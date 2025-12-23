@@ -1,0 +1,113 @@
+<div class="container mx-auto px-4 py-12" *ngIf="!loading && writeup">
+    <!-- Back Button -->
+    <a routerLink="/writeups" class="inline-flex items-center text-purple-400 hover:text-purple-300 mb-8">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Volver a writeups
+    </a>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4 mb-4">
+            <h1 class="text-4xl font-bold text-white">{{ writeup.title }}</h1>
+            <span class="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-lg text-sm">
+                {{ writeup.views }} vistas
+            </span>
+            <span *ngIf="writeup.status === 'draft'"
+                class="bg-yellow-500/20 text-yellow-300 px-3 py-1 rounded-lg text-sm">
+                BORRADOR
+            </span>
+        </div>
+
+        <p class="text-gray-400 text-lg">{{ writeup.summary }}</p>
+
+        <div class="flex gap-4 mt-4 text-sm text-gray-400">
+            <span *ngIf="writeup.read_time">⏱ {{ writeup.read_time }} min lectura</span>
+            <span>📅 {{ writeup.created_at | date:'dd/MM/yyyy' }}</span>
+        </div>
+    </div>
+
+    <!-- Tools & Techniques -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-6">
+            <h3 class="text-xl font-bold text-white mb-4">🛠 Herramientas Utilizadas</h3>
+            <div class="flex flex-wrap gap-2">
+                <span *ngFor="let tool of writeup.tools_used"
+                    class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-lg text-sm">
+                    {{ tool }}
+                </span>
+            </div>
+        </div>
+
+        <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-6">
+            <h3 class="text-xl font-bold text-white mb-4">🎯 Técnicas Aplicadas</h3>
+            <div class="flex flex-wrap gap-2">
+                <span *ngFor="let technique of writeup.techniques"
+                    class="bg-green-500/20 text-green-300 px-3 py-1 rounded-lg text-sm">
+                    {{ technique }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-8 mb-8">
+        <div class="prose prose-invert prose-purple max-w-none">
+            <!-- Renderizado de Markdown -->
+            <markdown [data]="writeup.content" [lineNumbers]="true"
+                class="prose prose-invert prose-purple max-w-none text-gray-300">
+            </markdown>
+        </div>
+    </div>
+
+    <!-- Actions (Admin only) -->
+    <div *ngIf="authService.isAdmin" class="flex gap-3 mb-8">
+        <a [routerLink]="['/writeups', writeup.id, 'edit']"
+            class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Editar
+        </a>
+
+        <button *ngIf="writeup.status === 'draft'" (click)="publishWriteup()"
+            class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Publicar
+        </button>
+
+        <button (click)="deleteWriteup()"
+            class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Eliminar
+        </button>
+    </div>
+
+    <!-- Related CTF -->
+    <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-6">
+        <h3 class="text-xl font-bold text-white mb-4">🎮 CTF Relacionado</h3>
+        <a [routerLink]="['/ctf', writeup.ctf_id]" class="text-purple-400 hover:text-purple-300 font-medium">
+            Ver challenge original →
+        </a>
+    </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="container mx-auto px-4 py-20 flex justify-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+</div>
+
+<!-- Error -->
+<div *ngIf="error && !loading" class="container mx-auto px-4 py-20">
+    <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center max-w-md mx-auto">
+        <p class="text-red-200 mb-4">{{ error }}</p>
+        <a routerLink="/writeups" class="text-purple-400 hover:text-purple-300">Volver a writeups</a>
+    </div>
+</div>

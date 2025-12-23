@@ -1,0 +1,7 @@
+.nav-link {
+  @apply text-textSecondary hover:text-primary transition-colors duration-300 text-sm font-medium;
+}
+
+.nav-link-mobile {
+  @apply text-textSecondary hover:text-primary transition-colors duration-300 py-2 text-base;
+}

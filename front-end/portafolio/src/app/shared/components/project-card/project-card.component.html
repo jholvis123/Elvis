@@ -1,0 +1,36 @@
+<article 
+  class="card h-full flex flex-col gap-4 reveal"
+  [style.transition-delay.ms]="index * 100"
+  role="listitem">
+  
+  <!-- Header con gradiente -->
+  <div class="rounded-xl bg-gradient-to-br from-primary/10 via-surface to-surface p-4 border border-slate-800">
+    <div class="flex items-center justify-between text-sm text-textSecondary">
+      <span>Security by Design</span>
+      <span class="text-primary">{{ project.year }}</span>
+    </div>
+    <h3 class="text-lg font-semibold text-textPrimary mt-2">{{ project.title }}</h3>
+    <p class="text-sm text-textSecondary">{{ project.description }}</p>
+  </div>
+
+  <!-- Tags -->
+  <div class="flex flex-wrap gap-2 text-xs text-textSecondary" role="list" aria-label="Tecnologías usadas">
+    <span 
+      *ngFor="let tag of project.tags" 
+      class="pill" 
+      role="listitem">
+      {{ tag }}
+    </span>
+  </div>
+
+  <!-- Footer -->
+  <div class="flex items-center justify-between mt-auto">
+    <button 
+      class="text-primary hover:text-primaryHover text-sm font-semibold flex items-center gap-1 group transition-all duration-300"
+      [attr.aria-label]="project.cta + ' del proyecto ' + project.title">
+      {{ project.cta }} 
+      <span class="group-hover:translate-x-1 transition-transform" aria-hidden="true">→</span>
+    </button>
+    <span class="text-xs text-textSecondary">Entrega end-to-end</span>
+  </div>
+</article>

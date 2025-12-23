@@ -1,0 +1,79 @@
+<article 
+  class="ctf-card group"
+  [class.ctf-card--solved]="isSolved">
+  
+  <!-- Header -->
+  <div class="ctf-card__header">
+    <div class="flex items-center gap-2">
+      <span class="text-lg" aria-hidden="true">{{ categoryInfo?.icon }}</span>
+      <span class="text-xs text-textSecondary uppercase tracking-wide">{{ categoryInfo?.label }}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- Difficulty Badge -->
+      <span 
+        class="px-2 py-0.5 text-xs rounded-full border"
+        [ngClass]="difficultyColorClass">
+        {{ difficultyInfo?.label }}
+      </span>
+      <!-- Solved Badge -->
+      <span 
+        *ngIf="isSolved" 
+        class="px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary border border-primary/30">
+        ✓ Resuelto
+      </span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="ctf-card__content">
+    <h3 class="ctf-card__title">{{ challenge.title }}</h3>
+    <p *ngIf="showDetails" class="ctf-card__description">{{ challenge.description }}</p>
+    
+    <!-- Skills -->
+    <div class="ctf-card__skills" *ngIf="challenge.skills.length">
+      <span 
+        *ngFor="let skill of challenge.skills" 
+        class="ctf-card__skill">
+        {{ skill }}
+      </span>
+    </div>
+
+    <!-- Attachments/Resources -->
+    <div class="ctf-card__attachments" *ngIf="challenge.attachments?.length">
+      <span 
+        *ngFor="let attachment of challenge.attachments" 
+        class="ctf-card__attachment"
+        [ngClass]="getAttachmentClass(attachment.type)"
+        [title]="attachment.name">
+        <span class="ctf-card__attachment-icon">{{ getAttachmentIcon(attachment.type) }}</span>
+        <span class="ctf-card__attachment-label">{{ getAttachmentLabel(attachment.type) }}</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="ctf-card__footer">
+    <div class="flex items-center gap-4 text-xs text-textSecondary">
+      <span class="flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ challenge.points }} pts
+      </span>
+      <span class="flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        {{ challenge.solvedCount }} resueltos
+      </span>
+    </div>
+
+    <a 
+      [routerLink]="['/ctf', challenge.id]"
+      class="ctf-card__cta"
+      [attr.aria-label]="isSolved ? 'Ver reto ' + challenge.title : 'Resolver reto ' + challenge.title">
+      {{ isSolved ? 'Ver detalles' : 'Resolver' }}
+      <span class="group-hover:translate-x-1 transition-transform" aria-hidden="true">→</span>
+    </a>
+  </div>
+</article>

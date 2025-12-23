@@ -1,0 +1,111 @@
+/**
+ * Dynamic List Component Styles
+ */
+
+.dynamic-list {
+  @apply space-y-3;
+  
+  &--disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+  
+  // Header
+  &__header {
+    @apply flex items-center justify-between;
+  }
+  
+  &__label {
+    @apply text-sm font-medium text-textPrimary;
+  }
+  
+  &__count {
+    @apply text-xs text-textSecondary bg-slate-800 px-2 py-0.5 rounded;
+  }
+  
+  // Input Row
+  &__input-row {
+    @apply flex gap-2;
+  }
+  
+  &__input {
+    @apply flex-1 bg-slate-800 border border-slate-700 rounded-lg
+           px-3 py-2.5 text-sm text-textPrimary placeholder:text-slate-500
+           focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none
+           transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  &__add-btn {
+    @apply inline-flex items-center gap-1.5 px-4 py-2.5
+           bg-primary text-background text-sm font-medium rounded-lg
+           hover:bg-primary/90 transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary;
+  }
+  
+  // Error
+  &__error {
+    @apply text-xs text-red-400;
+  }
+  
+  // Items List (default)
+  &__items {
+    @apply space-y-1 bg-slate-800/30 rounded-lg p-2 border border-slate-700/50;
+  }
+  
+  &__item {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg
+           hover:bg-slate-800 transition-colors;
+  }
+  
+  &__item-icon {
+    @apply text-primary text-sm w-5 flex-shrink-0;
+  }
+  
+  &__item-text {
+    @apply flex-1 text-sm text-textPrimary truncate;
+  }
+  
+  &__item-remove {
+    @apply p-1 text-slate-500 hover:text-red-400 
+           hover:bg-red-500/10 rounded transition-colors
+           opacity-0 group-hover:opacity-100
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  // Compact variant
+  &--compact &__items {
+    @apply p-1 space-y-0;
+  }
+  
+  &--compact &__item {
+    @apply px-2 py-1.5;
+  }
+  
+  // Tags variant
+  &__tags {
+    @apply flex flex-wrap gap-2;
+  }
+  
+  &__tag {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5
+           bg-primary/10 text-primary text-sm rounded-full
+           border border-primary/20;
+  }
+  
+  &__tag-remove {
+    @apply p-0.5 hover:bg-primary/20 rounded-full transition-colors
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  // Empty state
+  &__empty {
+    @apply text-sm text-textSecondary text-center py-6 
+           bg-slate-800/30 rounded-lg border border-slate-700/30;
+  }
+  
+  // Clear button
+  &__clear {
+    @apply text-xs text-textSecondary hover:text-red-400 transition-colors
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}

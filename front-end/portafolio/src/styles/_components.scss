@@ -1,0 +1,58 @@
+// Componentes globales con Tailwind
+@layer components {
+  // Botones
+  .btn-primary {
+    @apply bg-primary text-black px-6 py-2 rounded font-semibold 
+           hover:bg-primaryHover transition-all duration-300 
+           hover:shadow-lg hover:shadow-primary/20;
+  }
+
+  .btn-outline {
+    @apply border border-primary text-primary px-6 py-2 rounded 
+           hover:bg-primary hover:text-black transition-all duration-300;
+  }
+
+  // Cards
+  .card {
+    @apply bg-card border border-slate-700 rounded-lg p-5 
+           transition-all duration-300 hover:border-primary/50 
+           hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1;
+  }
+
+  // Typography
+  .section-title {
+    @apply text-2xl font-bold mb-6;
+  }
+
+  .muted-text {
+    @apply text-textSecondary;
+  }
+
+  // Section layout
+  .section {
+    @apply py-16 md:py-20 bg-background;
+  }
+
+  .section-heading {
+    @apply text-3xl md:text-4xl font-bold text-textPrimary leading-tight;
+  }
+
+  .eyebrow {
+    @apply text-xs uppercase tracking-[0.2em] text-primary font-semibold mb-2;
+  }
+
+  // Form elements
+  .input {
+    @apply w-full bg-card border border-slate-800 rounded-lg px-4 py-3 
+           text-textPrimary placeholder:text-textSecondary/70 
+           focus:border-primary focus:outline-none focus:ring-2 
+           focus:ring-primary/20 transition;
+  }
+
+  // Pills/Badges
+  .pill {
+    @apply px-3 py-1 rounded-full bg-card border border-slate-800 
+           text-textSecondary hover:border-primary/50 hover:text-primary 
+           transition-all duration-300;
+  }
+}

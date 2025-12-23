@@ -1,0 +1,108 @@
+# Configuración de Dependabot
+# Actualiza dependencias automáticamente y crea PRs
+
+version: 2
+updates:
+  # ============================================
+  # 🐍 Dependencias Python (Backend)
+  # ============================================
+  - package-ecosystem: "pip"
+    directory: "/back-end"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Lima"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "jholvis123"  # Tu nombre de usuario de GitHub
+    labels:
+      - "dependencias"
+      - "python"
+      - "seguridad"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      # Agrupar actualizaciones menores juntas
+      python-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ============================================
+  # 📗 Dependencias NPM (Frontend)
+  # ============================================
+  - package-ecosystem: "npm"
+    directory: "/front-end/portafolio"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Lima"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "jholvis123"  # Tu nombre de usuario de GitHub
+    labels:
+      - "dependencias"
+      - "javascript"
+      - "seguridad"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      # Agrupar actualizaciones de Angular juntas
+      angular:
+        patterns:
+          - "@angular*"
+          - "@angular-devkit*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Agrupar otras dependencias menores
+      npm-minor:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@angular*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ============================================
+  # 🐳 Dependencias Docker
+  # ============================================
+  - package-ecosystem: "docker"
+    directory: "/back-end"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencias"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/front-end"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencias"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # ============================================
+  # 🔧 GitHub Actions
+  # ============================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencias"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"

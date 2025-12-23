@@ -1,0 +1,85 @@
+/**
+ * URL Input Component Styles
+ */
+
+.url-input {
+  @apply space-y-1.5;
+  
+  &--disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+  
+  // Label
+  &__label {
+    @apply block text-sm font-medium text-textPrimary;
+  }
+  
+  // Container
+  &__container {
+    @apply flex items-center bg-slate-800 border border-slate-700 
+           rounded-lg overflow-hidden transition-all duration-200
+           focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30;
+    
+    &--error {
+      @apply border-red-500 focus-within:border-red-500 focus-within:ring-red-500/30;
+    }
+    
+    &--success {
+      @apply border-emerald-500/50;
+    }
+  }
+  
+  // Prefix (icon)
+  &__prefix {
+    @apply flex items-center justify-center px-3 text-slate-500
+           bg-slate-800/50 border-r border-slate-700 h-11;
+  }
+  
+  // Input field
+  &__field {
+    @apply flex-1 bg-transparent border-0 text-textPrimary text-sm
+           px-3 py-2.5 h-11 outline-none placeholder:text-slate-500;
+    
+    &:disabled {
+      @apply cursor-not-allowed;
+    }
+  }
+  
+  // Suffix (status + clear)
+  &__suffix {
+    @apply flex items-center gap-1 px-2;
+  }
+  
+  // Status icons
+  &__status {
+    @apply flex items-center justify-center p-1;
+    
+    &--loading {
+      @apply text-primary;
+    }
+    
+    &--success {
+      @apply text-emerald-400;
+    }
+    
+    &--error {
+      @apply text-red-400;
+    }
+  }
+  
+  // Clear button
+  &__clear {
+    @apply p-1.5 text-slate-500 hover:text-textPrimary 
+           hover:bg-slate-700 rounded transition-colors;
+  }
+  
+  // Hint
+  &__hint {
+    @apply text-xs text-textSecondary;
+  }
+  
+  // Error message
+  &__error {
+    @apply text-xs text-red-400 flex items-center gap-1;
+  }
+}

@@ -1,0 +1,111 @@
+<div class="bg-surface border border-slate-800 rounded-2xl p-6 shadow-lg reveal-right hover:border-primary/30 transition-all duration-500">
+  <!-- Success message -->
+  <div *ngIf="submitSuccess" class="mb-4 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+    <p class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      ¡Mensaje enviado! Te responderé pronto.
+    </p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="submitError" class="mb-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400">
+    <p class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      Error al enviar. Por favor, intenta de nuevo.
+    </p>
+  </div>
+
+  <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="space-y-4" aria-label="Formulario de contacto">
+    <!-- Name -->
+    <div>
+      <label for="contact-name" class="block text-sm text-textSecondary mb-2">Nombre</label>
+      <input 
+        type="text" 
+        id="contact-name" 
+        formControlName="name"
+        placeholder="Tu nombre" 
+        class="input"
+        [class.border-red-500]="f['name'].touched && f['name'].invalid"
+        aria-required="true" />
+      <p *ngIf="f['name'].touched && f['name'].errors?.['required']" class="text-red-400 text-xs mt-1">
+        El nombre es requerido
+      </p>
+    </div>
+
+    <!-- Email -->
+    <div>
+      <label for="contact-email" class="block text-sm text-textSecondary mb-2">Email</label>
+      <input 
+        type="email" 
+        id="contact-email" 
+        formControlName="email"
+        placeholder="correo&#64;ejemplo.com" 
+        class="input"
+        [class.border-red-500]="f['email'].touched && f['email'].invalid"
+        aria-required="true" />
+      <p *ngIf="f['email'].touched && f['email'].errors?.['required']" class="text-red-400 text-xs mt-1">
+        El email es requerido
+      </p>
+      <p *ngIf="f['email'].touched && f['email'].errors?.['email']" class="text-red-400 text-xs mt-1">
+        Ingresa un email válido
+      </p>
+    </div>
+
+    <!-- Project Type -->
+    <div>
+      <label for="contact-project" class="block text-sm text-textSecondary mb-2">Tipo de proyecto</label>
+      <select 
+        id="contact-project" 
+        formControlName="projectType"
+        class="input"
+        [class.border-red-500]="f['projectType'].touched && f['projectType'].invalid"
+        aria-required="true">
+        <option value="">Selecciona una opción</option>
+        <option *ngFor="let type of projectTypes" [value]="type.value">{{ type.label }}</option>
+      </select>
+      <p *ngIf="f['projectType'].touched && f['projectType'].errors?.['required']" class="text-red-400 text-xs mt-1">
+        Selecciona un tipo de proyecto
+      </p>
+    </div>
+
+    <!-- Message -->
+    <div>
+      <label for="contact-message" class="block text-sm text-textSecondary mb-2">Mensaje</label>
+      <textarea 
+        id="contact-message" 
+        formControlName="message"
+        rows="4" 
+        placeholder="Cuéntame sobre tu proyecto o reto..." 
+        class="input"
+        [class.border-red-500]="f['message'].touched && f['message'].invalid"
+        aria-required="true"></textarea>
+      <p *ngIf="f['message'].touched && f['message'].errors?.['required']" class="text-red-400 text-xs mt-1">
+        El mensaje es requerido
+      </p>
+      <p *ngIf="f['message'].touched && f['message'].errors?.['minlength']" class="text-red-400 text-xs mt-1">
+        El mensaje debe tener al menos 10 caracteres
+      </p>
+    </div>
+
+    <!-- Submit button -->
+    <button 
+      type="submit" 
+      class="btn-primary w-full flex items-center justify-center gap-2"
+      [disabled]="isSubmitting"
+      [class.opacity-50]="isSubmitting"
+      [class.cursor-not-allowed]="isSubmitting">
+      <svg *ngIf="!isSubmitting" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+      </svg>
+      <svg *ngIf="isSubmitting" class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      {{ isSubmitting ? 'Enviando...' : 'Enviar mensaje' }}
+    </button>
+  </form>
+</div>

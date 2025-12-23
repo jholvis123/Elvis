@@ -1,0 +1,62 @@
+<div class="relative animate-slide-right" style="animation-delay: 0.3s">
+  <!-- Decorative blurs -->
+  <div class="absolute -left-10 -top-10 w-56 h-56 rounded-full bg-primary/10 blur-3xl" aria-hidden="true"></div>
+  <div class="absolute -right-6 bottom-4 w-44 h-44 rounded-full bg-cyan-500/10 blur-3xl" aria-hidden="true"></div>
+
+  <div
+    class="relative bg-surface border border-slate-800 rounded-2xl p-6 shadow-xl hover:border-primary/30 transition-all duration-500">
+    <!-- Window controls -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2" aria-hidden="true">
+        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+        <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+      </div>
+      <span class="text-xs text-textSecondary">portfolio.ts</span>
+    </div>
+
+    <!-- Code content -->
+    <div class="space-y-3 text-sm font-mono" aria-label="Código decorativo">
+      <div class="flex gap-2">
+        <span class="text-slate-500">1</span>
+        <span class="text-primary">const</span>
+        <span class="text-textPrimary">profile</span>
+        <span class="text-primary">=</span>
+        <span class="text-cyan-300">{{ '{' }}</span>
+      </div>
+      <div class="flex gap-2 pl-6 min-h-[1.25rem]">
+        <span class="text-slate-500">2</span>
+        <span class="text-textSecondary">rol:</span>
+        <span class="text-emerald-300">{{ displayedRole }}</span>
+        <span class="text-cyan-300" *ngIf="displayedRole.length > 0 && !isTypingProperty('displayedRole')">,</span>
+        <span class="cursor" *ngIf="isTypingProperty('displayedRole')"></span>
+      </div>
+      <div class="flex gap-2 pl-6 min-h-[1.25rem]">
+        <span class="text-slate-500">3</span>
+        <span class="text-textSecondary">stack:</span>
+        <span class="text-emerald-300">{{ displayedStack }}</span>
+        <span class="text-cyan-300" *ngIf="displayedStack.length > 0 && !isTypingProperty('displayedStack')">,</span>
+        <span class="cursor" *ngIf="isTypingProperty('displayedStack')"></span>
+      </div>
+      <div class="flex gap-2 pl-6 min-h-[1.25rem]">
+        <span class="text-slate-500">4</span>
+        <span class="text-textSecondary">estado:</span>
+        <span class="text-emerald-300">{{ displayedStatus }}</span>
+        <span class="cursor" *ngIf="isTypingProperty('displayedStatus')"></span>
+      </div>
+      <div class="flex gap-2">
+        <span class="text-slate-500">5</span>
+        <span class="text-cyan-300">{{ '}' }};</span>
+      </div>
+    </div>
+
+    <!-- Quote -->
+    <div class="mt-6 p-4 rounded-xl border border-slate-800 bg-card/70 min-h-[80px]">
+      <p class="text-textSecondary text-sm italic">
+        "{{ displayedQuote }}"<span class="cursor" *ngIf="isTypingProperty('displayedQuote')"></span>
+      </p>
+      <p class="text-primary text-sm font-semibold mt-2 animate-fade-in"
+        *ngIf="displayedQuote.length > 0 && !isTypingProperty('displayedQuote')">— Elvis</p>
+    </div>
+  </div>
+</div>

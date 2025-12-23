@@ -1,0 +1,31 @@
+<!-- Home Page - Orquestador de secciones -->
+
+<!-- Hero Section -->
+<app-hero-section
+  [highlights]="highlights"
+  [technologies]="technologies"
+  [roles]="roles">
+</app-hero-section>
+
+<!-- About Section -->
+<app-about-section
+  [aboutPoints]="aboutPoints"
+  [stackItems]="stackItems">
+</app-about-section>
+
+<!-- Projects Section -->
+<app-projects-section
+  [projects]="projects">
+</app-projects-section>
+
+<!-- Contact Section -->
+<app-contact-section
+  [contactInfo]="contactInfo"
+  [projectTypes]="projectTypes">
+</app-contact-section>
+
+<!-- Scroll to Top Button -->
+<app-scroll-to-top
+  [show]="showScrollTop"
+  (scrollTop)="scrollToTop()">
+</app-scroll-to-top>

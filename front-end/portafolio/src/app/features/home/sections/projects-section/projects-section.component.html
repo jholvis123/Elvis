@@ -1,0 +1,22 @@
+<section id="projects" class="section bg-slate-950/60" aria-labelledby="projects-heading">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex items-center justify-between mb-8 reveal">
+      <div>
+        <p class="eyebrow">Proyectos</p>
+        <h2 id="projects-heading" class="section-heading">Casos destacados</h2>
+      </div>
+      <a href="#contact" class="text-primary hover:text-primaryHover transition-all duration-300 text-sm flex items-center gap-1 group">
+        Solicitar demo 
+        <span class="group-hover:translate-x-1 transition-transform" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6" role="list" aria-label="Lista de proyectos">
+      <app-project-card 
+        *ngFor="let project of projects; let i = index"
+        [project]="project"
+        [index]="i">
+      </app-project-card>
+    </div>
+  </div>
+</section>

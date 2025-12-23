@@ -1,0 +1,58 @@
+<!-- Category Selector Component Template -->
+<div class="category-selector" [class.category-selector--disabled]="disabled">
+  <!-- Label -->
+  <label *ngIf="label" class="category-selector__label">
+    {{ label }}
+    <span *ngIf="required" class="text-red-400">*</span>
+  </label>
+  
+  <!-- Grid View (default) -->
+  <div *ngIf="!compact" class="category-selector__grid">
+    <button 
+      *ngFor="let cat of categories"
+      type="button"
+      class="category-selector__card"
+      [class.category-selector__card--selected]="isSelected(cat.value)"
+      [disabled]="disabled"
+      (click)="selectCategory(cat.value)">
+      
+      <span class="category-selector__icon">{{ cat.icon }}</span>
+      <span class="category-selector__name">{{ cat.label }}</span>
+      <span class="category-selector__description">{{ cat.description }}</span>
+      
+      <span *ngIf="showAttachmentInfo" class="category-selector__attachment-info">
+        {{ cat.attachmentInfo }}
+      </span>
+      
+      <!-- Check icon when selected -->
+      <div *ngIf="isSelected(cat.value)" class="category-selector__check">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+    </button>
+  </div>
+  
+  <!-- Compact View (chips) -->
+  <div *ngIf="compact" class="category-selector__chips">
+    <button 
+      *ngFor="let cat of categories"
+      type="button"
+      class="category-selector__chip"
+      [class.category-selector__chip--selected]="isSelected(cat.value)"
+      [disabled]="disabled"
+      (click)="selectCategory(cat.value)">
+      <span>{{ cat.icon }}</span>
+      <span>{{ cat.label }}</span>
+    </button>
+  </div>
+  
+  <!-- Selected Info -->
+  <div *ngIf="selectedCategory && showAttachmentInfo" class="category-selector__info">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>Esta categoría requiere: <strong>{{ getSelectedInfo() }}</strong></span>
+  </div>
+</div>

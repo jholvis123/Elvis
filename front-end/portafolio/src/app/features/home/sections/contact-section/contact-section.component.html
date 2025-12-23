@@ -1,0 +1,18 @@
+<section id="contact" class="section" aria-labelledby="contact-heading">
+  <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-8 items-start">
+    <div class="space-y-4 reveal-left">
+      <p class="eyebrow">Contacto</p>
+      <h2 id="contact-heading" class="section-heading">Construyamos algo seguro</h2>
+      <p class="muted-text">Cuéntame sobre tu reto y te responderé con una propuesta concreta.</p>
+      
+      <div class="space-y-4 text-sm text-textSecondary">
+        <app-contact-link 
+          *ngFor="let contact of contactInfo"
+          [contact]="contact">
+        </app-contact-link>
+      </div>
+    </div>
+
+    <app-contact-form [projectTypes]="projectTypes"></app-contact-form>
+  </div>
+</section>

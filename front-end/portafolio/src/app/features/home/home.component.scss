@@ -1,0 +1,73 @@
+.section {
+	@apply py-16 md:py-20 bg-background;
+}
+
+.section-heading {
+	@apply text-3xl md:text-4xl font-bold text-textPrimary leading-tight;
+}
+
+.eyebrow {
+	@apply text-xs uppercase tracking-[0.2em] text-primary font-semibold mb-2;
+}
+
+.muted-text {
+	@apply text-textSecondary;
+}
+
+.pill {
+  @apply px-3 py-1 rounded-full bg-card border border-slate-800 text-textSecondary hover:border-primary/50 hover:text-primary transition-all duration-300;
+}
+
+.input {
+  @apply w-full bg-card border border-slate-800 rounded-lg px-4 py-3 text-textPrimary placeholder:text-textSecondary/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition;
+}
+
+/* Typing effect cursor */
+.typing-text {
+  display: inline;
+}
+
+.typing-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+  color: theme('colors.primary');
+  font-weight: 300;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Animation utilities */
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

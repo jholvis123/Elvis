@@ -1,0 +1,276 @@
+name: 🔒 Análisis de Seguridad
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  schedule:
+    # Ejecutar cada lunes a las 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Permite ejecución manual
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+env:
+  PYTHON_VERSION: '3.10'
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================
+  # 🐍 SEGURIDAD BACKEND (Python/FastAPI)
+  # ============================================
+  
+  backend-security:
+    name: 🐍 Escaneo Seguridad Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back-end
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: './back-end/requirements.txt'
+
+      - name: 📦 Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit safety pip-audit semgrep
+
+      - name: 🔍 Bandit - Linter de Seguridad
+        run: |
+          bandit -r app/ -f json -o bandit-report.json --severity-level medium || true
+          bandit -r app/ -f txt --severity-level medium
+        continue-on-error: true
+
+      - name: 📊 Subir Reporte Bandit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-seguridad-bandit
+          path: back-end/bandit-report.json
+          retention-days: 30
+
+      - name: 🛡️ Safety - Vulnerabilidades en Dependencias
+        run: |
+          safety check --full-report -r requirements.txt || true
+        continue-on-error: true
+
+      - name: 🔐 Pip-audit - Escáner de CVEs
+        run: |
+          pip-audit --desc --format json --output pip-audit-report.json || true
+          pip-audit --desc || true
+        continue-on-error: true
+
+      - name: 📊 Subir Reporte Pip-audit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-pip-audit
+          path: back-end/pip-audit-report.json
+          retention-days: 30
+
+      - name: 🔎 Semgrep - Análisis SAST
+        run: |
+          semgrep --config auto --config p/python --config p/security-audit \
+            --json --output semgrep-backend.json \
+            app/ || true
+        continue-on-error: true
+
+      - name: 📊 Subir Reporte Semgrep
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-semgrep-backend
+          path: back-end/semgrep-backend.json
+          retention-days: 30
+
+  # ============================================
+  # 🅰️ SEGURIDAD FRONTEND (Angular/Node)
+  # ============================================
+  
+  frontend-security:
+    name: 🅰️ Escaneo Seguridad Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front-end/portafolio
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 📗 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './front-end/portafolio/package-lock.json'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🔍 NPM Audit - Escaneo de Vulnerabilidades
+        run: |
+          npm audit --json > npm-audit-report.json || true
+          npm audit --audit-level=moderate || true
+        continue-on-error: true
+
+      - name: 📊 Subir Reporte NPM Audit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-npm-audit
+          path: front-end/portafolio/npm-audit-report.json
+          retention-days: 30
+
+      - name: 🔎 Semgrep - Análisis SAST
+        run: |
+          pip install semgrep
+          semgrep --config auto --config p/typescript --config p/javascript \
+            --json --output semgrep-frontend.json \
+            src/ || true
+        continue-on-error: true
+
+      - name: 📊 Subir Reporte Semgrep Frontend
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-semgrep-frontend
+          path: front-end/portafolio/semgrep-frontend.json
+          retention-days: 30
+
+  # ============================================
+  # 🔑 DETECCIÓN DE SECRETOS
+  # ============================================
+  
+  secrets-scan:
+    name: 🔑 Detección de Secretos
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Historial completo para mejor detección
+
+      - name: 🔍 Gitleaks - Escáner de Secretos
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: true
+
+      - name: 🔐 TruffleHog - Escaneo Profundo de Secretos
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+        continue-on-error: true
+
+  # ============================================
+  # 🐳 SEGURIDAD DOCKER
+  # ============================================
+  
+  docker-security:
+    name: 🐳 Escaneo Seguridad Docker
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 🔍 Hadolint - Linter de Dockerfile (Backend)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./back-end/Dockerfile
+          failure-threshold: warning
+        continue-on-error: true
+
+      - name: 🔍 Hadolint - Linter de Dockerfile (Frontend)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./front-end/Dockerfile
+          failure-threshold: warning
+        continue-on-error: true
+
+      - name: 🐳 Construir Imagen Backend
+        run: |
+          docker build -t portfolio-backend:scan ./back-end
+
+      - name: 🛡️ Trivy - Escaneo Vulnerabilidades Contenedor (Backend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'portfolio-backend:scan'
+          format: 'sarif'
+          output: 'trivy-backend.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+        continue-on-error: true
+
+      - name: 📊 Subir Resultados Trivy Backend
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-backend.sarif'
+          category: 'trivy-backend'
+        continue-on-error: true
+
+      - name: 🐳 Construir Imagen Frontend
+        run: |
+          cd front-end/portafolio && npm ci && cd ..
+          docker build -t portfolio-frontend:scan ./front-end
+
+      - name: 🛡️ Trivy - Escaneo Vulnerabilidades Contenedor (Frontend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'portfolio-frontend:scan'
+          format: 'sarif'
+          output: 'trivy-frontend.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+        continue-on-error: true
+
+      - name: 📊 Subir Resultados Trivy Frontend
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-frontend.sarif'
+          category: 'trivy-frontend'
+        continue-on-error: true
+
+  # ============================================
+  # 📋 RESUMEN DE SEGURIDAD
+  # ============================================
+  
+  security-summary:
+    name: 📋 Resumen de Seguridad
+    runs-on: ubuntu-latest
+    needs: [backend-security, frontend-security, secrets-scan, docker-security]
+    if: always()
+    
+    steps:
+      - name: 📊 Generar Resumen
+        run: |
+          echo "## 🔒 Resumen del Escaneo de Seguridad" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Escaneo | Estado |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐍 Seguridad Backend | ${{ needs.backend-security.result == 'success' && '✅ Aprobado' || '⚠️ Revisar Reportes' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🅰️ Seguridad Frontend | ${{ needs.frontend-security.result == 'success' && '✅ Aprobado' || '⚠️ Revisar Reportes' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔑 Detección Secretos | ${{ needs.secrets-scan.result == 'success' && '✅ Sin Secretos' || '🚨 Requiere Revisión' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐳 Seguridad Docker | ${{ needs.docker-security.result == 'success' && '✅ Aprobado' || '⚠️ Revisar Reportes' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Artefactos:** Revisa la ejecución del workflow para reportes detallados" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🕐 **Escaneo completado:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY

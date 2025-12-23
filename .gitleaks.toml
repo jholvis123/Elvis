@@ -1,0 +1,63 @@
+# Gitleaks configuration file
+# https://github.com/gitleaks/gitleaks
+
+title = "Portfolio Security - Gitleaks Config"
+
+[extend]
+# Extend default gitleaks rules
+useDefault = true
+
+# ============================================
+# ALLOWLIST - Files/patterns to ignore
+# ============================================
+[allowlist]
+description = "Allowlist for false positives"
+
+# Files to ignore
+paths = [
+    '''\.env\.example$''',
+    '''\.env\.sample$''',
+    '''package-lock\.json$''',
+    '''yarn\.lock$''',
+    '''requirements\.txt$''',
+    '''\.gitleaks\.toml$''',
+    '''SECURITY\.md$''',
+]
+
+# Regex patterns to ignore (false positives)
+regexes = [
+    '''your-super-secret-key-change-in-production''',
+    '''test-secret-key-for-ci-testing-only''',
+    '''change_this_secret_key_in_production''',
+    '''CambiaEstaContraseñaSegura''',
+]
+
+# ============================================
+# CUSTOM RULES
+# ============================================
+
+[[rules]]
+id = "hardcoded-password-assignment"
+description = "Hardcoded password in assignment"
+regex = '''(?i)(password|passwd|pwd|secret)\s*[=:]\s*[\"'][^\"']{8,}[\"']'''
+keywords = ["password", "passwd", "pwd", "secret"]
+entropy = 3.5
+
+[[rules]]
+id = "database-url-with-password"
+description = "Database URL with embedded password"
+regex = '''(?i)(mysql|postgres|postgresql|mongodb|redis):\/\/[^:]+:[^@]+@'''
+keywords = ["mysql://", "postgres://", "mongodb://", "redis://"]
+
+[[rules]]
+id = "jwt-secret"
+description = "JWT Secret Key"
+regex = '''(?i)(jwt[_-]?secret|secret[_-]?key)\s*[=:]\s*[\"'][^\"']{16,}[\"']'''
+keywords = ["jwt", "secret_key", "SECRET_KEY"]
+entropy = 3.0
+
+[[rules]]
+id = "api-key-generic"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey)\s*[=:]\s*[\"'][a-zA-Z0-9]{20,}[\"']'''
+keywords = ["api_key", "apikey", "API_KEY"]

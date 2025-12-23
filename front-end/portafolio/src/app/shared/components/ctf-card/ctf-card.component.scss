@@ -1,0 +1,74 @@
+.ctf-card {
+  @apply bg-surface border border-slate-800 rounded-xl p-5 flex flex-col gap-4;
+  @apply hover:border-primary/40 transition-all duration-300;
+
+  &--solved {
+    @apply border-primary/30 bg-primary/5;
+  }
+
+  &__header {
+    @apply flex items-center justify-between;
+  }
+
+  &__content {
+    @apply flex-1 space-y-3;
+  }
+
+  &__title {
+    @apply text-lg font-semibold text-textPrimary;
+    @apply group-hover:text-primary transition-colors;
+  }
+
+  &__description {
+    @apply text-sm text-textSecondary line-clamp-2;
+  }
+
+  &__skills {
+    @apply flex flex-wrap gap-2;
+  }
+
+  &__skill {
+    @apply px-2 py-1 text-xs rounded-md;
+    @apply bg-slate-800 text-textSecondary border border-slate-700;
+  }
+
+  // Attachments/Resources
+  &__attachments {
+    @apply flex flex-wrap gap-2 pt-2;
+  }
+
+  &__attachment {
+    @apply inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md;
+    @apply bg-slate-800/50 text-textSecondary border border-slate-700/50;
+    @apply transition-colors;
+
+    &--file {
+      @apply bg-blue-500/10 text-blue-400 border-blue-500/20;
+    }
+
+    &--url {
+      @apply bg-emerald-500/10 text-emerald-400 border-emerald-500/20;
+    }
+
+    &--docker {
+      @apply bg-cyan-500/10 text-cyan-400 border-cyan-500/20;
+    }
+  }
+
+  &__attachment-icon {
+    @apply text-sm;
+  }
+
+  &__attachment-label {
+    @apply text-xs;
+  }
+
+  &__footer {
+    @apply flex items-center justify-between pt-3 border-t border-slate-800;
+  }
+
+  &__cta {
+    @apply text-primary text-sm font-medium flex items-center gap-1;
+    @apply hover:text-primaryHover transition-colors;
+  }
+}

@@ -1,0 +1,40 @@
+// Estilos base
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  background-color: var(--color-background, #020617);
+  color: var(--color-text-primary, #e5e7eb);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+// Focus states para accesibilidad
+*:focus-visible {
+  outline: 2px solid var(--color-primary, #22d3ee);
+  outline-offset: 2px;
+}
+
+// Selection
+::selection {
+  background-color: var(--color-primary, #22d3ee);
+  color: var(--color-background, #020617);
+}
+
+// Scrollbar personalizada
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface, #0f172a);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-card, #1e293b);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--color-primary, #22d3ee);
+  }
+}

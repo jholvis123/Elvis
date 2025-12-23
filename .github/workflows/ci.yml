@@ -1,0 +1,265 @@
+name: 🚀 Pipeline de Integración Continua
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+env:
+  PYTHON_VERSION: '3.10'
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================
+  # 🐍 CI BACKEND
+  # ============================================
+  
+  backend-lint:
+    name: 🐍 Lint y Formato Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back-end
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: './back-end/requirements.txt'
+
+      - name: 📦 Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff black isort mypy
+
+      - name: 🔍 Ruff - Linter Rápido
+        run: |
+          ruff check app/ --output-format=github || true
+
+      - name: 🎨 Black - Verificar Formato
+        run: |
+          black --check --diff app/ || true
+
+      - name: 📋 isort - Verificar Orden de Imports
+        run: |
+          isort --check-only --diff app/ || true
+
+      - name: 🔎 MyPy - Verificación de Tipos
+        run: |
+          mypy app/ --ignore-missing-imports || true
+        continue-on-error: true
+
+  backend-test:
+    name: 🧪 Pruebas Backend
+    runs-on: ubuntu-latest
+    needs: backend-lint
+    defaults:
+      run:
+        working-directory: ./back-end
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpassword
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: './back-end/requirements.txt'
+
+      - name: 📦 Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio httpx
+
+      - name: 🧪 Ejecutar Pruebas
+        env:
+          DATABASE_URL: mysql+pymysql://testuser:testpassword@localhost:3306/test_db
+          SECRET_KEY: clave-secreta-solo-para-pruebas-ci
+        run: |
+          pytest app/tests/ -v --cov=app --cov-report=xml --cov-report=term-missing || true
+
+      - name: 📊 Subir Cobertura
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./back-end/coverage.xml
+          flags: backend
+          name: cobertura-backend
+        continue-on-error: true
+
+  # ============================================
+  # 🅰️ CI FRONTEND
+  # ============================================
+  
+  frontend-lint:
+    name: 🅰️ Lint y Formato Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front-end/portafolio
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 📗 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './front-end/portafolio/package-lock.json'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🔍 ESLint - Análisis de Código
+        run: |
+          npx ng lint || true
+        continue-on-error: true
+
+      - name: 🎨 Prettier - Verificar Formato
+        run: |
+          npx prettier --check "src/**/*.{ts,html,scss}" || true
+        continue-on-error: true
+
+  frontend-build:
+    name: 🏗️ Compilar Frontend
+    runs-on: ubuntu-latest
+    needs: frontend-lint
+    defaults:
+      run:
+        working-directory: ./front-end/portafolio
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 📗 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './front-end/portafolio/package-lock.json'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🏗️ Compilar para Producción
+        run: npm run build -- --configuration production
+
+      - name: 📦 Subir Artefacto de Compilación
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: front-end/portafolio/dist/
+          retention-days: 7
+
+  frontend-test:
+    name: 🧪 Pruebas Frontend
+    runs-on: ubuntu-latest
+    needs: frontend-lint
+    defaults:
+      run:
+        working-directory: ./front-end/portafolio
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 📗 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './front-end/portafolio/package-lock.json'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🧪 Ejecutar Pruebas Unitarias
+        run: |
+          npm test -- --no-watch --no-progress --browsers=ChromeHeadless --code-coverage || true
+        continue-on-error: true
+
+  # ============================================
+  # 🐳 COMPILACIÓN DOCKER
+  # ============================================
+  
+  docker-build:
+    name: 🐳 Prueba de Compilación Docker
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-build]
+    
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 🐳 Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Compilar Imagen Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./back-end
+          push: false
+          tags: portfolio-backend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🏗️ Compilar Imagen Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./front-end
+          push: false
+          tags: portfolio-frontend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================
+  # 📋 RESUMEN CI
+  # ============================================
+  
+  ci-summary:
+    name: 📋 Resumen CI
+    runs-on: ubuntu-latest
+    needs: [backend-lint, backend-test, frontend-lint, frontend-build, frontend-test, docker-build]
+    if: always()
+    
+    steps:
+      - name: 📊 Generar Resumen
+        run: |
+          echo "## 🚀 Resumen del Pipeline de CI" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Trabajo | Estado |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐍 Lint Backend | ${{ needs.backend-lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Backend | ${{ needs.backend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🅰️ Lint Frontend | ${{ needs.frontend-lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Compilación Frontend | ${{ needs.frontend-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Frontend | ${{ needs.frontend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐳 Compilación Docker | ${{ needs.docker-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY

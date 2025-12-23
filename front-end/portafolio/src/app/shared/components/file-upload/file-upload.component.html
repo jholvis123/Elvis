@@ -1,0 +1,135 @@
+<!-- File Upload Component Template -->
+<div class="file-upload" [class.file-upload--disabled]="disabled">
+  <!-- Label -->
+  <label class="file-upload__label">
+    {{ label }}
+    <span *ngIf="category" class="text-xs text-textSecondary ml-2">
+      ({{ allowedExtensions }})
+    </span>
+  </label>
+  
+  <!-- Drop Zone -->
+  <div 
+    class="file-upload__dropzone"
+    [class.file-upload__dropzone--dragging]="isDragging"
+    [class.file-upload__dropzone--disabled]="disabled || !canAddMore"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    (click)="openFileDialog()">
+    
+    <input 
+      #fileInput
+      type="file"
+      [accept]="effectiveAccept"
+      [multiple]="multiple && effectiveMaxFiles > 1"
+      [disabled]="disabled || !canAddMore"
+      (change)="onFileSelected($event)"
+      class="sr-only">
+    
+    <div class="file-upload__dropzone-content">
+      <div class="file-upload__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      </div>
+      
+      <p class="file-upload__text">
+        <span *ngIf="!isDragging">
+          <span class="text-primary font-medium">Haz clic para seleccionar</span>
+          o arrastra archivos aquí
+        </span>
+        <span *ngIf="isDragging" class="text-primary">
+          Suelta los archivos aquí
+        </span>
+      </p>
+      
+      <p class="file-upload__hint">
+        Máx. {{ maxSizeFormatted }} por archivo · {{ effectiveMaxFiles }} archivos máximo
+      </p>
+    </div>
+  </div>
+  
+  <!-- Hint -->
+  <p *ngIf="hint" class="file-upload__helper">{{ hint }}</p>
+  
+  <!-- Errors -->
+  <div *ngIf="errors.length > 0" class="file-upload__errors">
+    <p *ngFor="let error of errors" class="file-upload__error">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      {{ error }}
+    </p>
+  </div>
+  
+  <!-- File List -->
+  <div *ngIf="files.length > 0" class="file-upload__list">
+    <div class="file-upload__list-header">
+      <span>{{ files.length }} archivo(s) seleccionado(s)</span>
+      <span class="text-textSecondary">{{ totalSizeFormatted }}</span>
+    </div>
+    
+    <ul class="file-upload__files">
+      <li *ngFor="let file of files; let i = index" class="file-upload__file">
+        <div class="file-upload__file-info">
+          <span class="file-upload__file-icon">{{ getFileIcon(file) }}</span>
+          <div class="file-upload__file-details">
+            <span class="file-upload__file-name" [title]="file.name">{{ file.name }}</span>
+            <span class="file-upload__file-size">{{ formatSize(file.size) }}</span>
+          </div>
+        </div>
+        
+        <button 
+          type="button"
+          class="file-upload__file-remove"
+          [disabled]="disabled || isUploading"
+          (click)="removeFile(i); $event.stopPropagation()"
+          title="Eliminar archivo">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </li>
+    </ul>
+    
+    <!-- Actions -->
+    <div class="file-upload__actions">
+      <button 
+        type="button"
+        class="file-upload__btn file-upload__btn--secondary"
+        [disabled]="disabled || isUploading"
+        (click)="clearAll()">
+        Limpiar todo
+      </button>
+      
+      <button 
+        *ngIf="category"
+        type="button"
+        class="file-upload__btn file-upload__btn--primary"
+        [disabled]="disabled || isUploading || files.length === 0"
+        (click)="uploadAll()">
+        <span *ngIf="!isUploading">Subir archivos</span>
+        <span *ngIf="isUploading" class="flex items-center gap-2">
+          <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Subiendo...
+        </span>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Uploaded Files (success) -->
+  <div *ngIf="uploadedAttachments.length > 0" class="file-upload__uploaded">
+    <p class="file-upload__uploaded-title">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      {{ uploadedAttachments.length }} archivo(s) subido(s)
+    </p>
+  </div>
+</div>

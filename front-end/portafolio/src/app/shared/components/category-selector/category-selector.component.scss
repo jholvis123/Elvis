@@ -1,0 +1,82 @@
+/**
+ * Category Selector Component Styles
+ */
+
+.category-selector {
+  @apply space-y-3;
+  
+  &--disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+  
+  // Label
+  &__label {
+    @apply block text-sm font-medium text-textPrimary mb-2;
+  }
+  
+  // Grid Layout
+  &__grid {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-3;
+  }
+  
+  // Card
+  &__card {
+    @apply relative flex flex-col items-center text-center p-4 
+           bg-slate-800/50 border border-slate-700 rounded-xl
+           transition-all duration-200 cursor-pointer
+           hover:border-primary/50 hover:bg-slate-800
+           disabled:cursor-not-allowed disabled:hover:border-slate-700;
+    
+    &--selected {
+      @apply border-primary bg-primary/10 hover:border-primary;
+    }
+  }
+  
+  &__icon {
+    @apply text-2xl mb-2;
+  }
+  
+  &__name {
+    @apply text-sm font-medium text-textPrimary;
+  }
+  
+  &__description {
+    @apply text-xs text-textSecondary mt-0.5;
+  }
+  
+  &__attachment-info {
+    @apply text-xs text-textSecondary/70 mt-2 pt-2 border-t border-slate-700/50;
+  }
+  
+  &__check {
+    @apply absolute top-2 right-2 w-6 h-6 rounded-full bg-primary 
+           text-background flex items-center justify-center;
+  }
+  
+  // Chips Layout (compact)
+  &__chips {
+    @apply flex flex-wrap gap-2;
+  }
+  
+  &__chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5
+           bg-slate-800 border border-slate-700 rounded-full
+           text-sm text-textSecondary transition-all duration-200
+           hover:border-primary/50 hover:text-textPrimary
+           disabled:cursor-not-allowed;
+    
+    &--selected {
+      @apply border-primary bg-primary/10 text-primary;
+    }
+  }
+  
+  // Info box
+  &__info {
+    @apply flex items-center gap-2 text-sm text-textSecondary 
+           bg-slate-800/50 rounded-lg px-4 py-2.5 border border-slate-700/50;
+    
+    strong {
+      @apply text-primary font-normal;
+    }
+  }
+}

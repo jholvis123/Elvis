@@ -1,0 +1,50 @@
+name: 🔬 Análisis CodeQL
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  schedule:
+    # Ejecutar cada miércoles a las 3:00 AM UTC
+    - cron: '0 3 * * 3'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: 🔬 Analizar con CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['python', 'javascript-typescript']
+        include:
+          - language: python
+            build-mode: none
+            source-root: ./back-end
+          - language: javascript-typescript
+            build-mode: none
+            source-root: ./front-end/portafolio
+
+    steps:
+      - name: 📥 Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: 🔧 Inicializar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          source-root: ${{ matrix.source-root }}
+          queries: security-extended,security-and-quality
+
+      - name: 🔍 Ejecutar Análisis CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

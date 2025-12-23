@@ -1,0 +1,107 @@
+<div class="container mx-auto px-4 py-12 max-w-4xl">
+    <form [formGroup]="writeupForm" (ngSubmit)="onSubmit()">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">
+                {{ isEditMode ? 'Editar Writeup' : 'Nuevo Writeup' }}
+            </h1>
+            <p class="text-gray-400">{{ isEditMode ? 'Actualiza el writeup' : 'Documenta la solución del CTF' }}</p>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error" class="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+            <p class="text-red-200">{{ error }}</p>
+        </div>
+
+        <!-- Title -->
+        <div class="mb-6">
+            <label class="block text-white font-medium mb-2">Título *</label>
+            <input type="text" formControlName="title"
+                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Título del writeup" />
+        </div>
+
+        <!-- CTF ID -->
+        <div class="mb-6">
+            <label class="block text-white font-medium mb-2">ID del CTF (Opcional)</label>
+            <input type="text" formControlName="ctf_id"
+                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="UUID del CTF relacionado (opcional)" />
+        </div>
+
+        <!-- Summary -->
+        <div class="mb-6">
+            <label class="block text-white font-medium mb-2">Resumen *</label>
+            <textarea formControlName="summary" rows="3" maxlength="300"
+                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Breve resumen del writeup (máx 300 caracteres)"></textarea>
+        </div>
+
+        <!-- Content -->
+        <div class="mb-6">
+            <label class="block text-white font-medium mb-2">Contenido Completo *</label>
+            <textarea formControlName="content" rows="15"
+                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                placeholder="Escribe el writeup completo aquí... (soporta Markdown)"></textarea>
+            <p class="mt-1 text-gray-400 text-sm">Puedes usar Markdown para formatear el contenido</p>
+        </div>
+
+        <!-- Tools -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <label class="block text-white font-medium">Herramientas Utilizadas *</label>
+                <button type="button" (click)="addTool()"
+                    class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition">
+                    + Agregar
+                </button>
+            </div>
+            <div formArrayName="tools_used" class="space-y-2">
+                <div *ngFor="let tool of tools.controls; let i = index" class="flex gap-2">
+                    <input [formControlName]="i" type="text"
+                        class="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Nombre de la herramienta" />
+                    <button type="button" (click)="removeTool(i)"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Techniques -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-2">
+                <label class="block text-white font-medium">Técnicas Aplicadas *</label>
+                <button type="button" (click)="addTechnique()"
+                    class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition">
+                    + Agregar
+                </button>
+            </div>
+            <div formArrayName="techniques" class="space-y-2">
+                <div *ngFor="let technique of techniques.controls; let i = index" class="flex gap-2">
+                    <input [formControlName]="i" type="text"
+                        class="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Técnica o metodología" />
+                    <button type="button" (click)="removeTechnique(i)"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3">
+            <button type="submit" [disabled]="loading"
+                class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50">
+                {{ loading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear') }} Writeup
+            </button>
+
+            <a [routerLink]="isEditMode ? ['/writeups', writeupId] : ['/writeups']"
+                class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>

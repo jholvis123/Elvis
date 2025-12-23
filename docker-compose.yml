@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: portfolio_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: portfolio_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword # Change this in production
+      MYSQL_ROOT_PASSWORD: rootpassword # Change this in production
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - portfolio_network
+
+  backend:
+    build: 
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: portfolio_backend
+    restart: always
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./back-end:/app
+    environment:
+      - DATABASE_URL=mysql+pymysql://user:userpassword@db/portfolio_db
+      - SECRET_KEY=change_this_secret_key_in_production
+    depends_on:
+      - db
+    networks:
+      - portfolio_network
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: portfolio_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - portfolio_network
+
+volumes:
+  db_data:
+
+networks:
+  portfolio_network:
+    driver: bridge

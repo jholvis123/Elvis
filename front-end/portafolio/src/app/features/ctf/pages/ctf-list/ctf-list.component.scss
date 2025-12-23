@@ -1,0 +1,77 @@
+.ctf-page {
+  @apply min-h-screen;
+}
+
+.ctf-hero {
+  @apply bg-gradient-to-b from-slate-900 to-background;
+}
+
+// Stats Cards
+.stat-card {
+  @apply bg-surface border border-slate-800 rounded-xl p-4;
+  @apply flex flex-col gap-1;
+
+  &__value {
+    @apply text-2xl font-bold text-primary;
+  }
+
+  &__label {
+    @apply text-sm text-textSecondary;
+  }
+
+  &--progress {
+    @apply relative overflow-hidden;
+  }
+}
+
+.progress-bar {
+  @apply mt-2 h-1.5 bg-slate-800 rounded-full overflow-hidden;
+
+  &__fill {
+    @apply h-full bg-primary rounded-full transition-all duration-500;
+  }
+}
+
+// Filters
+.filters-section {
+  @apply bg-surface/50 border-y border-slate-800;
+}
+
+.filters-bar {
+  @apply flex flex-wrap items-center gap-4;
+}
+
+.filter-group {
+  @apply min-w-[180px];
+}
+
+.filter-toggle {
+  @apply flex items-center gap-2 cursor-pointer;
+
+  &__switch {
+    @apply w-10 h-6 bg-slate-700 rounded-full relative transition-colors;
+    
+    &::after {
+      content: '';
+      @apply absolute top-1 left-1 w-4 h-4 bg-slate-400 rounded-full transition-all;
+    }
+
+    &.active {
+      @apply bg-primary/30;
+
+      &::after {
+        @apply left-5 bg-primary;
+      }
+    }
+  }
+}
+
+// Challenges Grid
+.challenges-grid {
+  @apply grid md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+// No Results
+.no-results {
+  @apply flex flex-col items-center justify-center py-16 text-center;
+}

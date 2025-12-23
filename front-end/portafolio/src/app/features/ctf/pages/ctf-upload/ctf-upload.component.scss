@@ -1,0 +1,11 @@
+.ctf-upload {
+  @apply min-h-screen bg-background;
+}
+
+.form-label {
+  @apply block text-sm text-textSecondary mb-2;
+}
+
+.form-error {
+  @apply text-red-400 text-xs mt-1;
+}

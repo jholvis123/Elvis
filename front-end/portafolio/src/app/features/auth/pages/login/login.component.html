@@ -1,0 +1,93 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 px-4">
+  <div class="max-w-md w-full">
+    <!-- Logo/Title -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-white mb-2">Bienvenido</h1>
+      <p class="text-gray-400">Inicia sesión en tu cuenta</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+      
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+        <p class="text-red-200 text-sm">{{ errorMessage }}</p>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Email Field -->
+        <div class="mb-6">
+          <label for="email" class="block text-sm font-medium text-gray-200 mb-2">
+            Correo electrónico
+          </label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+            placeholder="tu@email.com"
+            [class.border-red-500]="email?.invalid && email?.touched"
+          />
+          <div *ngIf="email?.invalid && email?.touched" class="mt-1 text-red-400 text-sm">
+            <span *ngIf="email?.errors?.['required']">El email es requerido</span>
+            <span *ngIf="email?.errors?.['email']">Email inválido</span>
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-gray-200 mb-2">
+            Contraseña
+          </label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+            placeholder="••••••••"
+            [class.border-red-500]="password?.invalid && password?.touched"
+          />
+          <div *ngIf="password?.invalid && password?.touched" class="mt-1 text-red-400 text-sm">
+            <span *ngIf="password?.errors?.['required']">La contraseña es requerida</span>
+            <span *ngIf="password?.errors?.['minlength']">Mínimo 6 caracteres</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          [disabled]="loading"
+          class="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span *ngIf="!loading">Iniciar Sesión</span>
+          <span *ngIf="loading" class="flex items-center justify-center">
+            <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Iniciando sesión...
+          </span>
+        </button>
+      </form>
+
+      <!-- Register Link -->
+      <div class="mt-6 text-center">
+        <p class="text-gray-400 text-sm">
+          ¿No tienes cuenta?
+          <a routerLink="/auth/register" class="text-purple-400 hover:text-purple-300 font-medium ml-1">
+            Regístrate aquí
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Back to Home -->
+    <div class="mt-6 text-center">
+      <a routerLink="/" class="text-gray-400 hover:text-gray-300 text-sm">
+        ← Volver al inicio
+      </a>
+    </div>
+  </div>
+</div>

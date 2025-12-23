@@ -1,0 +1,12 @@
+.stat-card {
+  @apply rounded-lg border border-slate-800 bg-surface/70 p-4;
+  @apply hover:border-primary/50 transition-all duration-300;
+
+  &__value {
+    @apply text-2xl font-bold text-primary;
+  }
+
+  &__label {
+    @apply text-sm text-textSecondary;
+  }
+}

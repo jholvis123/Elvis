@@ -1,0 +1,208 @@
+# ============================================
+# DATOS SENSIBLES - NUNCA SUBIR
+# ============================================
+
+# Variables de entorno con secretos
+.env
+.env.local
+.env.prod
+.env.production
+.env.development
+.env.*.local
+*.env
+
+# Claves y certificados
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+credentials/
+
+# ============================================
+# PYTHON / FASTAPI (back-end)
+# ============================================
+
+# Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+.env/
+ENV/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Bases de datos locales
+*.db
+*.sqlite3
+*.sqlite
+
+# Testing y coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+
+# MyPy / Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Distribución
+dist/
+build/
+*.egg-info/
+*.egg
+*.whl
+*.manifest
+*.spec
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Uploads locales (si no quieres versionarlos)
+uploads/
+media/
+
+# ============================================
+# NODE / ANGULAR (front-end)
+# ============================================
+
+# Dependencias
+node_modules/
+.npm/
+.yarn/
+yarn-error.log
+
+# Build outputs
+dist/
+.angular/
+out-tsc/
+tmp/
+*.tmp
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+
+# Lock files (opcional, algunos prefieren versionarlos)
+# package-lock.json
+# yarn.lock
+
+# Testing
+coverage/
+.nyc_output/
+
+# Angular específico
+.sass-cache/
+*.css.map
+*.js.map
+
+# ============================================
+# DOCKER
+# ============================================
+
+# Volúmenes de datos (no subir datos de BD)
+db_data/
+mysql_data/
+postgres_data/
+redis_data/
+
+# Docker overrides locales
+docker-compose.override.yml
+docker-compose.local.yml
+.docker/
+
+# ============================================
+# IDEs Y EDITORES
+# ============================================
+
+# VS Code
+.vscode/
+!.vscode/settings.json.example
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains (PyCharm, WebStorm)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim/Neovim
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# SISTEMA OPERATIVO
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.Trash-*
+
+# ============================================
+# LOGS Y TEMPORALES
+# ============================================
+
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# ============================================
+# MISCELÁNEOS
+# ============================================
+
+# Archivos comprimidos de backup
+*.zip
+*.tar.gz
+*.rar
+
+# Imágenes de capturas/debug (si aplica)
+screenshots/
+
+# Documentación generada
+docs/_build/
+site/

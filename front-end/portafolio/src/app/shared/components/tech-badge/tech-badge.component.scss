@@ -1,0 +1,16 @@
+.tech-badge {
+  @apply px-3 py-1 rounded-full bg-card border border-slate-800 text-textSecondary 
+         hover:border-primary/50 hover:text-primary transition-all duration-300 cursor-default;
+
+  &--primary {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+
+  &--outline {
+    @apply bg-transparent border-slate-700;
+  }
+
+  &--sm {
+    @apply px-2 py-0.5 text-xs;
+  }
+}

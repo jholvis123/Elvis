@@ -1,0 +1,209 @@
+<!-- CTF Detail Page -->
+<div class="ctf-detail" *ngIf="challenge">
+  <!-- Header -->
+  <header class="ctf-detail__header">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb mb-6">
+        <a routerLink="/ctf" class="text-textSecondary hover:text-primary transition-colors">
+          ← Volver a retos
+        </a>
+      </nav>
+
+      <!-- Challenge Info -->
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">{{ categoryInfo?.icon }}</span>
+            <span class="text-sm text-textSecondary uppercase tracking-wide">{{ categoryInfo?.label }}</span>
+            <span class="px-3 py-1 text-sm rounded-full border" [ngClass]="difficultyColorClass">
+              {{ difficultyInfo?.label }}
+            </span>
+            <span *ngIf="isSolved"
+              class="px-3 py-1 text-sm rounded-full bg-primary/20 text-primary border border-primary/30">
+              ✓ Resuelto
+            </span>
+          </div>
+          <h1 class="text-3xl md:text-4xl font-bold text-textPrimary">{{ challenge.title }}</h1>
+        </div>
+
+        <div class="flex items-center gap-6 text-sm text-textSecondary">
+          <div class="text-center">
+            <p class="text-2xl font-bold text-primary">{{ challenge.points }}</p>
+            <p>Puntos</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-textPrimary">{{ challenge.solvedCount }}</p>
+            <p>Resueltos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="max-w-4xl mx-auto px-6 py-8">
+    <div class="grid lg:grid-cols-3 gap-8">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Description -->
+        <section class="card">
+          <h2 class="text-lg font-semibold text-textPrimary mb-4">Descripción</h2>
+          <p class="text-textSecondary leading-relaxed">{{ challenge.description }}</p>
+        </section>
+
+        <!-- Skills -->
+        <section class="card" *ngIf="challenge.skills.length">
+          <h2 class="text-lg font-semibold text-textPrimary mb-4">Skills requeridas</h2>
+          <div class="flex flex-wrap gap-2">
+            <span *ngFor="let skill of challenge.skills"
+              class="px-3 py-1.5 text-sm bg-slate-800 text-textSecondary rounded-lg border border-slate-700">
+              {{ skill }}
+            </span>
+          </div>
+        </section>
+
+        <!-- Hints -->
+        <section class="card" *ngIf="challenge.hints && challenge.hints.length">
+          <h2 class="text-lg font-semibold text-textPrimary mb-4">Pistas</h2>
+          <div class="space-y-3">
+            <div *ngFor="let hint of challenge.hints; let i = index" class="hint-item">
+              <div *ngIf="isHintRevealed(i); else hiddenHint" class="hint-revealed">
+                <span class="text-amber-400 mr-2">💡</span>
+                {{ hint }}
+              </div>
+              <ng-template #hiddenHint>
+                <button (click)="revealHint(i)" class="hint-hidden">
+                  <span class="text-amber-400 mr-2">🔒</span>
+                  Revelar pista {{ i + 1 }}
+                </button>
+              </ng-template>
+            </div>
+          </div>
+        </section>
+
+        <!-- Resources / Downloads -->
+        <section class="card" *ngIf="hasAttachments">
+          <h2 class="text-lg font-semibold text-textPrimary mb-4">
+            <span class="mr-2">📦</span>Recursos del reto
+          </h2>
+          <p class="text-sm text-textSecondary mb-4">
+            Descarga los archivos necesarios para resolver este reto.
+          </p>
+          <div class="space-y-3">
+            <div *ngFor="let attachment of challenge.attachments" class="resource-item"
+              [ngClass]="getAttachmentClass(attachment.type)">
+              <div class="resource-info">
+                <span class="resource-icon">{{ getAttachmentIcon(attachment.type) }}</span>
+                <div class="resource-details">
+                  <span class="resource-name">{{ attachment.name }}</span>
+                  <span class="resource-meta" *ngIf="attachment.size">
+                    {{ formatFileSize(attachment.size) }}
+                  </span>
+                </div>
+              </div>
+              <button (click)="onAttachmentClick(attachment)" class="resource-action"
+                [title]="getAttachmentAction(attachment.type)">
+                <span *ngIf="attachment.type === 'file'">⬇️ Descargar</span>
+                <span *ngIf="attachment.type === 'url'">🔗 Abrir</span>
+                <span *ngIf="attachment.type === 'docker'">📋 Copiar</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="space-y-6">
+        <!-- Auth Prompt Banner (Solo para no autenticados) -->
+        <section class="card bg-gradient-to-br from-purple-600 to-pink-600 border-0"
+          *ngIf="!authService.isAuthenticated">
+          <div class="text-center">
+            <span class="text-5xl mb-4 block">🎯</span>
+            <h3 class="text-white text-xl font-bold mb-2">¿Listo para el desafío?</h3>
+            <p class="text-white/90 mb-6 text-sm">
+              Regístrate gratis para enviar flags, ganar puntos y competir con otros hackers
+            </p>
+            <div class="flex flex-col gap-3">
+              <a routerLink="/auth/register"
+                class="px-6 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                🚀 Crear cuenta gratis
+              </a>
+              <a routerLink="/auth/login"
+                class="px-6 py-3 bg-purple-800 text-white rounded-lg font-medium hover:bg-purple-900 transition border-2 border-white/20">
+                Ya tengo cuenta
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Flag Submission -->
+        <section class="card">
+          <h2 class="text-lg font-semibold text-textPrimary mb-4">
+            {{ isSolved ? '¡Reto completado!' : 'Enviar flag' }}
+          </h2>
+
+          <div *ngIf="!isSolved; else solvedMessage">
+            <form (ngSubmit)="submitFlag()" class="space-y-4">
+              <div>
+                <label for="flag" class="block text-sm text-textSecondary mb-2">Tu flag</label>
+                <input type="text" id="flag" [(ngModel)]="flagInput" name="flag" placeholder="flag{...}"
+                  class="input font-mono" [disabled]="isSubmitting" autocomplete="off">
+              </div>
+
+              <!-- Result Message -->
+              <div *ngIf="submitResult" class="p-3 rounded-lg text-sm"
+                [ngClass]="submitResult.success ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'">
+                {{ submitResult.message }}
+              </div>
+
+              <button type="submit" class="btn-primary w-full" [disabled]="!flagInput.trim() || isSubmitting">
+                <span *ngIf="!isSubmitting">Verificar flag</span>
+                <span *ngIf="isSubmitting" class="flex items-center justify-center gap-2">
+                  <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  Verificando...
+                </span>
+              </button>
+            </form>
+          </div>
+
+          <ng-template #solvedMessage>
+            <div class="text-center py-4">
+              <span class="text-4xl mb-4 block">🎉</span>
+              <p class="text-primary font-semibold">+{{ challenge.points }} puntos</p>
+              <p class="text-sm text-textSecondary mt-2">Has completado este reto</p>
+            </div>
+          </ng-template>
+        </section>
+
+        <!-- Challenge Info -->
+        <section class="card">
+          <h2 class="text-lg font-semibold text-textPrimary mb-4">Información</h2>
+          <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <dt class="text-textSecondary">Autor</dt>
+              <dd class="text-textPrimary">{{ challenge.author }}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-textSecondary">Creado</dt>
+              <dd class="text-textPrimary">{{ challenge.createdAt | date:'mediumDate' }}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-textSecondary">Categoría</dt>
+              <dd class="text-textPrimary">{{ categoryInfo?.label }}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-textSecondary">Dificultad</dt>
+              <dd class="text-textPrimary">{{ difficultyInfo?.label }}</dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>

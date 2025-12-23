@@ -1,0 +1,93 @@
+<!-- Dynamic List Component Template -->
+<div class="dynamic-list" 
+     [class.dynamic-list--disabled]="disabled"
+     [class.dynamic-list--compact]="variant === 'compact'"
+     [class.dynamic-list--tags]="variant === 'tags'">
+  
+  <!-- Header -->
+  <div class="dynamic-list__header">
+    <label class="dynamic-list__label">
+      {{ label }}
+      <span *ngIf="required" class="text-red-400">*</span>
+    </label>
+    <span class="dynamic-list__count">{{ itemCount }}</span>
+  </div>
+  
+  <!-- Input Row -->
+  <div class="dynamic-list__input-row">
+    <input 
+      type="text"
+      [(ngModel)]="newItem"
+      [placeholder]="placeholder"
+      [disabled]="disabled || !canAddMore"
+      [maxlength]="maxLength"
+      (keydown)="onKeydown($event)"
+      class="dynamic-list__input">
+    
+    <button 
+      type="button"
+      class="dynamic-list__add-btn"
+      [disabled]="disabled || !canAddMore || !isValidInput"
+      (click)="addItem()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span class="hidden sm:inline">{{ addButtonText }}</span>
+    </button>
+  </div>
+  
+  <!-- Error -->
+  <p *ngIf="error" class="dynamic-list__error">{{ error }}</p>
+  
+  <!-- Items List (default/compact) -->
+  <ul *ngIf="items.length > 0 && variant !== 'tags'" class="dynamic-list__items">
+    <li *ngFor="let item of items; let i = index" class="dynamic-list__item">
+      <span class="dynamic-list__item-icon">
+        <span *ngIf="showIndex">{{ i + 1 }}.</span>
+        <span *ngIf="!showIndex">{{ itemIcon }}</span>
+      </span>
+      <span class="dynamic-list__item-text">{{ item }}</span>
+      <button 
+        type="button"
+        class="dynamic-list__item-remove"
+        [disabled]="disabled"
+        (click)="removeItem(i)"
+        title="Eliminar">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </li>
+  </ul>
+  
+  <!-- Items as Tags -->
+  <div *ngIf="items.length > 0 && variant === 'tags'" class="dynamic-list__tags">
+    <span *ngFor="let item of items; let i = index" class="dynamic-list__tag">
+      {{ item }}
+      <button 
+        type="button"
+        class="dynamic-list__tag-remove"
+        [disabled]="disabled"
+        (click)="removeItem(i)">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </span>
+  </div>
+  
+  <!-- Empty State -->
+  <p *ngIf="items.length === 0" class="dynamic-list__empty">
+    {{ emptyMessage }}
+  </p>
+  
+  <!-- Clear All (when multiple items) -->
+  <button 
+    *ngIf="items.length > 1"
+    type="button"
+    class="dynamic-list__clear"
+    [disabled]="disabled"
+    (click)="clearAll()">
+    Limpiar todo
+  </button>
+</div>
