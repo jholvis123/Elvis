@@ -4,7 +4,8 @@ Proveedor de JWT para autenticación.
 
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from pydantic import BaseModel
 
 from ...core.config import settings
@@ -120,7 +121,7 @@ class JWTProvider:
                 exp=datetime.fromtimestamp(exp) if exp else datetime.utcnow(),
             )
             
-        except JWTError:
+        except InvalidTokenError:
             return None
     
     def verify_access_token(self, token: str) -> Optional[TokenData]:
