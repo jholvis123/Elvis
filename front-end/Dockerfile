@@ -1,5 +1,5 @@
 # Stage 1: Build the Angular application
-FROM node:18-alpine as build
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
@@ -18,8 +18,8 @@ RUN npm run build -- --configuration production
 # Stage 2: Serve the application with Nginx
 FROM nginx:alpine
 
-# Copy the built artifacts from the previous stage
-COPY --from=build /app/dist/portafolio/browser /usr/share/nginx/html
+# Copy the built artifacts from the previous stage (Angular 16 output path)
+COPY --from=build /app/dist/portafolio /usr/share/nginx/html
 
 # Copy custom Nginx configuration (from root of front-end context)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
