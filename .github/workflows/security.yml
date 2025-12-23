@@ -46,7 +46,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install bandit safety pip-audit semgrep
+          pip install bandit safety pip-audit
 
       - name: 🔍 Bandit - Linter de Seguridad
         run: |
@@ -83,9 +83,12 @@ jobs:
 
       - name: 🔎 Semgrep - Análisis SAST
         run: |
+          python3 -m pip install semgrep
           semgrep --config auto --config p/python --config p/security-audit \
             --json --output semgrep-backend.json \
             app/ || true
+        env:
+          SEMGREP_SEND_METRICS: "off"
         continue-on-error: true
 
       - name: 📊 Subir Reporte Semgrep
@@ -137,10 +140,12 @@ jobs:
 
       - name: 🔎 Semgrep - Análisis SAST
         run: |
-          pip install semgrep
+          python3 -m pip install semgrep
           semgrep --config auto --config p/typescript --config p/javascript \
             --json --output semgrep-frontend.json \
             src/ || true
+        env:
+          SEMGREP_SEND_METRICS: "off"
         continue-on-error: true
 
       - name: 📊 Subir Reporte Semgrep Frontend
