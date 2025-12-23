@@ -83,6 +83,10 @@ updates:
       - "docker"
     commit-message:
       prefix: "chore(docker)"
+    # Ignorar actualizaciones de Python > 3.12 (pydantic-core no soporta 3.14)
+    ignore:
+      - dependency-name: "python"
+        versions: [">=3.13"]
 
   - package-ecosystem: "docker"
     directory: "/front-end"
@@ -93,6 +97,10 @@ updates:
       - "docker"
     commit-message:
       prefix: "chore(docker)"
+    # Ignorar actualizaciones de Node > 22 (LTS actual)
+    ignore:
+      - dependency-name: "node"
+        versions: [">=23"]
 
   # ============================================
   # 🔧 GitHub Actions

@@ -1,4 +1,5 @@
 # Use an official Python runtime as a parent image
+# NOTA: Mantener Python <= 3.12. pydantic-core (PyO3) no soporta Python 3.14+
 FROM python:3.10-slim
 
 # Set the working directory in the container
