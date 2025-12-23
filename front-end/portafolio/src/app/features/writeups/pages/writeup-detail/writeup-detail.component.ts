@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MarkdownComponent } from 'ngx-markdown';
+import { MarkdownModule } from 'ngx-markdown';
 import { WriteupsService, Writeup } from '../../services/writeups.service';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
     selector: 'app-writeup-detail',
     standalone: true,
-    imports: [CommonModule, RouterLink, MarkdownComponent],
+    imports: [CommonModule, RouterLink, MarkdownModule],
     templateUrl: './writeup-detail.component.html',
     styleUrls: ['./writeup-detail.component.scss']
 })
