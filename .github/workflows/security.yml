@@ -232,9 +232,6 @@ jobs:
           category: 'trivy-backend'
         continue-on-error: true
 
-      - name: � Instalar dependencias Frontend
-        working-directory: ./front-end/portafolio
-        run: npm ci
 
       - name: 🐳 Construir Imagen Frontend
         run: docker build -t portfolio-frontend:scan ./front-end
