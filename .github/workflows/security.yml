@@ -234,7 +234,8 @@ jobs:
 
       - name: 🐳 Construir Imagen Frontend
         run: |
-          cd front-end/portafolio && npm ci && cd ..
+          cd front-end/portafolio && npm ci
+          cd $GITHUB_WORKSPACE
           docker build -t portfolio-frontend:scan ./front-end
 
       - name: 🛡️ Trivy - Escaneo Vulnerabilidades Contenedor (Frontend)
