@@ -22,12 +22,16 @@
                 placeholder="Título del writeup" />
         </div>
 
-        <!-- CTF ID -->
+        <!-- CTF Selection -->
         <div class="mb-6">
-            <label class="block text-white font-medium mb-2">ID del CTF (Opcional)</label>
-            <input type="text" formControlName="ctf_id"
-                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="UUID del CTF relacionado (opcional)" />
+            <label class="block text-white font-medium mb-2">Reto CTF (Opcional)</label>
+            <select formControlName="ctf_id"
+                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:text-black">
+                <option value="">Selecciona un CTF</option>
+                <option *ngFor="let ctf of ctfs" [value]="ctf.id">
+                    {{ ctf.title }} ({{ ctf.category }} - {{ ctf.difficulty }})
+                </option>
+            </select>
         </div>
 
         <!-- Summary -->

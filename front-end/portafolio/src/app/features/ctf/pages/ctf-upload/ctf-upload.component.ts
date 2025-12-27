@@ -5,20 +5,20 @@
 
 import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
-  FormBuilder, 
-  FormGroup, 
-  ReactiveFormsModule, 
-  Validators 
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
 import { CtfService } from '@core/services/ctf.service';
 import { AttachmentService } from '@core/services/attachment.service';
-import { 
-  CTF_DIFFICULTIES, 
-  CTFCategory, 
+import {
+  CTF_DIFFICULTIES,
+  CTFCategory,
   CTFChallengeForm,
   CTFAttachment,
   CATEGORY_ATTACHMENT_CONFIG
@@ -35,8 +35,8 @@ import { DynamicListComponent } from '@shared/components/dynamic-list/dynamic-li
   selector: 'app-ctf-upload',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
+    CommonModule,
+    ReactiveFormsModule,
     RouterLink,
     FileUploadComponent,
     UrlInputComponent,
@@ -65,17 +65,18 @@ export class CtfUploadComponent implements OnDestroy {
   // Formulario principal
   challengeForm: FormGroup = this.fb.group({
     title: ['', [
-      Validators.required, 
-      Validators.minLength(CtfValidators.MIN_TITLE_LENGTH), 
+      Validators.required,
+      Validators.minLength(CtfValidators.MIN_TITLE_LENGTH),
       Validators.maxLength(CtfValidators.MAX_TITLE_LENGTH)
     ]],
     description: ['', [
-      Validators.required, 
-      Validators.minLength(CtfValidators.MIN_DESCRIPTION_LENGTH), 
+      Validators.required,
+      Validators.minLength(CtfValidators.MIN_DESCRIPTION_LENGTH),
       Validators.maxLength(CtfValidators.MAX_DESCRIPTION_LENGTH)
     ]],
     category: ['', [Validators.required, CtfValidators.validCategory()]],
     difficulty: ['', Validators.required],
+    platform: ['Web', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]],
     points: [100, [Validators.required, CtfValidators.pointsRange()]],
     flag: ['', [Validators.required, CtfValidators.flag()]],
     skills: [[] as string[]],
@@ -106,7 +107,7 @@ export class CtfUploadComponent implements OnDestroy {
   }
 
   get requiresFiles(): boolean {
-    return this.selectedCategory 
+    return this.selectedCategory
       ? this.attachmentService.requiresFiles(this.selectedCategory)
       : false;
   }
@@ -124,7 +125,7 @@ export class CtfUploadComponent implements OnDestroy {
   }
 
   get categoryConfig() {
-    return this.selectedCategory 
+    return this.selectedCategory
       ? CATEGORY_ATTACHMENT_CONFIG[this.selectedCategory]
       : null;
   }
@@ -140,7 +141,7 @@ export class CtfUploadComponent implements OnDestroy {
 
   get attachmentError(): string {
     if (!this.selectedCategory) return '';
-    
+
     const config = this.categoryConfig;
     if (!config) return '';
 
@@ -148,7 +149,7 @@ export class CtfUploadComponent implements OnDestroy {
     if (config.requiredTypes.includes('file') && this.fileAttachments.length === 0) {
       return 'Esta categoría requiere al menos un archivo adjunto';
     }
-    
+
     if (config.requiredTypes.includes('url') && !this.urlAttachment && !config.requiredTypes.includes('file')) {
       return 'Esta categoría requiere una URL';
     }
@@ -229,7 +230,7 @@ export class CtfUploadComponent implements OnDestroy {
     try {
       // Construir objeto de adjuntos
       const attachments: CTFAttachment[] = [...this.fileAttachments];
-      
+
       if (this.urlAttachment) {
         attachments.push(
           this.attachmentService.createUrlAttachment(this.urlAttachment)
@@ -243,7 +244,7 @@ export class CtfUploadComponent implements OnDestroy {
 
       await this.ctfService.createChallenge(formValue);
       this.router.navigate(['/ctf']);
-      
+
     } catch (error) {
       this.submitError = 'Error al crear el reto. Intenta de nuevo.';
       console.error('Error creating challenge:', error);

@@ -39,6 +39,21 @@ class GetCTFUseCase:
         # Verificar si tiene writeup
         writeup = self.writeup_repository.get_by_ctf_id(ctf_id)
         
+        # Convertir adjuntos a DTOs
+        from ..dto.ctf_dto import AttachmentDTO
+        
+        attachment_dtos = [
+            AttachmentDTO(
+                id=str(a.id),
+                name=a.name,
+                type=a.type.value,
+                url=a.url,
+                size=a.size,
+                mime_type=a.mime_type
+            )
+            for a in ctf.attachments
+        ] if ctf.attachments else []
+
         return CTFResponseDTO(
             id=ctf.id,
             title=ctf.title,
@@ -50,7 +65,12 @@ class GetCTFUseCase:
             solved=ctf.solved,
             solved_at=ctf.solved_at,
             machine_os=ctf.machine_os,
-            tags=ctf.tags,
+            skills=ctf.skills,
+            hints=ctf.hints,
+            author=ctf.author,
+            solved_count=ctf.solved_count,
+            is_active=ctf.is_active,
+            attachments=attachment_dtos,
             status=ctf.status.value,
             created_at=ctf.created_at,
             updated_at=ctf.updated_at,

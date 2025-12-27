@@ -80,7 +80,7 @@ async def list_projects(
 
 @router.get("/featured", response_model=List[ProjectSummaryDTO])
 async def get_featured_projects(
-    limit: int = Query(5, ge=1, le=20),
+    limit: int = Query(5, ge=1, le=100),
     project_repo: ProjectRepository = Depends(get_project_repository),
 ):
     """Obtiene los proyectos destacados."""

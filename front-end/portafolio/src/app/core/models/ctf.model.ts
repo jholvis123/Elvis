@@ -1,11 +1,3 @@
-/**
- * CTF Challenge Model
- * Interfaces y tipos para el módulo de retos CTF
- */
-
-// ============================================
-// TIPOS BASE
-// ============================================
 
 export type CTFCategory = 'web' | 'crypto' | 'forensics' | 'pwn' | 'reverse' | 'misc' | 'osint' | 'stego';
 
@@ -13,9 +5,7 @@ export type CTFDifficulty = 'easy' | 'medium' | 'hard' | 'insane';
 
 export type AttachmentType = 'file' | 'url' | 'docker';
 
-// ============================================
 // INTERFACES PRINCIPALES
-// ============================================
 
 export interface CTFChallenge {
   id: string;
@@ -73,6 +63,7 @@ export interface CTFChallengeForm {
   description: string;
   category: CTFCategory;
   difficulty: CTFDifficulty;
+  platform: string;
   points: number;
   skills: string[];
   hints: string[];

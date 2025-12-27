@@ -204,22 +204,22 @@ async def submit_flag(
     
     # Intentar enviar la flag
     try:
-        result = flag_service.submit_flag(
+        is_correct, message, points = flag_service.submit_flag(
             ctf_id=ctf_id,
-            submitted_flag=data.flag,
+            flag=data.flag,
             user_id=user_id,
             ip_address=ip_address,
         )
         
         # Si es correcta, actualizar el contador del CTF
-        if result["is_correct"]:
+        if is_correct:
             ctf.increment_solved_count()
             ctf_repo.save(ctf)
         
         return FlagSubmitResponseDTO(
-            is_correct=result["is_correct"],
-            message=result["message"],
-            attempts_remaining=result.get("attempts_remaining"),
+            success=is_correct,
+            message=message,
+            points=points,
         )
     except ValueError as e:
         raise HTTPException(

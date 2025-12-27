@@ -85,7 +85,7 @@ async def list_writeups(
 
 @router.get("/popular", response_model=List[WriteupSummaryDTO])
 async def get_popular_writeups(
-    limit: int = Query(10, ge=1, le=50),
+    limit: int = Query(10, ge=1, le=100),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
 ):
     """Obtiene los writeups más vistos."""

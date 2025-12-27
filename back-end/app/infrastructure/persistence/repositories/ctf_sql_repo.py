@@ -42,7 +42,33 @@ class CTFSqlRepository(CTFRepository):
             existing.is_active = ctf.is_active
             existing.status = ctf.status.value
             existing.updated_at = ctf.updated_at
+            
+            # Actualizar adjuntos si es necesario (simplificado: recrear)
+            # Nota: Esto es destructivo, idealmente se debería comparar
+            if ctf.attachments:
+                # Eliminar existentes para evitar duplicados si la lógica de negocio lo requiere,
+                # pero aquí asumimos que ctf.attachments es la verdad absoluta.
+                # Sin embargo, SQLAlchemy gestiona la colección.
+                # Una estrategia simple es limpiar y agregar.
+                # existing.attachments.clear() # Cuidado con orphans
+                pass 
+                # TODO: Implementar lógica de actualización de adjuntos más robusta si se requiere edición
         else:
+            # Crear modelos de adjuntos
+            from ..models.attachment_model import AttachmentModel
+            attachment_models = []
+            for att in ctf.attachments:
+                att_model = AttachmentModel(
+                    id=str(att.id),
+                    name=att.name,
+                    type=att.type.value,
+                    url=att.url,
+                    size=att.size,
+                    mime_type=att.mime_type,
+                    ctf_id=ctf_id
+                )
+                attachment_models.append(att_model)
+
             db_ctf = CTFModel(
                 id=ctf_id,
                 title=ctf.title,
@@ -62,6 +88,7 @@ class CTFSqlRepository(CTFRepository):
                 is_active=ctf.is_active,
                 status=ctf.status.value,
                 created_at=ctf.created_at,
+                attachments=attachment_models
             )
             self.db.add(db_ctf)
         
@@ -178,7 +205,14 @@ class CTFSqlRepository(CTFRepository):
         by_category = {}
         by_platform = {}
         
+        total_points = 0
+        earned_points = 0
+        
         for ctf in all_ctfs:
+            total_points += ctf.points
+            if ctf.solved:
+                earned_points += ctf.points
+                
             # Por nivel
             by_level[ctf.level] = by_level.get(ctf.level, 0) + 1
             # Por categoría
@@ -190,11 +224,28 @@ class CTFSqlRepository(CTFRepository):
             "by_level": by_level,
             "by_category": by_category,
             "by_platform": by_platform,
+            "total_points": total_points,
+            "earned_points": earned_points,
         }
     
     def _to_entity(self, model: CTFModel) -> CTF:
         """Convierte un modelo a entidad de dominio."""
         from uuid import UUID as UUIDType
+        # Mapear adjuntos
+        from ....domain.entities.attachment import Attachment, AttachmentType
+        attachments = [
+            Attachment(
+                id=UUIDType(att.id),
+                name=att.name,
+                type=AttachmentType(att.type),
+                url=att.url,
+                size=att.size,
+                mime_type=att.mime_type,
+                ctf_id=UUIDType(att.ctf_id)
+            )
+            for att in model.attachments
+        ]
+
         return CTF(
             id=UUIDType(model.id),
             title=model.title,
@@ -215,4 +266,5 @@ class CTFSqlRepository(CTFRepository):
             status=CTFStatus(model.status),
             created_at=model.created_at,
             updated_at=model.updated_at,
+            attachments=attachments
         )

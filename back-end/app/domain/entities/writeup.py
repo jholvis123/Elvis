@@ -21,8 +21,8 @@ class Writeup:
     """Entidad de dominio para writeups de CTF."""
     
     title: str
-    ctf_id: UUID
     content: str
+    ctf_id: Optional[UUID] = None  # ✅ Opcional - writeups pueden ser independientes
     id: UUID = field(default_factory=uuid4)
     summary: Optional[str] = None
     tools_used: List[str] = field(default_factory=list)

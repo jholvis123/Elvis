@@ -4,7 +4,8 @@
     <!-- Header -->
     <header class="mb-8">
       <nav class="mb-4">
-        <a routerLink="/ctf" class="text-textSecondary hover:text-primary transition-colors text-sm inline-flex items-center gap-1">
+        <a routerLink="/ctf"
+          class="text-textSecondary hover:text-primary transition-colors text-sm inline-flex items-center gap-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
@@ -17,13 +18,10 @@
 
     <!-- Form -->
     <form [formGroup]="challengeForm" (ngSubmit)="onSubmit()" class="space-y-6">
-      
+
       <!-- Category Selection (First!) -->
       <section class="card">
-        <app-category-selector
-          formControlName="category"
-          label="Categoría del reto"
-          [required]="true"
+        <app-category-selector formControlName="category" label="Categoría del reto" [required]="true"
           [showAttachmentInfo]="true">
         </app-category-selector>
         <p *ngIf="hasError('category')" class="form-error mt-2">
@@ -40,12 +38,7 @@
         <!-- Title -->
         <div>
           <label for="title" class="form-label">Título del reto *</label>
-          <input 
-            type="text" 
-            id="title"
-            formControlName="title"
-            placeholder="Ej: SQL Injection 101"
-            class="input"
+          <input type="text" id="title" formControlName="title" placeholder="Ej: SQL Injection 101" class="input"
             [class.border-red-500]="hasError('title')">
           <p *ngIf="hasError('title')" class="form-error">
             {{ getErrorMessage('title') }}
@@ -55,15 +48,21 @@
         <!-- Description -->
         <div>
           <label for="description" class="form-label">Descripción *</label>
-          <textarea 
-            id="description"
-            formControlName="description"
-            rows="4"
-            placeholder="Describe el reto, el contexto y qué debe lograr el participante..."
-            class="input"
+          <textarea id="description" formControlName="description" rows="4"
+            placeholder="Describe el reto, el contexto y qué debe lograr el participante..." class="input"
             [class.border-red-500]="hasError('description')"></textarea>
           <p *ngIf="hasError('description')" class="form-error">
             {{ getErrorMessage('description') }}
+          </p>
+        </div>
+
+        <!-- Platform -->
+        <div>
+          <label for="platform" class="form-label">Plataforma *</label>
+          <input type="text" id="platform" formControlName="platform" placeholder="Ej: Web, Docker, Linux, Windows"
+            class="input" [class.border-red-500]="hasError('platform')">
+          <p *ngIf="hasError('platform')" class="form-error">
+            {{ getErrorMessage('platform') }}
           </p>
         </div>
 
@@ -71,11 +70,7 @@
         <div class="grid md:grid-cols-2 gap-4">
           <div>
             <label for="difficulty" class="form-label">Dificultad *</label>
-            <select 
-              id="difficulty"
-              formControlName="difficulty"
-              (change)="onDifficultyChange()"
-              class="input"
+            <select id="difficulty" formControlName="difficulty" (change)="onDifficultyChange()" class="input"
               [class.border-red-500]="hasError('difficulty')">
               <option value="">Selecciona dificultad</option>
               <option *ngFor="let diff of difficulties" [value]="diff.value">
@@ -89,13 +84,7 @@
 
           <div>
             <label for="points" class="form-label">Puntos *</label>
-            <input 
-              type="number" 
-              id="points"
-              formControlName="points"
-              min="10"
-              max="10000"
-              class="input"
+            <input type="number" id="points" formControlName="points" min="10" max="10000" class="input"
               [class.border-red-500]="hasError('points')">
             <p class="text-xs text-textSecondary mt-1">Se ajusta automáticamente según la dificultad</p>
           </div>
@@ -113,21 +102,15 @@
 
         <!-- File Upload (if required) -->
         <div *ngIf="requiresFiles">
-          <app-file-upload
-            [category]="selectedCategory"
-            [label]="'Archivos adjuntos'"
-            [hint]="'Arrastra los archivos necesarios para el reto'"
-            (filesUploaded)="onFilesUploaded($event)">
+          <app-file-upload [category]="selectedCategory" [label]="'Archivos adjuntos'"
+            [hint]="'Arrastra los archivos necesarios para el reto'" (filesUploaded)="onFilesUploaded($event)">
           </app-file-upload>
         </div>
 
         <!-- URL Input (if required) -->
         <div *ngIf="requiresUrl">
-          <app-url-input
-            [label]="'URL del reto'"
-            [placeholder]="'https://challenge.ctf.local/'"
-            [hint]="'URL del servidor o recurso vulnerable'"
-            [required]="!requiresFiles"
+          <app-url-input [label]="'URL del reto'" [placeholder]="'https://challenge.ctf.local/'"
+            [hint]="'URL del servidor o recurso vulnerable'" [required]="!requiresFiles"
             (urlChange)="onUrlChange($event)">
           </app-url-input>
         </div>
@@ -168,13 +151,8 @@
 
         <div>
           <label for="flag" class="form-label">Flag *</label>
-          <input 
-            type="text" 
-            id="flag"
-            formControlName="flag"
-            placeholder="flag{tu_flag_secreta}"
-            class="input font-mono"
-            [class.border-red-500]="hasError('flag')">
+          <input type="text" id="flag" formControlName="flag" placeholder="flag{tu_flag_secreta}"
+            class="input font-mono" [class.border-red-500]="hasError('flag')">
           <p *ngIf="hasError('flag')" class="form-error">
             {{ getErrorMessage('flag') }}
           </p>
@@ -186,41 +164,25 @@
 
       <!-- Skills (Using DynamicList) -->
       <section class="card">
-        <app-dynamic-list
-          [label]="'Skills requeridas'"
-          [placeholder]="'Ej: SQL Injection, XSS, Python...'"
-          [emptyMessage]="'Agrega las habilidades necesarias para resolver el reto'"
-          [addButtonText]="'Agregar'"
-          [maxItems]="10"
-          [minLength]="2"
-          [variant]="'tags'"
-          [itemIcon]="'🔧'"
-          (itemsChange)="onSkillsChange($event)">
+        <app-dynamic-list [label]="'Skills requeridas'" [placeholder]="'Ej: SQL Injection, XSS, Python...'"
+          [emptyMessage]="'Agrega las habilidades necesarias para resolver el reto'" [addButtonText]="'Agregar'"
+          [maxItems]="10" [minLength]="2" [variant]="'tags'" [itemIcon]="'🔧'" (itemsChange)="onSkillsChange($event)">
         </app-dynamic-list>
       </section>
 
       <!-- Hints (Using DynamicList) -->
       <section class="card">
-        <app-dynamic-list
-          [label]="'Pistas (opcional)'"
-          [placeholder]="'Escribe una pista útil para los participantes...'"
-          [emptyMessage]="'No hay pistas (opcional)'"
-          [addButtonText]="'Agregar pista'"
-          [maxItems]="5"
-          [minLength]="10"
-          [variant]="'default'"
-          [showIndex]="true"
-          [itemIcon]="'💡'"
-          (itemsChange)="onHintsChange($event)">
+        <app-dynamic-list [label]="'Pistas (opcional)'"
+          [placeholder]="'Escribe una pista útil para los participantes...'" [emptyMessage]="'No hay pistas (opcional)'"
+          [addButtonText]="'Agregar pista'" [maxItems]="5" [minLength]="10" [variant]="'default'" [showIndex]="true"
+          [itemIcon]="'💡'" (itemsChange)="onHintsChange($event)">
         </app-dynamic-list>
       </section>
 
       <!-- Status -->
       <section class="card">
         <label class="flex items-center gap-3 cursor-pointer">
-          <input 
-            type="checkbox" 
-            formControlName="isActive"
+          <input type="checkbox" formControlName="isActive"
             class="w-5 h-5 rounded border-slate-700 bg-slate-800 text-primary focus:ring-primary">
           <div>
             <span class="text-textPrimary font-medium">Reto activo</span>
@@ -230,10 +192,12 @@
       </section>
 
       <!-- Error Message -->
-      <div *ngIf="submitError" class="p-4 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div *ngIf="submitError"
+        class="p-4 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         {{ submitError }}
       </div>
@@ -245,15 +209,14 @@
         </p>
         <div class="flex items-center gap-4">
           <a routerLink="/ctf" class="btn-outline">Cancelar</a>
-          <button 
-            type="submit" 
-            class="btn-primary"
-            [disabled]="isSubmitting">
+          <button type="submit" class="btn-primary" [disabled]="isSubmitting">
             <span *ngIf="!isSubmitting">Crear reto</span>
             <span *ngIf="isSubmitting" class="flex items-center gap-2">
               <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
               </svg>
               Creando...
             </span>

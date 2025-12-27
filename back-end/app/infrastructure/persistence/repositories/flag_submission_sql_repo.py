@@ -23,7 +23,7 @@ class FlagSubmissionSqlRepository(FlagSubmissionRepository):
             id=str(submission.id),
             ctf_id=str(submission.ctf_id),
             user_id=str(submission.user_id) if submission.user_id else None,
-            submitted_flag=submission.submitted_flag,
+            flag=submission.flag,
             is_correct=submission.is_correct,
             ip_address=submission.ip_address,
             submitted_at=submission.submitted_at,
@@ -39,6 +39,16 @@ class FlagSubmissionSqlRepository(FlagSubmissionRepository):
         ).order_by(
             FlagSubmissionModel.submitted_at.desc()
         ).offset(skip).limit(limit).all()
+        return [self._to_entity(s) for s in db_submissions]
+    
+    def get_successful_by_ctf_id(self, ctf_id: UUID) -> List[FlagSubmission]:
+        """Obtiene intentos exitosos de un CTF."""
+        db_submissions = self.db.query(FlagSubmissionModel).filter(
+            FlagSubmissionModel.ctf_id == str(ctf_id),
+            FlagSubmissionModel.is_correct == True
+        ).order_by(
+            FlagSubmissionModel.submitted_at.desc()
+        ).all()
         return [self._to_entity(s) for s in db_submissions]
     
     def get_by_user_id(self, user_id: UUID, skip: int = 0, limit: int = 100) -> List[FlagSubmission]:
@@ -92,7 +102,7 @@ class FlagSubmissionSqlRepository(FlagSubmissionRepository):
             id=UUIDType(model.id),
             ctf_id=UUIDType(model.ctf_id),
             user_id=UUIDType(model.user_id) if model.user_id else None,
-            submitted_flag=model.submitted_flag,
+            flag=model.flag,
             is_correct=model.is_correct,
             ip_address=model.ip_address,
             submitted_at=model.submitted_at,

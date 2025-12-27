@@ -117,6 +117,9 @@ export class CtfDetailComponent implements OnInit {
         if (result.success) {
           this.isSolved = true;
           this.flagInput = '';
+
+          // ✅ Recargar el challenge actual para actualizar su estado
+          this.loadChallengeFromApi(this.challenge!.id);
         }
         this.isSubmitting = false;
       },

@@ -24,7 +24,7 @@ class CTFCreateDTO(BaseModel):
     title: str = Field(..., min_length=3, max_length=200)
     level: str = Field(..., description="easy, medium, hard, insane")
     category: str = Field(..., description="web, pwn, reverse, crypto, forensics, misc, osint, stego")
-    platform: str = Field(..., min_length=1, max_length=100)
+    platform: Optional[str] = Field("Web", min_length=1, max_length=100)
     description: Optional[str] = None
     points: int = Field(default=0, ge=0, le=1000)
     machine_os: Optional[str] = None
@@ -34,6 +34,7 @@ class CTFCreateDTO(BaseModel):
     flag: Optional[str] = Field(None, description="Flag del reto (se almacenará como hash)")
     author: Optional[str] = None
     is_active: bool = True
+    attachments: List[AttachmentDTO] = Field(default_factory=list)
     
     class Config:
         json_schema_extra = {

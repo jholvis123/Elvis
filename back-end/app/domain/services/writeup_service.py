@@ -27,6 +27,10 @@ class WriteupService:
         Verifica si se puede crear un writeup para un CTF.
         Retorna (puede_crear, mensaje_error).
         """
+        # Si no hay CTF asociado, se puede crear (writeup independiente)
+        if ctf_id is None:
+            return True, None
+            
         # Verificar que el CTF existe
         ctf = self.ctf_repository.get_by_id(ctf_id)
         if not ctf:

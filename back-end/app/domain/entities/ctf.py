@@ -37,6 +37,8 @@ class CTFStatus(str, Enum):
     ARCHIVED = "archived"
 
 
+from .attachment import Attachment
+
 @dataclass
 class CTF:
     """Entidad de dominio para retos CTF."""
@@ -61,6 +63,7 @@ class CTF:
     status: CTFStatus = CTFStatus.DRAFT
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
+    attachments: List[Attachment] = field(default_factory=list)
     
     def mark_as_solved(self) -> None:
         """Marca el CTF como resuelto."""

@@ -61,7 +61,7 @@ class FlagService:
             return False, "Formato de flag inválido", None
         
         # Verificar flag
-        is_correct = ctf.verify_flag(flag)
+        is_correct = ctf.verify_flag(flag.strip())
         
         # Registrar intento
         submission = FlagSubmission(
@@ -74,7 +74,8 @@ class FlagService:
         self.submission_repository.save(submission)
         
         if is_correct:
-            # Incrementar contador de soluciones
+            # Marcar CTF como resuelto y actualizar contador
+            ctf.mark_as_solved()
             ctf.increment_solved_count()
             self.ctf_repository.save(ctf)
             

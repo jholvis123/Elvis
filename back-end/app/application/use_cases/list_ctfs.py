@@ -89,12 +89,14 @@ class ListCTFsUseCase:
     def get_statistics(self) -> CTFStatisticsDTO:
         """Obtiene estadísticas de CTFs."""
         stats = self.ctf_repository.get_statistics()
-        total = self.ctf_repository.count()
+        total = self.ctf_repository.count(status=CTFStatus.PUBLISHED)
         solved_ctfs = self.ctf_repository.get_solved()
         
         return CTFStatisticsDTO(
             total=total,
             solved=len(solved_ctfs),
+            total_points=stats.get("total_points", 0),
+            earned_points=stats.get("earned_points", 0),
             by_level=stats.get("by_level", {}),
             by_category=stats.get("by_category", {}),
             by_platform=stats.get("by_platform", {}),
@@ -116,7 +118,11 @@ class ListCTFsUseCase:
             solved=ctf.solved,
             solved_at=ctf.solved_at,
             machine_os=ctf.machine_os,
-            tags=ctf.tags,
+            skills=ctf.skills,
+            hints=ctf.hints,
+            author=ctf.author,
+            solved_count=ctf.solved_count,
+            is_active=ctf.is_active,
             status=ctf.status.value,
             created_at=ctf.created_at,
             updated_at=ctf.updated_at,

@@ -146,8 +146,7 @@ export class CtfService {
     }
 
     return this.api.get<CTFListResponse>('/ctfs', params).pipe(
-      map(response => response.items.map(this.mapApiToChallenge)),
-      catchError(() => of(this.mockChallenges))
+      map(response => response.items.map(this.mapApiToChallenge))
     );
   }
 
@@ -157,7 +156,10 @@ export class CtfService {
   getChallengeByIdFromApi(id: string): Observable<CTFChallenge | null> {
     return this.api.get<CTFApiResponse>(`/ctfs/${id}`).pipe(
       map(this.mapApiToChallenge),
-      catchError(() => of(this.mockChallenges.find(c => c.id === id) || null))
+      catchError(err => {
+        console.error('Error fetching challenge:', err);
+        return of(null);
+      })
     );
   }
 
@@ -193,7 +195,7 @@ export class CtfService {
     return this.api.get<any>('/ctfs/statistics').pipe(
       map(data => ({
         totalChallenges: data.total || 0,
-        solvedChallenges: this.solvedChallenges.size,
+        solvedChallenges: data.solved || 0,  // ✅ Usar datos del backend
         totalPoints: data.total_points || 0,
         earnedPoints: data.earned_points || 0
       })),
@@ -367,14 +369,16 @@ export class CtfService {
       description: form.description,
       category: form.category,
       level: form.difficulty,
+      platform: form.platform,
       points: form.points,
       flag: form.flag,
       skills: form.skills || [],
       hints: form.hints || [],
-      is_active: form.isActive ?? true
+      is_active: form.isActive ?? true,
+      attachments: form.attachments || []
     };
 
-    return this.api.post<CTFApiResponse>('/ctf/challenges', payload).pipe(
+    return this.api.post<CTFApiResponse>('/ctfs', payload).pipe(
       map(response => this.mapApiToChallenge(response)),
       catchError(err => {
         console.error('Error creating challenge in API:', err);

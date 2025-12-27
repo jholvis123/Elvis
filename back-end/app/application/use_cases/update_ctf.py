@@ -66,8 +66,14 @@ class UpdateCTFUseCase:
         if data.machine_os is not None:
             ctf.machine_os = data.machine_os
         
-        if data.tags is not None:
-            ctf.tags = data.tags
+        if data.skills is not None:
+            ctf.skills = data.skills
+
+        if data.hints is not None:
+            ctf.hints = data.hints
+
+        if data.flag is not None:
+            ctf.set_flag(data.flag.strip())
         
         if data.solved is not None and data.solved and not ctf.solved:
             ctf.mark_as_solved()
@@ -89,7 +95,11 @@ class UpdateCTFUseCase:
             solved=saved_ctf.solved,
             solved_at=saved_ctf.solved_at,
             machine_os=saved_ctf.machine_os,
-            tags=saved_ctf.tags,
+            skills=saved_ctf.skills,
+            hints=saved_ctf.hints,
+            author=saved_ctf.author,
+            solved_count=saved_ctf.solved_count,
+            is_active=saved_ctf.is_active,
             status=saved_ctf.status.value,
             created_at=saved_ctf.created_at,
             updated_at=saved_ctf.updated_at,
@@ -133,7 +143,11 @@ class UpdateCTFUseCase:
             solved=saved_ctf.solved,
             solved_at=saved_ctf.solved_at,
             machine_os=saved_ctf.machine_os,
-            tags=saved_ctf.tags,
+            skills=saved_ctf.skills,
+            hints=saved_ctf.hints,
+            author=saved_ctf.author,
+            solved_count=saved_ctf.solved_count,
+            is_active=saved_ctf.is_active,
             status=saved_ctf.status.value,
             created_at=saved_ctf.created_at,
             updated_at=saved_ctf.updated_at,

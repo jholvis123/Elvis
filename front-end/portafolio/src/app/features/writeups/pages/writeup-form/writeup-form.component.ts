@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { CtfService } from '@core/services/ctf.service';
+import { CTFChallenge } from '@core/models/ctf.model';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { WriteupsService, WriteupForm } from '../../services/writeups.service';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { WriteupForm, WriteupsService } from '@features/writeups/services/writeups.service';
+import { NotificationService } from '@core/services/notification.service';
+
 
 @Component({
     selector: 'app-writeup-form',
@@ -18,12 +21,14 @@ export class WriteupFormComponent implements OnInit {
     error = '';
     isEditMode = false;
     writeupId: string | null = null;
+    ctfs: CTFChallenge[] = [];
 
     constructor(
         private fb: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
         private writeupsService: WriteupsService,
+        private ctfService: CtfService,
         private notificationService: NotificationService
     ) { }
 
@@ -32,6 +37,7 @@ export class WriteupFormComponent implements OnInit {
         this.isEditMode = !!this.writeupId;
 
         this.initForm();
+        this.loadCtfs();
 
         if (this.isEditMode && this.writeupId) {
             this.loadWriteup(this.writeupId);
@@ -41,11 +47,24 @@ export class WriteupFormComponent implements OnInit {
     initForm(): void {
         this.writeupForm = this.fb.group({
             title: ['', [Validators.required, Validators.minLength(5)]],
-            ctf_id: [''],
+            ctf_id: [''],  // ✅ Opcional
             summary: ['', [Validators.required, Validators.maxLength(300)]],
             content: ['', [Validators.required, Validators.minLength(100)]],
             tools_used: this.fb.array([], Validators.required),
             techniques: this.fb.array([], Validators.required)
+        });
+    }
+
+    loadCtfs(): void {
+        this.ctfService.getChallengesFromApi({ showSolved: true }).subscribe({
+            next: (ctfs) => {
+                this.ctfs = ctfs.filter(c => c.isActive);
+            },
+            error: () => {
+                console.error('Error loading CTFs');
+                // Fallback valid only if we can't fetch API, but we want to show list
+                this.ctfs = this.ctfService.getChallenges();
+            }
         });
     }
 
@@ -84,6 +103,10 @@ export class WriteupFormComponent implements OnInit {
                     summary: writeup.summary,
                     content: writeup.content
                 });
+
+                // Clear arrays first
+                this.tools.clear();
+                this.techniques.clear();
 
                 writeup.tools_used.forEach(tool => {
                     this.tools.push(this.fb.control(tool, Validators.required));
