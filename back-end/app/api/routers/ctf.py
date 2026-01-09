@@ -25,6 +25,7 @@ from ...application.use_cases import (
     UpdateCTFUseCase,
     DeleteCTFUseCase,
 )
+from ...core.security_middleware import limiter
 from ...domain.entities.user import User
 from ...domain.repositories.ctf_repo import CTFRepository
 from ...domain.repositories.writeup_repo import WriteupRepository
@@ -107,7 +108,7 @@ async def create_ctf(
     use_case = CreateCTFUseCase(ctf_repo, ctf_service)
     
     try:
-        return use_case.execute(data)
+        return use_case.execute(data, user_id=current_user.id)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -127,7 +128,7 @@ async def update_ctf(
     """Actualiza un CTF existente (requiere autenticación)."""
     use_case = UpdateCTFUseCase(ctf_repo, writeup_repo, ctf_service)
     
-    result = use_case.execute(ctf_id, data)
+    result = use_case.execute(ctf_id, data, user_id=current_user.id)
     
     if not result:
         raise HTTPException(
@@ -167,6 +168,7 @@ async def publish_ctf(
 
 
 @router.post("/{ctf_id}/submit", response_model=FlagSubmitResponseDTO)
+@limiter.limit("5/minute")
 async def submit_flag(
     ctf_id: UUID,
     data: FlagSubmitDTO,
@@ -210,11 +212,6 @@ async def submit_flag(
             user_id=user_id,
             ip_address=ip_address,
         )
-        
-        # Si es correcta, actualizar el contador del CTF
-        if is_correct:
-            ctf.increment_solved_count()
-            ctf_repo.save(ctf)
         
         return FlagSubmitResponseDTO(
             success=is_correct,

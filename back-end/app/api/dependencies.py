@@ -36,6 +36,8 @@ from ..infrastructure.persistence.repositories import (
     ContactSqlRepository,
     FlagSubmissionSqlRepository,
 )
+from ..infrastructure.storage.local_storage import FileSystemStorage
+from ..domain.services.storage_service import StorageService
 from ..infrastructure.security.jwt_provider import JWTProvider
 
 # Security scheme
@@ -139,6 +141,18 @@ def get_portfolio_service() -> PortfolioService:
 def get_jwt_provider() -> JWTProvider:
     """Obtiene el proveedor de JWT."""
     return JWTProvider()
+
+
+# Storage dependencies
+def get_storage_service() -> StorageService:
+    """Obtiene el servicio de almacenamiento."""
+    from ..core.config import settings
+    
+    if settings.STORAGE_TYPE == "s3":
+        # TODO: Implement S3Storage
+        raise NotImplementedError("S3 storage not implemented yet")
+        
+    return FileSystemStorage()
 
 
 # Auth dependencies

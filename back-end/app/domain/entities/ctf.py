@@ -8,6 +8,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 from enum import Enum
 import hashlib
+import re
 
 
 class CTFLevel(str, Enum):
@@ -56,8 +57,11 @@ class CTF:
     # Campos alineados con frontend
     skills: List[str] = field(default_factory=list)  # Antes: tags
     hints: List[str] = field(default_factory=list)   # Pistas para resolver
-    flag_hash: Optional[str] = None                   # Hash de la flag (nunca se expone la flag real)
-    author: Optional[str] = None                      # Autor del reto
+    flag_hash: Optional[str] = None                   # Hash de la flag (o patrón regex)
+    is_flag_regex: bool = False                       # Si es True, flag_hash guarda el patrón regex
+    author: Optional[str] = None                      # Autor del reto (texto libre)
+    created_by_id: Optional[UUID] = None              # ID del usuario creador (sistema)
+    updated_by_id: Optional[UUID] = None              # ID del usuario actualizador (sistema)
     solved_count: int = 0                             # Número de soluciones
     is_active: bool = True                            # Si el reto está activo
     status: CTFStatus = CTFStatus.DRAFT
@@ -76,16 +80,31 @@ class CTF:
         self.solved_count += 1
         self.updated_at = datetime.utcnow()
     
-    def set_flag(self, flag: str) -> None:
-        """Establece la flag (se almacena como hash)."""
-        self.flag_hash = hashlib.sha256(flag.encode()).hexdigest()
+    def set_flag(self, flag: str, is_regex: bool = False) -> None:
+        """Establece la flag (se almacena como hash o regex)."""
+        self.is_flag_regex = is_regex
+        if is_regex:
+            # Si es regex, guardamos el patrón tal cual (cuidado con esto en BD abierta)
+            self.flag_hash = flag
+        else:
+            # Si es estática, guardamos el hash
+            self.flag_hash = hashlib.sha256(flag.encode()).hexdigest()
         self.updated_at = datetime.utcnow()
     
     def verify_flag(self, flag: str) -> bool:
         """Verifica si una flag es correcta."""
         if not self.flag_hash:
             return False
-        return hashlib.sha256(flag.encode()).hexdigest() == self.flag_hash
+            
+        if self.is_flag_regex:
+            # Verificación mediante Regex
+            try:
+                return bool(re.match(self.flag_hash, flag))
+            except re.error:
+                return False
+        else:
+            # Verificación mediante Hash
+            return hashlib.sha256(flag.encode()).hexdigest() == self.flag_hash
     
     def add_hint(self, hint: str) -> None:
         """Añade una pista al CTF."""

@@ -22,8 +22,8 @@ class Attachment:
     
     name: str
     type: AttachmentType
-    ctf_id: UUID
     id: UUID = field(default_factory=uuid4)
+    ctf_id: Optional[UUID] = None
     url: Optional[str] = None           # URL del recurso o path del archivo
     file_path: Optional[str] = None     # Path local del archivo
     size: Optional[int] = None          # Tamaño en bytes

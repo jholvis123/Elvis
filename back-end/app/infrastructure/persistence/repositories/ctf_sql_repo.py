@@ -42,6 +42,7 @@ class CTFSqlRepository(CTFRepository):
             existing.is_active = ctf.is_active
             existing.status = ctf.status.value
             existing.updated_at = ctf.updated_at
+            existing.updated_by_id = str(ctf.updated_by_id) if ctf.updated_by_id else None
             
             # Actualizar adjuntos si es necesario (simplificado: recrear)
             # Nota: Esto es destructivo, idealmente se debería comparar
@@ -88,6 +89,8 @@ class CTFSqlRepository(CTFRepository):
                 is_active=ctf.is_active,
                 status=ctf.status.value,
                 created_at=ctf.created_at,
+                created_by_id=str(ctf.created_by_id) if ctf.created_by_id else None,
+                updated_by_id=str(ctf.updated_by_id) if ctf.updated_by_id else None,
                 attachments=attachment_models
             )
             self.db.add(db_ctf)
@@ -266,5 +269,7 @@ class CTFSqlRepository(CTFRepository):
             status=CTFStatus(model.status),
             created_at=model.created_at,
             updated_at=model.updated_at,
+            created_by_id=UUIDType(model.created_by_id) if model.created_by_id else None,
+            updated_by_id=UUIDType(model.updated_by_id) if model.updated_by_id else None,
             attachments=attachments
         )

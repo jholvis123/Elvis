@@ -4,7 +4,7 @@ Usa Pydantic Settings para manejar variables de entorno.
 """
 
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -32,9 +32,24 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # Storage
+    STORAGE_TYPE: str = "local"  # local, s3
     UPLOAD_DIR: str = "uploads"
-    MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_EXTENSIONS: List[str] = [".md", ".pdf", ".png", ".jpg", ".pcap"]
+    MAX_FILE_SIZE: int = 1024 * 1024 * 1024  # 1GB (para ISOs, VMs)
+    ALLOWED_EXTENSIONS: List[str] = [
+        ".md", ".pdf", ".png", ".jpg", ".jpeg", ".gif", 
+        ".pcap", ".pcapng", 
+        ".zip", ".tar", ".gz", ".7z", ".rar", 
+        ".iso", ".ova", ".qcow2", 
+        ".exe", ".bin", ".elf", ".apk", ".jar",
+        ".py", ".c", ".cpp", ".js", ".html", ".css", ".txt"
+    ]
+    
+    # S3 Storage (Optional)
+    S3_BUCKET: Optional[str] = None
+    S3_REGION: str = "us-east-1"
+    S3_ENDPOINT: Optional[str] = None
+    S3_ACCESS_KEY: Optional[str] = None
+    S3_SECRET_KEY: Optional[str] = None
     
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -18,7 +18,7 @@ class AttachmentModel(Base):
     id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     type = Column(String(20), nullable=False)  # file, url, docker
-    ctf_id = Column(CHAR(36), ForeignKey("ctfs.id"), nullable=False)
+    ctf_id = Column(CHAR(36), ForeignKey("ctfs.id"), nullable=True)
     url = Column(Text)
     file_path = Column(Text)
     size = Column(Integer)

@@ -25,13 +25,14 @@ class UpdateCTFUseCase:
         self.writeup_repository = writeup_repository
         self.ctf_service = ctf_service
     
-    def execute(self, ctf_id: UUID, data: CTFUpdateDTO) -> Optional[CTFResponseDTO]:
+    def execute(self, ctf_id: UUID, data: CTFUpdateDTO, user_id: Optional[UUID] = None) -> Optional[CTFResponseDTO]:
         """
         Ejecuta el caso de uso de actualizar un CTF.
         
         Args:
             ctf_id: ID del CTF a actualizar.
             data: DTO con los datos a actualizar.
+            user_id: ID del usuario actualizador.
             
         Returns:
             DTO del CTF actualizado o None si no existe.
@@ -73,11 +74,16 @@ class UpdateCTFUseCase:
             ctf.hints = data.hints
 
         if data.flag is not None:
-            ctf.set_flag(data.flag.strip())
+             is_regex = data.is_flag_regex if data.is_flag_regex is not None else ctf.is_flag_regex
+             ctf.set_flag(data.flag.strip(), is_regex=is_regex)
         
         if data.solved is not None and data.solved and not ctf.solved:
             ctf.mark_as_solved()
         
+        # Auditoría
+        if user_id:
+            ctf.updated_by_id = user_id
+            
         # Persistir cambios
         saved_ctf = self.ctf_repository.save(ctf)
         

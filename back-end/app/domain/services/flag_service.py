@@ -6,6 +6,7 @@ Contiene la lógica de negocio para submit de flags en CTFs.
 from typing import Optional, Tuple
 from uuid import UUID
 from datetime import datetime
+import hashlib
 
 from ..entities.ctf import CTF
 from ..entities.flag_submission import FlagSubmission
@@ -63,10 +64,13 @@ class FlagService:
         # Verificar flag
         is_correct = ctf.verify_flag(flag.strip())
         
+        # Hash de la flag para almacenamiento seguro
+        flag_hash = hashlib.sha256(flag.strip().encode()).hexdigest()
+        
         # Registrar intento
         submission = FlagSubmission(
             ctf_id=ctf_id,
-            flag=flag,  # En producción, podríamos hashear esto también
+            flag=flag_hash,  # Guardamos el hash, no el texto plano
             user_id=user_id,
             is_correct=is_correct,
             ip_address=ip_address,

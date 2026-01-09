@@ -22,12 +22,13 @@ class CreateCTFUseCase:
         self.ctf_repository = ctf_repository
         self.ctf_service = ctf_service
     
-    def execute(self, data: CTFCreateDTO) -> CTFResponseDTO:
+    def execute(self, data: CTFCreateDTO, user_id: Optional[UUID] = None) -> CTFResponseDTO:
         """
         Ejecuta el caso de uso de crear CTF.
         
         Args:
             data: DTO con los datos del CTF a crear.
+            user_id: ID del usuario creador.
             
         Returns:
             DTO con el CTF creado.
@@ -90,12 +91,14 @@ class CreateCTFUseCase:
             author=data.author,
             is_active=data.is_active,
             status=CTFStatus.PUBLISHED if data.is_active else CTFStatus.DRAFT,
-            attachments=attachments
+            attachments=attachments,
+            created_by_id=user_id,
+            updated_by_id=user_id
         )
         
         # Establecer flag
         if data.flag:
-            ctf.set_flag(data.flag.strip())
+            ctf.set_flag(data.flag.strip(), is_regex=data.is_flag_regex)
         
         # Persistir
         saved_ctf = self.ctf_repository.save(ctf)

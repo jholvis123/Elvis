@@ -62,8 +62,7 @@ export class WriteupFormComponent implements OnInit {
             },
             error: () => {
                 console.error('Error loading CTFs');
-                // Fallback valid only if we can't fetch API, but we want to show list
-                this.ctfs = this.ctfService.getChallenges();
+                this.ctfs = [];
             }
         });
     }

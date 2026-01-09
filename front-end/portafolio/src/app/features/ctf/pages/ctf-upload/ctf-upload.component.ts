@@ -1,7 +1,3 @@
-/**
- * CTF Upload Component (Refactored)
- * Formulario de creación de retos CTF con adjuntos dinámicos
- */
 
 import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';

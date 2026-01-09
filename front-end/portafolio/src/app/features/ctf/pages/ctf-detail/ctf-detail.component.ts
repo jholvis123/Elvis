@@ -35,19 +35,11 @@ export class CtfDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.loadChallenge(id);
       this.loadChallengeFromApi(id);
     }
   }
 
-  loadChallenge(id: string): void {
-    const challenge = this.ctfService.getChallengeById(id);
-    if (challenge) {
-      this.challenge = challenge;
-      this.isSolved = this.ctfService.isSolved(id);
-      this.isLoading = false;
-    }
-  }
+  // loadChallenge removed (sync)
 
   /**
    * Carga el challenge desde la API
@@ -58,21 +50,22 @@ export class CtfDetailComponent implements OnInit {
         if (challenge) {
           this.challenge = challenge;
           this.isSolved = challenge.solved || this.ctfService.isSolved(id);
-        } else if (!this.challenge) {
-          // No hay datos ni de API ni locales
+        } else {
+          // No encontrado
           this.router.navigate(['/ctf']);
         }
         this.isLoading = false;
       },
       error: (err) => {
-        console.log('Usando challenge local:', err.message);
+        console.error('Error loading challenge:', err);
         this.isLoading = false;
-        if (!this.challenge) {
-          this.router.navigate(['/ctf']);
-        }
+        // Navegar atrás o mostrar error
+        this.router.navigate(['/ctf']);
       }
     });
   }
+
+  // ... getters unchanged ...
 
   get categoryInfo() {
     if (!this.challenge) return null;
@@ -110,7 +103,7 @@ export class CtfDetailComponent implements OnInit {
     this.isSubmitting = true;
     this.submitResult = null;
 
-    // Intentar con la API primero
+    // Intentar con la API
     this.ctfService.submitFlagToApi(this.challenge.id, this.flagInput.trim()).subscribe({
       next: (result) => {
         this.submitResult = result;
@@ -123,24 +116,12 @@ export class CtfDetailComponent implements OnInit {
         }
         this.isSubmitting = false;
       },
-      error: async () => {
-        // Fallback a método local
-        try {
-          const result = await this.ctfService.submitFlag({
-            challengeId: this.challenge!.id,
-            flag: this.flagInput.trim(),
-            submittedAt: new Date()
-          });
-
-          this.submitResult = result;
-
-          if (result.success) {
-            this.isSolved = true;
-            this.flagInput = '';
-          }
-        } finally {
-          this.isSubmitting = false;
-        }
+      error: (err) => {
+        this.submitResult = {
+          success: false,
+          message: err.message || 'Error al enviar flag'
+        };
+        this.isSubmitting = false;
       }
     });
   }

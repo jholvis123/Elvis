@@ -5,7 +5,7 @@ DTOs para CTFs.
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class AttachmentDTO(BaseModel):
@@ -26,15 +26,21 @@ class CTFCreateDTO(BaseModel):
     category: str = Field(..., description="web, pwn, reverse, crypto, forensics, misc, osint, stego")
     platform: Optional[str] = Field("Web", min_length=1, max_length=100)
     description: Optional[str] = None
-    points: int = Field(default=0, ge=0, le=1000)
+    points: int = Field(default=0, ge=0, le=10000)
     machine_os: Optional[str] = None
     # Campos alineados con frontend
     skills: List[str] = Field(default_factory=list)
     hints: List[str] = Field(default_factory=list)
-    flag: Optional[str] = Field(None, description="Flag del reto (se almacenará como hash)")
+    flag: Optional[str] = Field(None, description="Flag del reto (se almacenará como hash o regex)")
+    is_flag_regex: bool = Field(False, description="Si True, flag es un patrón Regex")
     author: Optional[str] = None
     is_active: bool = True
     attachments: List[AttachmentDTO] = Field(default_factory=list)
+    
+    @field_validator('skills', 'hints')
+    @classmethod
+    def remove_duplicates(cls, v: List[str]) -> List[str]:
+        return list(dict.fromkeys(v)) if v else []
     
     class Config:
         json_schema_extra = {
@@ -67,6 +73,7 @@ class CTFUpdateDTO(BaseModel):
     skills: Optional[List[str]] = None
     hints: Optional[List[str]] = None
     flag: Optional[str] = None
+    is_flag_regex: Optional[bool] = None
     author: Optional[str] = None
     is_active: Optional[bool] = None
     solved: Optional[bool] = None
