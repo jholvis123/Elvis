@@ -29,7 +29,7 @@ RUN ls -la dist/portafolio/
 
 
 # Stage 2: Production with Nginx
-FROM nginx:1.25-alpine AS production
+FROM nginx:1.29-alpine AS production
 
 # Labels
 LABEL maintainer="Elvis Portfolio <admin@elvisdeveloper.com>"
