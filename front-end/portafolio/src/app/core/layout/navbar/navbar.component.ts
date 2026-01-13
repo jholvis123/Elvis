@@ -16,9 +16,18 @@ export class NavbarComponent {
   isMenuOpen = false;
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/auth/login']);
-    this.closeMenu();
+    // IMPORTANTE: Suscribirse al Observable para que se ejecute
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+        this.closeMenu();
+      },
+      error: () => {
+        // Incluso si falla, redirigir al home
+        this.router.navigate(['/']);
+        this.closeMenu();
+      }
+    });
   }
 
   toggleMenu(): void {

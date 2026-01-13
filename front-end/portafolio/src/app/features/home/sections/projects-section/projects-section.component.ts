@@ -13,4 +13,5 @@ import { ProjectCardComponent } from '@shared/components';
 })
 export class ProjectsSectionComponent {
   @Input() projects: Project[] = [];
+  @Input() loading = false;
 }

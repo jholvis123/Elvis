@@ -28,6 +28,51 @@ from ..dependencies import (
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
+@router.get("/admin/all", response_model=ProjectListResponseDTO)
+async def list_all_projects_admin(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    status: Optional[str] = None,
+    current_user: User = Depends(get_current_admin),
+    project_repo: ProjectRepository = Depends(get_project_repository),
+):
+    """Lista TODOS los proyectos para administradores (incluye drafts)."""
+    skip = (page - 1) * size
+    
+    project_status = ProjectStatus(status) if status else None
+    projects = project_repo.get_all(skip=skip, limit=size, status=project_status)
+    total = project_repo.count(status=project_status)
+    
+    items = [
+        ProjectResponseDTO(
+            id=p.id,
+            title=p.title,
+            description=p.description,
+            short_description=p.short_description,
+            image_url=p.image_url,
+            github_url=p.github_url,
+            demo_url=p.demo_url,
+            technologies=p.technologies,
+            highlights=p.highlights,
+            status=p.status.value,
+            featured=p.featured,
+            order=p.order,
+            created_at=p.created_at,
+            updated_at=p.updated_at,
+        )
+        for p in projects
+    ]
+    
+    from math import ceil
+    return ProjectListResponseDTO(
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        pages=ceil(total / size) if size > 0 else 0,
+    )
+
+
 @router.get("", response_model=ProjectListResponseDTO)
 async def list_projects(
     page: int = Query(1, ge=1),
@@ -94,6 +139,7 @@ async def get_featured_projects(
             image_url=p.image_url,
             technologies=p.technologies,
             featured=p.featured,
+            created_at=p.created_at,
         )
         for p in projects
     ]
@@ -143,11 +189,11 @@ async def get_project(
 @router.post("", response_model=ProjectResponseDTO, status_code=status.HTTP_201_CREATED)
 async def create_project(
     data: ProjectCreateDTO,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     project_repo: ProjectRepository = Depends(get_project_repository),
     project_service: ProjectService = Depends(get_project_service),
 ):
-    """Crea un nuevo proyecto (requiere autenticación)."""
+    """Crea un nuevo proyecto (requiere admin)."""
     # Validar datos
     errors = project_service.validate_project_data(data.title, data.description)
     if errors:
@@ -192,10 +238,10 @@ async def create_project(
 async def update_project(
     project_id: UUID,
     data: ProjectUpdateDTO,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     project_repo: ProjectRepository = Depends(get_project_repository),
 ):
-    """Actualiza un proyecto existente (requiere autenticación)."""
+    """Actualiza un proyecto existente (requiere admin)."""
     project = project_repo.get_by_id(project_id)
     
     if not project:
@@ -225,6 +271,8 @@ async def update_project(
         project.featured = data.featured
     if data.order is not None:
         project.order = data.order
+    if data.status is not None:
+        project.status = ProjectStatus(data.status)
     
     saved_project = project_repo.save(project)
     
@@ -249,11 +297,11 @@ async def update_project(
 @router.post("/{project_id}/publish", response_model=ProjectResponseDTO)
 async def publish_project(
     project_id: UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     project_repo: ProjectRepository = Depends(get_project_repository),
     project_service: ProjectService = Depends(get_project_service),
 ):
-    """Publica un proyecto (requiere autenticación)."""
+    """Publica un proyecto (requiere admin)."""
     project = project_repo.get_by_id(project_id)
     
     if not project:

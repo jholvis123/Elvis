@@ -6,7 +6,7 @@ Inyección de dependencias para FastAPI.
 from typing import Generator, Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
@@ -39,9 +39,22 @@ from ..infrastructure.persistence.repositories import (
 from ..infrastructure.storage.local_storage import FileSystemStorage
 from ..domain.services.storage_service import StorageService
 from ..infrastructure.security.jwt_provider import JWTProvider
+from ..infrastructure.security.cookie_service import CookieService, cookie_service
+from ..infrastructure.security.csrf_service import CSRFService, csrf_service
 
-# Security scheme
+# Security scheme - mantener para compatibilidad con Bearer tokens (API externa)
 security = HTTPBearer(auto_error=False)
+
+
+# Cookie and CSRF service dependencies
+def get_cookie_service() -> CookieService:
+    """Obtiene el servicio de cookies."""
+    return cookie_service
+
+
+def get_csrf_service() -> CSRFService:
+    """Obtiene el servicio CSRF."""
+    return csrf_service
 
 
 # Repository dependencies
@@ -157,6 +170,7 @@ def get_storage_service() -> StorageService:
 
 # Auth dependencies
 async def get_current_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     jwt_provider: JWTProvider = Depends(get_jwt_provider),
     user_repo: UserRepository = Depends(get_user_repository),
@@ -164,17 +178,30 @@ async def get_current_user(
     """
     Obtiene el usuario actual desde el token JWT.
     
+    Soporta dos métodos de autenticación:
+    1. Cookie HttpOnly (preferido para navegadores)
+    2. Bearer token en header (para APIs externas/móviles)
+    
     Raises:
         HTTPException: Si el token es inválido o el usuario no existe.
     """
-    if not credentials:
+    token: Optional[str] = None
+    
+    # Prioridad 1: Token desde cookie HttpOnly
+    token = request.cookies.get("access_token")
+    
+    # Prioridad 2: Bearer token desde header (fallback para APIs)
+    if not token and credentials:
+        token = credentials.credentials
+    
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    token_data = jwt_provider.verify_access_token(credentials.credentials)
+    token_data = jwt_provider.verify_access_token(token)
     
     if not token_data:
         raise HTTPException(
@@ -202,18 +229,22 @@ async def get_current_user(
 
 
 async def get_current_user_optional(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     jwt_provider: JWTProvider = Depends(get_jwt_provider),
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> Optional[User]:
     """
     Obtiene el usuario actual si está autenticado, None si no.
+    Soporta tanto cookies como Bearer tokens.
     """
-    if not credentials:
+    # Verificar si hay token en cookie o header
+    token = request.cookies.get("access_token")
+    if not token and not credentials:
         return None
     
     try:
-        return await get_current_user(credentials, jwt_provider, user_repo)
+        return await get_current_user(request, credentials, jwt_provider, user_repo)
     except HTTPException:
         return None
 

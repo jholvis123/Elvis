@@ -23,32 +23,55 @@ export interface RegisterData {
     password: string;
 }
 
-export interface AuthTokens {
-    access_token: string;
-    refresh_token: string;
-    token_type: string;
-    expires_in: number;
+/**
+ * Respuesta de autenticación del backend.
+ * Los tokens NO vienen en el body - se establecen en cookies HttpOnly.
+ */
+export interface AuthStatus {
+    authenticated: boolean;
+    user: User | null;
+    expires_in: number | null;
 }
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    private readonly TOKEN_KEY = 'access_token';
-    private readonly REFRESH_TOKEN_KEY = 'refresh_token';
+    /**
+     * NOTA DE SEGURIDAD:
+     * Los tokens JWT ahora se manejan via cookies HttpOnly establecidas por el backend.
+     * El frontend NO tiene acceso a los tokens - esto protege contra XSS.
+     * Solo almacenamos datos de usuario (no sensibles) para UX.
+     */
     private readonly USER_KEY = 'current_user';
+    private readonly CSRF_COOKIE = 'csrf_token';
 
     private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
     public currentUser$ = this.currentUserSubject.asObservable();
+    
+    // Tiempo de expiración del token (para refresh proactivo)
+    private tokenExpiresAt: number | null = null;
+    private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(private api: ApiService) { }
+    constructor(private api: ApiService) {
+        // Verificar autenticación al iniciar SOLO si hay usuario en localStorage
+        // Esto evita peticiones innecesarias cuando no hay sesión previa
+        if (this.getUserFromStorage()) {
+            this.checkAuthStatus().subscribe();
+        }
+    }
 
     /**
-     * Obtiene el usuario actual del almacenamiento
+     * Obtiene el usuario actual del almacenamiento local
+     * Solo datos de UX, no tokens
      */
     private getUserFromStorage(): User | null {
-        const userJson = localStorage.getItem(this.USER_KEY);
-        return userJson ? JSON.parse(userJson) : null;
+        try {
+            const userJson = localStorage.getItem(this.USER_KEY);
+            return userJson ? JSON.parse(userJson) : null;
+        } catch {
+            return null;
+        }
     }
 
     /**
@@ -60,41 +83,48 @@ export class AuthService {
 
     /**
      * Verifica si hay un usuario autenticado
+     * La verificación real se hace en el backend via cookies
      */
     get isAuthenticated(): boolean {
-        return !!this.getAccessToken() && !!this.currentUser;
+        return !!this.currentUser;
     }
 
     /**
      * Verifica si el usuario actual es administrador
+     * IMPORTANTE: La autorización real siempre la hace el backend
      */
     get isAdmin(): boolean {
         return this.currentUser?.is_admin || false;
     }
 
     /**
-     * Obtiene el access token almacenado
+     * Obtiene el token CSRF desde la cookie (accesible porque no es HttpOnly)
      */
-    getAccessToken(): string | null {
-        return localStorage.getItem(this.TOKEN_KEY);
+    getCsrfToken(): string | null {
+        const matches = document.cookie.match(new RegExp(
+            '(?:^|; )' + this.CSRF_COOKIE + '=([^;]*)'
+        ));
+        return matches ? decodeURIComponent(matches[1]) : null;
     }
 
     /**
-     * Obtiene el refresh token almacenado
-     */
-    getRefreshToken(): string | null {
-        return localStorage.getItem(this.REFRESH_TOKEN_KEY);
-    }
-
-    /**
-     * Inicia sesión con email y contraseña
+     * Inicia sesión con email y contraseña.
+     * Los tokens se establecen automáticamente en cookies HttpOnly por el backend.
      */
     login(credentials: LoginCredentials): Observable<User> {
-        return this.api.post<AuthTokens>('/auth/login', credentials).pipe(
-            tap(tokens => this.storeTokens(tokens)),
-            // Después de guardar tokens, obtener datos del usuario desde backend
-            switchMap(() => this.api.get<User>('/auth/me')),
-            tap(user => this.setCurrentUser(user))
+        return this.api.post<AuthStatus>('/auth/login', credentials, { withCredentials: true }).pipe(
+            tap(response => {
+                if (response.authenticated && response.user) {
+                    this.setCurrentUser(response.user);
+                    this.scheduleTokenRefresh(response.expires_in);
+                }
+            }),
+            map(response => {
+                if (!response.user) {
+                    throw new Error('Login failed');
+                }
+                return response.user;
+            })
         );
     }
 
@@ -102,42 +132,85 @@ export class AuthService {
      * Registra un nuevo usuario
      */
     register(data: RegisterData): Observable<User> {
-        return this.api.post<User>('/auth/register', data).pipe(
-            tap(user => {
+        return this.api.post<User>('/auth/register', data, { withCredentials: true }).pipe(
+            switchMap(user => {
                 // Después del registro, hacer login automático
-                this.login({
+                return this.login({
                     email: data.email,
                     password: data.password
-                }).subscribe();
+                });
             })
         );
     }
 
     /**
-     * Cierra la sesión actual
+     * Cierra la sesión actual.
+     * El backend elimina las cookies de autenticación.
      */
-    logout(): void {
-        localStorage.removeItem(this.TOKEN_KEY);
-        localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-        localStorage.removeItem(this.USER_KEY);
-        this.currentUserSubject.next(null);
+    logout(): Observable<void> {
+        return this.api.post<void>('/auth/logout', {}, { withCredentials: true }).pipe(
+            tap(() => {
+                this.clearLocalAuth();
+            }),
+            catchError(() => {
+                // Limpiar localmente incluso si falla la petición
+                this.clearLocalAuth();
+                return of(undefined);
+            })
+        );
     }
 
     /**
-     * Refresca el access token usando el refresh token
+     * Limpia los datos de autenticación locales
      */
-    refreshToken(): Observable<AuthTokens> {
-        const refreshToken = this.getRefreshToken();
-
-        if (!refreshToken) {
-            return of({} as AuthTokens);
+    private clearLocalAuth(): void {
+        localStorage.removeItem(this.USER_KEY);
+        this.currentUserSubject.next(null);
+        this.tokenExpiresAt = null;
+        if (this.refreshTimeout) {
+            clearTimeout(this.refreshTimeout);
+            this.refreshTimeout = null;
         }
+    }
 
-        return this.api.post<AuthTokens>('/auth/refresh', { refresh_token: refreshToken }).pipe(
-            tap(tokens => this.storeTokens(tokens)),
+    /**
+     * Refresca el access token usando el refresh token (vía cookies)
+     */
+    refreshToken(): Observable<AuthStatus> {
+        return this.api.post<AuthStatus>('/auth/refresh', {}, { withCredentials: true }).pipe(
+            tap(response => {
+                if (response.authenticated && response.user) {
+                    this.setCurrentUser(response.user);
+                    this.scheduleTokenRefresh(response.expires_in);
+                }
+            }),
+            catchError(error => {
+                // Si falla el refresh, cerrar sesión
+                this.clearLocalAuth();
+                return of({ authenticated: false, user: null, expires_in: null });
+            })
+        );
+    }
+
+    /**
+     * Verifica el estado de autenticación actual contra el backend
+     */
+    checkAuthStatus(): Observable<AuthStatus> {
+        return this.api.get<User>('/auth/me', { withCredentials: true }).pipe(
+            map(user => ({
+                authenticated: true,
+                user,
+                expires_in: null
+            })),
+            tap(response => {
+                if (response.authenticated && response.user) {
+                    this.setCurrentUser(response.user);
+                }
+            }),
             catchError(() => {
-                this.logout();
-                return of({} as AuthTokens);
+                // No autenticado - limpiar estado local
+                this.clearLocalAuth();
+                return of({ authenticated: false, user: null, expires_in: null });
             })
         );
     }
@@ -146,21 +219,13 @@ export class AuthService {
      * Obtiene el perfil del usuario autenticado
      */
     getCurrentUser(): Observable<User> {
-        return this.api.get<User>('/auth/me').pipe(
+        return this.api.get<User>('/auth/me', { withCredentials: true }).pipe(
             tap(user => this.setCurrentUser(user))
         );
     }
 
     /**
-     * Almacena los tokens en localStorage
-     */
-    private storeTokens(tokens: AuthTokens): void {
-        localStorage.setItem(this.TOKEN_KEY, tokens.access_token);
-        localStorage.setItem(this.REFRESH_TOKEN_KEY, tokens.refresh_token);
-    }
-
-    /**
-     * Establece el usuario actual
+     * Establece el usuario actual (solo datos de UX)
      */
     private setCurrentUser(user: User): void {
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
@@ -168,20 +233,35 @@ export class AuthService {
     }
 
     /**
-     * Obtiene el usuario actual del backend
+     * Programa el refresh del token antes de que expire
      */
-    private fetchCurrentUser(): User {
-        // Esto debería ser asíncrono, pero para simplificar el flujo de login
-        // se maneja en otro método. Aquí retornamos lo que tenemos en storage.
-        return this.getUserFromStorage()!;
+    private scheduleTokenRefresh(expiresIn: number | null): void {
+        if (this.refreshTimeout) {
+            clearTimeout(this.refreshTimeout);
+        }
+
+        if (!expiresIn) return;
+
+        // Calcular cuándo expira el token
+        this.tokenExpiresAt = Date.now() + (expiresIn * 1000);
+
+        // Refrescar 1 minuto antes de que expire
+        const refreshIn = (expiresIn - 60) * 1000;
+        
+        if (refreshIn > 0) {
+            this.refreshTimeout = setTimeout(() => {
+                this.refreshToken().subscribe();
+            }, refreshIn);
+        }
     }
 
     /**
      * Verifica si el token está próximo a expirar
      */
     isTokenExpiringSoon(): boolean {
-        // TODO: Implementar lógica de decodificación de JWT
-        // y verificación de tiempo de expiración
-        return false;
+        if (!this.tokenExpiresAt) return false;
+        // Considerar "próximo a expirar" si quedan menos de 2 minutos
+        return (this.tokenExpiresAt - Date.now()) < 120000;
     }
-}
+};
+    

@@ -131,7 +131,8 @@ export class ProjectFormComponent implements OnInit {
             next: (project) => {
                 const message = this.isEditMode ? 'Proyecto actualizado exitosamente' : 'Proyecto creado exitosamente';
                 this.notificationService.success(message);
-                this.router.navigate(['/projects', project.id]);
+                // Redirigir al panel de admin ya que los proyectos nuevos están en draft
+                this.router.navigate(['/admin/projects']);
             },
             error: (err) => {
                 this.error = err.message || 'Error al guardar el proyecto';
@@ -147,6 +148,7 @@ export class ProjectFormComponent implements OnInit {
         this.projectsService.publishProject(this.projectId).subscribe({
             next: (project) => {
                 this.notificationService.success('Proyecto publicado exitosamente');
+                // Ahora sí podemos ir a la página pública porque está publicado
                 this.router.navigate(['/projects', project.id]);
             },
             error: (err) => {

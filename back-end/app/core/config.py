@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
+    # Cookie Security Settings
+    COOKIE_SECURE: bool = False  # True in production (HTTPS)
+    COOKIE_SAMESITE: str = "lax"  # "strict" for highest security, "lax" for usability
+    COOKIE_DOMAIN: Optional[str] = None  # Set in production
+    
+    # CSRF Protection
+    CSRF_SECRET_KEY: Optional[str] = None  # Will default to SECRET_KEY if not set
+    
     # Storage
     STORAGE_TYPE: str = "local"  # local, s3
     UPLOAD_DIR: str = "uploads"

@@ -80,6 +80,9 @@ class UpdateCTFUseCase:
         if data.solved is not None and data.solved and not ctf.solved:
             ctf.mark_as_solved()
         
+        if data.is_active is not None:
+            ctf.is_active = data.is_active
+        
         # Auditoría
         if user_id:
             ctf.updated_by_id = user_id

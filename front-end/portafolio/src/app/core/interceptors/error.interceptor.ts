@@ -29,11 +29,21 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                 // Error del lado del servidor
                 switch (error.status) {
                     case 401:
-                        // No autorizado - cerrar sesión y redirigir al login
+                        // No autorizado
+                        // Ignorar 401 de endpoints de verificación de auth (no mostrar notificación)
+                        // Estos endpoints esperan 401 cuando no hay sesión activa
+                        if (req.url.includes('/auth/me') || req.url.includes('/auth/refresh')) {
+                            // Solo propagar el error sin notificación ni redirección
+                            return throwError(() => error);
+                        }
+                        
+                        // Para otros endpoints: cerrar sesión y redirigir al login
                         // Solo si no estamos ya en la página de login para evitar bucles
-                        if (!req.url.includes('/auth/login')) {
-                            authService.logout();
-                            router.navigate(['/auth/login']);
+                        if (!req.url.includes('/auth/login') && !req.url.includes('/auth/logout')) {
+                            // IMPORTANTE: Suscribirse para que el logout se ejecute
+                            authService.logout().subscribe(() => {
+                                router.navigate(['/']);
+                            });
                             errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
                         }
                         break;

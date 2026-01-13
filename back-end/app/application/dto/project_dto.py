@@ -46,6 +46,7 @@ class ProjectUpdateDTO(BaseModel):
     highlights: Optional[List[str]] = None
     featured: Optional[bool] = None
     order: Optional[int] = None
+    status: Optional[str] = Field(None, description="draft, published, archived")
 
 
 class ProjectResponseDTO(BaseModel):
@@ -81,7 +82,7 @@ class ProjectListResponseDTO(BaseModel):
 
 
 class ProjectSummaryDTO(BaseModel):
-    """DTO resumido de proyecto (para cards)."""
+    """DTO resumido de proyecto (para cards en Home)."""
     
     id: UUID
     title: str
@@ -89,6 +90,7 @@ class ProjectSummaryDTO(BaseModel):
     image_url: Optional[str]
     technologies: List[str]
     featured: bool
+    created_at: datetime
     
     class Config:
         from_attributes = True

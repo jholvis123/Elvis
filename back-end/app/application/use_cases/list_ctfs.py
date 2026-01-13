@@ -86,10 +86,68 @@ class ListCTFsUseCase:
             pages=ceil(total / size) if size > 0 else 0,
         )
     
-    def get_statistics(self) -> CTFStatisticsDTO:
-        """Obtiene estadísticas de CTFs."""
-        stats = self.ctf_repository.get_statistics()
-        total = self.ctf_repository.count(status=CTFStatus.PUBLISHED)
+    def execute_admin(
+        self,
+        page: int = 1,
+        size: int = 10,
+        level: Optional[str] = None,
+        category: Optional[str] = None,
+        platform: Optional[str] = None,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> CTFListResponseDTO:
+        """
+        Lista TODOS los CTFs para administradores (incluye drafts).
+        
+        Args:
+            page: Número de página (1-indexed).
+            size: Tamaño de página.
+            level: Filtro por nivel.
+            category: Filtro por categoría.
+            platform: Filtro por plataforma.
+            status: Filtro por estado (draft, published, archived).
+            search: Término de búsqueda.
+            
+        Returns:
+            Lista paginada de CTFs.
+        """
+        skip = (page - 1) * size
+        
+        # Obtener todos los CTFs (sin filtro de estado por defecto)
+        if search:
+            ctfs = self.ctf_repository.search(search)
+        else:
+            ctf_status = CTFStatus(status) if status else None
+            ctfs = self.ctf_repository.get_all(skip=skip, limit=size, status=ctf_status)
+        
+        # Aplicar filtros adicionales
+        if level:
+            ctf_level = CTFLevel(level)
+            ctfs = [c for c in ctfs if c.level == ctf_level]
+        
+        if category:
+            ctf_category = CTFCategory(category)
+            ctfs = [c for c in ctfs if c.category == ctf_category]
+        
+        if platform:
+            ctfs = [c for c in ctfs if c.platform.lower() == platform.lower()]
+        
+        # Contar total (sin filtro de estado para admin)
+        total = self.ctf_repository.count(
+            status=CTFStatus(status) if status else None
+        )
+        
+        # Convertir a DTOs
+        items = [self._to_response_dto(ctf) for ctf in ctfs]
+        
+        return CTFListResponseDTO(
+            items=items,
+            total=total,
+            page=page,
+            size=size,
+            pages=ceil(total / size) if size > 0 else 0,
+        )
+    
         solved_ctfs = self.ctf_repository.get_solved()
         
         return CTFStatisticsDTO(

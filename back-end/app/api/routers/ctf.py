@@ -44,6 +44,33 @@ from ..dependencies import (
 router = APIRouter(prefix="/ctfs", tags=["CTFs"])
 
 
+@router.get("/admin/all", response_model=CTFListResponseDTO)
+async def list_all_ctfs_admin(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    level: Optional[str] = None,
+    category: Optional[str] = None,
+    platform: Optional[str] = None,
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_admin),
+    ctf_repo: CTFRepository = Depends(get_ctf_repository),
+    writeup_repo: WriteupRepository = Depends(get_writeup_repository),
+):
+    """Lista TODOS los CTFs para administradores (incluye drafts y archivados)."""
+    use_case = ListCTFsUseCase(ctf_repo, writeup_repo)
+    
+    return use_case.execute_admin(
+        page=page,
+        size=size,
+        level=level,
+        category=category,
+        platform=platform,
+        status=status,
+        search=search,
+    )
+
+
 @router.get("", response_model=CTFListResponseDTO)
 async def list_ctfs(
     page: int = Query(1, ge=1),
@@ -100,11 +127,11 @@ async def get_ctf(
 @router.post("", response_model=CTFResponseDTO, status_code=status.HTTP_201_CREATED)
 async def create_ctf(
     data: CTFCreateDTO,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     ctf_repo: CTFRepository = Depends(get_ctf_repository),
     ctf_service: CTFService = Depends(get_ctf_service),
 ):
-    """Crea un nuevo CTF (requiere autenticación)."""
+    """Crea un nuevo CTF (requiere admin)."""
     use_case = CreateCTFUseCase(ctf_repo, ctf_service)
     
     try:
@@ -120,12 +147,12 @@ async def create_ctf(
 async def update_ctf(
     ctf_id: UUID,
     data: CTFUpdateDTO,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     ctf_repo: CTFRepository = Depends(get_ctf_repository),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
     ctf_service: CTFService = Depends(get_ctf_service),
 ):
-    """Actualiza un CTF existente (requiere autenticación)."""
+    """Actualiza un CTF existente (requiere admin)."""
     use_case = UpdateCTFUseCase(ctf_repo, writeup_repo, ctf_service)
     
     result = use_case.execute(ctf_id, data, user_id=current_user.id)
@@ -142,12 +169,12 @@ async def update_ctf(
 @router.post("/{ctf_id}/publish", response_model=CTFResponseDTO)
 async def publish_ctf(
     ctf_id: UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     ctf_repo: CTFRepository = Depends(get_ctf_repository),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
     ctf_service: CTFService = Depends(get_ctf_service),
 ):
-    """Publica un CTF (requiere autenticación)."""
+    """Publica un CTF (requiere admin)."""
     use_case = UpdateCTFUseCase(ctf_repo, writeup_repo, ctf_service)
     
     try:

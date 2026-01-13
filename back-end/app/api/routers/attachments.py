@@ -17,6 +17,7 @@ from ...domain.entities.user import User
 from ...domain.entities.attachment import Attachment, AttachmentType
 from ...domain.services.attachment_service import AttachmentService
 from ...domain.services.storage_service import StorageService
+from ...domain.services.file_validator import FileValidator, FileValidationError
 from ...domain.repositories.attachment_repo import AttachmentRepository
 from ...application.use_cases.upload_attachment import UploadAttachmentUseCase
 from ..dependencies import (
@@ -28,6 +29,9 @@ from ..dependencies import (
 
 
 router = APIRouter(prefix="/attachments", tags=["Attachments"])
+
+# Instancia del validador de archivos
+file_validator = FileValidator()
 
 
 @router.post(
@@ -48,36 +52,61 @@ async def upload_attachment(
     
     - Si se envía `ctf_id`, el archivo se asocia a ese CTF.
     - Si no, queda huérfano (para asociar luego al crear el CTF).
+    
+    Realiza validación de:
+    - Extensión del archivo
+    - Tamaño máximo
+    - Magic bytes (contenido real coincide con extensión)
+    - Tipo MIME
     """
     use_case = UploadAttachmentUseCase(storage_service, attachment_repo)
     
     try:
-        # Validar tamaño (ejemplo simple, 100MB)
-        # Validar tamaño
-        from ...core.config import settings
+        # Obtener tamaño del archivo
         file.file.seek(0, 2)
         size = file.file.tell()
         file.file.seek(0)
         
-        if size > settings.MAX_FILE_SIZE:
-             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File too large (max {settings.MAX_FILE_SIZE / (1024*1024)}MB)",
+        filename = file.filename or "unknown"
+        content_type = file.content_type or "application/octet-stream"
+        
+        # Validación completa del archivo
+        try:
+            extension, safe_mime = file_validator.validate_file(
+                file=file.file,
+                filename=filename,
+                size=size,
+                mime_type=content_type
             )
+        except FileValidationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
+        
+        # Resetear posición del archivo después de validación
+        file.file.seek(0)
 
         return use_case.execute(
             file=file.file,
-            filename=file.filename or "unknown",
-            content_type=file.content_type or "application/octet-stream",
+            filename=filename,
+            content_type=safe_mime,  # Usar MIME type seguro
             size=size,
-
             ctf_id=ctf_id,
             uploaded_by=current_user.id
+        )
+        
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error uploading file: {str(e)}",
+            detail="Error uploading file",
         )
 
 

@@ -1,8 +1,9 @@
 """
 Router de autenticación.
+Implementa autenticación segura con cookies HttpOnly.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -12,6 +13,7 @@ from ...application.dto.user_dto import (
     UserResponseDTO,
     UserLoginDTO,
     TokenDTO,
+    AuthStatusDTO,
 )
 from ...core.database import get_db
 from ...core.security import get_password_hash, verify_password
@@ -24,8 +26,12 @@ from ..dependencies import (
     get_auth_service,
     get_jwt_provider,
     get_current_user,
+    get_cookie_service,
+    get_csrf_service,
 )
 from ...infrastructure.security.jwt_provider import JWTProvider
+from ...infrastructure.security.cookie_service import CookieService
+from ...infrastructure.security.csrf_service import CSRFService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 limiter = Limiter(key_func=get_remote_address)
@@ -67,16 +73,24 @@ async def register(
     )
 
 
-@router.post("/login", response_model=TokenDTO)
+@router.post("/login", response_model=AuthStatusDTO)
 @limiter.limit("10/minute")  # Limitar intentos de login a 10 por minuto por IP
 async def login(
     request: Request,
+    response: Response,
     data: UserLoginDTO,
     user_repo: UserRepository = Depends(get_user_repository),
     auth_service: AuthService = Depends(get_auth_service),
     jwt_provider: JWTProvider = Depends(get_jwt_provider),
+    cookie_service: CookieService = Depends(get_cookie_service),
+    csrf_service: CSRFService = Depends(get_csrf_service),
 ):
-    """Inicia sesión y retorna tokens."""
+    """
+    Inicia sesión y establece cookies seguras.
+    
+    - Los tokens se almacenan en cookies HttpOnly (no accesibles desde JavaScript)
+    - Se genera un token CSRF para protección adicional
+    """
     # Buscar usuario
     user = user_repo.get_by_email(data.email)
     
@@ -95,25 +109,54 @@ async def login(
     # Generar tokens
     access_token = jwt_provider.create_access_token(str(user.id))
     refresh_token = jwt_provider.create_refresh_token(str(user.id))
+    csrf_token = csrf_service.generate_token(str(user.id))
     
-    return TokenDTO(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
+    # Establecer cookies seguras
+    cookie_service.set_access_token_cookie(response, access_token)
+    cookie_service.set_refresh_token_cookie(response, refresh_token)
+    cookie_service.set_csrf_token_cookie(response, csrf_token)
+    
+    # Retornar solo información del usuario (sin tokens en body)
+    return AuthStatusDTO(
+        authenticated=True,
+        user=UserResponseDTO(
+            id=user.id,
+            email=user.email,
+            username=user.username,
+            is_active=user.is_active,
+            is_admin=user.is_admin,
+            created_at=user.created_at,
+        ),
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
 
-@router.post("/refresh", response_model=TokenDTO)
+@router.post("/refresh", response_model=AuthStatusDTO)
 async def refresh_token(
-    refresh_token: str,
+    request: Request,
+    response: Response,
     jwt_provider: JWTProvider = Depends(get_jwt_provider),
     user_repo: UserRepository = Depends(get_user_repository),
+    cookie_service: CookieService = Depends(get_cookie_service),
+    csrf_service: CSRFService = Depends(get_csrf_service),
 ):
-    """Refresca el token de acceso."""
-    token_data = jwt_provider.verify_refresh_token(refresh_token)
+    """
+    Refresca el access token usando el refresh token de la cookie.
+    """
+    # Obtener refresh token de la cookie
+    refresh_token_value = cookie_service.get_refresh_token_from_cookie(request)
+    
+    if not refresh_token_value:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No refresh token provided",
+        )
+    
+    token_data = jwt_provider.verify_refresh_token(refresh_token_value)
     
     if not token_data:
+        # Limpiar cookies si el token es inválido
+        cookie_service.clear_auth_cookies(response)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
@@ -124,20 +167,44 @@ async def refresh_token(
     user = user_repo.get_by_id(UUID(token_data.user_id))
     
     if not user or not user.is_active:
+        cookie_service.clear_auth_cookies(response)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive",
         )
     
-    # Generar nuevo access token
+    # Generar nuevo access token y CSRF token
     access_token = jwt_provider.create_access_token(str(user.id))
+    csrf_token = csrf_service.generate_token(str(user.id))
     
-    return TokenDTO(
-        access_token=access_token,
-        refresh_token=refresh_token,  # Mantener el mismo refresh token
-        token_type="bearer",
+    # Actualizar cookies
+    cookie_service.set_access_token_cookie(response, access_token)
+    cookie_service.set_csrf_token_cookie(response, csrf_token)
+    
+    return AuthStatusDTO(
+        authenticated=True,
+        user=UserResponseDTO(
+            id=user.id,
+            email=user.email,
+            username=user.username,
+            is_active=user.is_active,
+            is_admin=user.is_admin,
+            created_at=user.created_at,
+        ),
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+
+
+@router.post("/logout")
+async def logout(
+    response: Response,
+    cookie_service: CookieService = Depends(get_cookie_service),
+):
+    """
+    Cierra sesión eliminando las cookies de autenticación.
+    """
+    cookie_service.clear_auth_cookies(response)
+    return {"message": "Logged out successfully"}
 
 
 @router.get("/me", response_model=UserResponseDTO)

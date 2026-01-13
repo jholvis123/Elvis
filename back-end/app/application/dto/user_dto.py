@@ -69,3 +69,30 @@ class PasswordChangeDTO(BaseModel):
     
     current_password: str
     new_password: str = Field(..., min_length=8, max_length=100)
+
+
+class AuthStatusDTO(BaseModel):
+    """
+    DTO para respuesta de estado de autenticación.
+    Usado en login y refresh - NO incluye tokens (van en cookies HttpOnly).
+    """
+    
+    authenticated: bool
+    user: Optional[UserResponseDTO] = None
+    expires_in: Optional[int] = None  # Segundos hasta expiración del access token
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "authenticated": True,
+                "user": {
+                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                    "email": "user@example.com",
+                    "username": "johndoe",
+                    "is_active": True,
+                    "is_admin": False,
+                    "created_at": "2024-01-01T00:00:00"
+                },
+                "expires_in": 1800
+            }
+        }

@@ -2,6 +2,7 @@
 Entidad CTF - Capture The Flag challenges.
 """
 
+import concurrent.futures
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
@@ -9,6 +10,13 @@ from uuid import UUID, uuid4
 from enum import Enum
 import hashlib
 import re
+
+
+# Timeout para evaluación de regex (en segundos)
+REGEX_TIMEOUT_SECONDS = 1.0
+
+# Longitud máxima de input de flag
+MAX_FLAG_LENGTH = 256
 
 
 class CTFLevel(str, Enum):
@@ -81,25 +89,75 @@ class CTF:
         self.updated_at = datetime.utcnow()
     
     def set_flag(self, flag: str, is_regex: bool = False) -> None:
-        """Establece la flag (se almacena como hash o regex)."""
+        """
+        Establece la flag (se almacena como hash o regex).
+        
+        Args:
+            flag: La flag o patrón regex.
+            is_regex: Si es True, se trata como patrón regex.
+            
+        Raises:
+            ValueError: Si el regex es inválido.
+        """
         self.is_flag_regex = is_regex
         if is_regex:
-            # Si es regex, guardamos el patrón tal cual (cuidado con esto en BD abierta)
+            # Validar que el regex es válido antes de guardarlo
+            try:
+                re.compile(flag)
+            except re.error as e:
+                raise ValueError(f"Invalid regex pattern: {e}")
+            # Guardamos el patrón tal cual
             self.flag_hash = flag
         else:
             # Si es estática, guardamos el hash
             self.flag_hash = hashlib.sha256(flag.encode()).hexdigest()
         self.updated_at = datetime.utcnow()
     
+    def _match_regex_with_timeout(self, pattern: str, text: str) -> bool:
+        """
+        Ejecuta match de regex con timeout para prevenir ReDoS.
+        
+        Args:
+            pattern: Patrón regex a evaluar.
+            text: Texto contra el que evaluar.
+            
+        Returns:
+            True si hay match, False si no o si hay timeout/error.
+        """
+        def do_match():
+            return bool(re.match(pattern, text))
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(do_match)
+            try:
+                return future.result(timeout=REGEX_TIMEOUT_SECONDS)
+            except concurrent.futures.TimeoutError:
+                # Regex tomó demasiado tiempo - posible ReDoS
+                return False
+            except Exception:
+                return False
+    
     def verify_flag(self, flag: str) -> bool:
-        """Verifica si una flag es correcta."""
+        """
+        Verifica si una flag es correcta.
+        
+        Args:
+            flag: La flag a verificar.
+            
+        Returns:
+            True si la flag es correcta, False si no.
+        """
         if not self.flag_hash:
+            return False
+        
+        # Validar longitud máxima para prevenir ataques
+        if len(flag) > MAX_FLAG_LENGTH:
             return False
             
         if self.is_flag_regex:
-            # Verificación mediante Regex
+            # Verificación mediante Regex con timeout
             try:
-                return bool(re.match(self.flag_hash, flag))
+                return self._match_regex_with_timeout(self.flag_hash, flag)
             except re.error:
                 return False
         else:

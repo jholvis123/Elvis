@@ -13,11 +13,24 @@ export interface Project {
     demo_url?: string;
     technologies: string[];
     highlights: string[];
-    status: 'draft' | 'published';
+    status: 'draft' | 'published' | 'archived';
     featured: boolean;
     order: number;
     created_at: string;
     updated_at: string;
+}
+
+/**
+ * Resumen de proyecto para cards del Home
+ */
+export interface ProjectSummary {
+    id: string;
+    title: string;
+    short_description: string;
+    image_url: string;
+    technologies: string[];
+    featured: boolean;
+    created_at: string;
 }
 
 export interface ProjectListResponse {
@@ -39,6 +52,7 @@ export interface ProjectForm {
     highlights: string[];
     featured?: boolean;
     order?: number;
+    status?: 'draft' | 'published' | 'archived';
 }
 
 @Injectable({
@@ -48,7 +62,7 @@ export class ProjectsService {
     constructor(private api: ApiService) { }
 
     /**
-     * Obtiene lista de proyectos con paginación y filtros
+     * Obtiene lista de proyectos públicos (solo publicados)
      */
     getProjects(params?: {
         page?: number;
@@ -65,10 +79,28 @@ export class ProjectsService {
     }
 
     /**
-     * Obtiene proyectos destacados
+     * Obtiene TODOS los proyectos para admin (incluye drafts)
      */
-    getFeaturedProjects(limit: number = 5): Observable<Project[]> {
-        return this.api.get<Project[]>('/projects/featured', { limit }).pipe(
+    getAllProjectsAdmin(params?: {
+        page?: number;
+        size?: number;
+        status?: string;
+    }): Observable<ProjectListResponse> {
+        const queryParams: Record<string, string | number> = {
+            page: params?.page || 1,
+            size: params?.size || 100
+        };
+        if (params?.status) {
+            queryParams['status'] = params.status;
+        }
+        return this.api.get<ProjectListResponse>('/projects/admin/all', queryParams);
+    }
+
+    /**
+     * Obtiene proyectos destacados para el Home
+     */
+    getFeaturedProjects(limit: number = 5): Observable<ProjectSummary[]> {
+        return this.api.get<ProjectSummary[]>('/projects/featured', { limit }).pipe(
             catchError(() => of([]))
         );
     }
@@ -92,6 +124,13 @@ export class ProjectsService {
      */
     updateProject(id: string, data: Partial<ProjectForm>): Observable<Project> {
         return this.api.put<Project>(`/projects/${id}`, data);
+    }
+
+    /**
+     * Cambia el estado de un proyecto
+     */
+    updateProjectStatus(id: string, status: 'draft' | 'published' | 'archived'): Observable<Project> {
+        return this.api.put<Project>(`/projects/${id}`, { status });
     }
 
     /**

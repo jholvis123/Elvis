@@ -48,8 +48,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Intersection Observer
   private observer!: IntersectionObserver;
 
+  // Estado de carga para proyectos
+  loadingProjects = true;
+
   ngOnInit(): void {
-    this.loadData();
+    this.loadStaticData();
     this.loadDataFromApi();
     this.setupIntersectionObserver();
   }
@@ -70,13 +73,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga inicial con datos locales (fallback inmediato)
+   * Carga datos estáticos que no dependen de proyectos dinámicos
    */
-  private loadData(): void {
+  private loadStaticData(): void {
     this.technologies = this.portfolioService.getTechnologies().map(t => t.name);
     this.highlights = this.portfolioService.getHighlights();
     this.aboutPoints = this.portfolioService.getAboutPoints();
-    this.projects = this.portfolioService.getProjects();
+    // NO cargar proyectos hardcodeados - solo desde API
     this.roles = this.portfolioService.getRoles();
     this.stackItems = this.portfolioService.getStackItems();
     this.contactInfo = this.contactService.getContactInfo();
@@ -87,23 +90,27 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Carga datos desde la API (sobrescribe los datos locales cuando responde)
    */
   private loadDataFromApi(): void {
-    // ✅ NUEVO: Cargar proyectos destacados desde API
+    // Cargar proyectos destacados desde API (única fuente de verdad)
+    this.loadingProjects = true;
     this.projectsService.getFeaturedProjects(6).subscribe({
       next: (projects) => {
-        if (projects.length > 0) {
-          // Mapear los proyectos de la API al formato de Project del home
-          this.projects = projects.map(p => ({
-            id: p.id,
-            title: p.title,
-            description: p.short_description,
-            tags: p.technologies.slice(0, 3), // Primeras 3 tecnologías como tags
-            cta: 'Ver proyecto',
-            year: new Date(p.created_at).getFullYear(),
-            category: 'web' // Por defecto
-          }));
-        }
+        // Mapear los proyectos de la API al formato de Project del home
+        this.projects = projects.map(p => ({
+          id: p.id,
+          title: p.title,
+          description: p.short_description,
+          tags: p.technologies.slice(0, 3),
+          cta: 'Ver proyecto',
+          year: new Date(p.created_at).getFullYear(),
+          category: 'web'
+        }));
+        this.loadingProjects = false;
       },
-      error: (err) => console.log('Usando proyectos locales:', err.message)
+      error: (err) => {
+        console.error('Error cargando proyectos:', err.message);
+        this.projects = [];
+        this.loadingProjects = false;
+      }
     });
 
     // Cargar roles desde API

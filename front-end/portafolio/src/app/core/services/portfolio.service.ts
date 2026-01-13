@@ -45,35 +45,8 @@ export class PortfolioService {
     'Disfruto escribir y compartir writeups y laboratorios prácticos.'
   ];
 
-  private readonly fallbackProjects: Project[] = [
-    {
-      id: 'gestion-segura',
-      title: 'Plataforma de Gestión Segura',
-      description: 'Suite modular para operaciones internas con monitoreo y trazabilidad.',
-      tags: ['Angular', '.NET', 'Azure'],
-      cta: 'Ver caso',
-      year: 2024,
-      category: 'web'
-    },
-    {
-      id: 'dashboard-security',
-      title: 'Dashboard de Ciberseguridad',
-      description: 'Alertas en tiempo real, hardening y flujos de respuesta.',
-      tags: ['Node.js', 'SIEM', 'DevSecOps'],
-      cta: 'Ver demo',
-      year: 2024,
-      category: 'security'
-    },
-    {
-      id: 'lab-ctf',
-      title: 'Laboratorio CTF',
-      description: 'Retos propios, writeups y automatización de pruebas ofensivas.',
-      tags: ['CTF', 'Pentesting', 'Automation'],
-      cta: 'Explorar',
-      year: 2024,
-      category: 'ctf'
-    }
-  ];
+  // NOTA: Los proyectos se cargan dinámicamente desde la API
+  // No existen datos hardcodeados para proyectos
 
   private readonly fallbackRoles: string[] = [
     'Desarrollador Fullstack',
@@ -142,16 +115,21 @@ export class PortfolioService {
     return [...this.fallbackAboutPoints];
   }
 
+  // DEPRECADO: Los proyectos ahora se cargan desde ProjectsService
+  // Estos métodos se mantienen vacíos por compatibilidad
   getProjects(): Project[] {
-    return [...this.fallbackProjects];
+    console.warn('PortfolioService.getProjects() está deprecado. Usar ProjectsService.getFeaturedProjects()');
+    return [];
   }
 
   getProjectById(id: string): Project | undefined {
-    return this.fallbackProjects.find(p => p.id === id);
+    console.warn('PortfolioService.getProjectById() está deprecado. Usar ProjectsService.getProjectById()');
+    return undefined;
   }
 
   getProjectsByCategory(category: Project['category']): Project[] {
-    return this.fallbackProjects.filter(p => p.category === category);
+    console.warn('PortfolioService.getProjectsByCategory() está deprecado.');
+    return [];
   }
 
   getRoles(): string[] {

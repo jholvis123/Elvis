@@ -6,10 +6,10 @@ services:
     container_name: portfolio_db
     restart: always
     environment:
-      MYSQL_DATABASE: portfolio_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: userpassword # Change this in production
-      MYSQL_ROOT_PASSWORD: rootpassword # Change this in production
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-portfolio_db}
+      MYSQL_USER: ${MYSQL_USER:-portfolio_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
     volumes:
       - db_data:/var/lib/mysql
     networks:
@@ -25,8 +25,14 @@ services:
     volumes:
       - ./back-end:/app
     environment:
-      - DATABASE_URL=mysql+pymysql://user:userpassword@db/portfolio_db
-      - SECRET_KEY=change_this_secret_key_in_production
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-portfolio_user}:${MYSQL_PASSWORD}@db/${MYSQL_DATABASE:-portfolio_db}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - CSRF_SECRET_KEY=${CSRF_SECRET_KEY:-}
+      - DEBUG=${DEBUG:-false}
+      - COOKIE_SECURE=${COOKIE_SECURE:-true}
+      - COOKIE_SAMESITE=${COOKIE_SAMESITE:-strict}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:4200}
     depends_on:
       - db
     networks:
