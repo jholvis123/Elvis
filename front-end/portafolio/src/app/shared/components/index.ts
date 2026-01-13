@@ -12,3 +12,8 @@ export * from './file-upload/file-upload.component';
 export * from './url-input/url-input.component';
 export * from './category-selector/category-selector.component';
 export * from './dynamic-list/dynamic-list.component';
+
+// Markdown Components
+export * from './markdown-editor/markdown-editor.component';
+export * from './markdown-viewer/markdown-viewer.component';
+export * from './table-of-contents/table-of-contents.component';

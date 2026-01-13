@@ -4,8 +4,13 @@ Router de Writeups.
 
 from typing import Optional, List
 from uuid import UUID
+import os
+import hashlib
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from ...application.dto.writeup_dto import (
     WriteupCreateDTO,
@@ -23,15 +28,226 @@ from ...domain.entities.writeup import Writeup, WriteupStatus
 from ...domain.repositories.writeup_repo import WriteupRepository
 from ...domain.repositories.ctf_repo import CTFRepository
 from ...domain.services.writeup_service import WriteupService
+from ...domain.services.markdown_service import markdown_service, MarkdownRenderResult, TOCItem
+from ...domain.services.file_validator import FileValidator, FileValidationError
+from ...domain.services.storage_service import StorageService
 from ..dependencies import (
     get_writeup_repository,
     get_ctf_repository,
     get_writeup_service,
     get_current_user,
     get_current_admin,
+    get_storage_service,
 )
 
+
+# DTOs para Markdown
+class MarkdownRenderRequest(BaseModel):
+    """Request para renderizar Markdown."""
+    content: str
+    base_url: Optional[str] = ""
+
+
+class TOCItemDTO(BaseModel):
+    """DTO para item de tabla de contenidos."""
+    id: str
+    text: str
+    level: int
+
+
+class MarkdownRenderResponse(BaseModel):
+    """Response del renderizado de Markdown."""
+    html: str
+    toc: List[TOCItemDTO]
+    word_count: int
+    read_time_minutes: int
+    has_code_blocks: bool
+    languages_used: List[str]
+
+
+class ImageUploadResponse(BaseModel):
+    """Response para subida de imagen."""
+    url: str
+    filename: str
+    markdown: str
+
 router = APIRouter(prefix="/writeups", tags=["Writeups"])
+
+# Validador de imágenes (10MB máximo)
+image_validator = FileValidator(
+    allowed_extensions=['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'],
+    max_size=10 * 1024 * 1024  # 10MB en bytes
+)
+
+
+# ==================== ENDPOINTS DE MARKDOWN ====================
+
+@router.post("/render-markdown", response_model=MarkdownRenderResponse)
+async def render_markdown(
+    request: MarkdownRenderRequest,
+    req: Request,
+):
+    """
+    Renderiza contenido Markdown a HTML sanitizado.
+    
+    Procesa:
+    - Callouts (:::info, :::warning, :::tip, etc.)
+    - Syntax highlighting para bloques de código
+    - Tablas, listas, blockquotes
+    - Autolinks a CTFs, writeups y usuarios
+    - Genera TOC automático
+    
+    Todo el procesamiento se hace en backend para seguridad.
+    """
+    base_url = request.base_url or str(req.base_url).rstrip('/')
+    
+    result = markdown_service.process_markdown(
+        content=request.content,
+        base_url=base_url
+    )
+    
+    return MarkdownRenderResponse(
+        html=result.html,
+        toc=[TOCItemDTO(id=item.id, text=item.text, level=item.level) for item in result.toc],
+        word_count=result.word_count,
+        read_time_minutes=result.read_time_minutes,
+        has_code_blocks=result.has_code_blocks,
+        languages_used=result.languages_used
+    )
+
+
+@router.post(
+    "/upload-image",
+    response_model=ImageUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_writeup_image(
+    file: UploadFile = File(..., description="Imagen para el writeup"),
+    current_user: User = Depends(get_current_admin),
+    storage_service: StorageService = Depends(get_storage_service),
+):
+    """
+    Sube una imagen para usar en writeups.
+    
+    - Acepta: JPG, PNG, GIF, WebP, SVG
+    - Tamaño máximo: 10MB
+    - Valida magic bytes
+    - Retorna URL y snippet Markdown listo para insertar
+    """
+    try:
+        # Obtener tamaño del archivo
+        file.file.seek(0, 2)
+        size = file.file.tell()
+        file.file.seek(0)
+        
+        filename = file.filename or "image.png"
+        content_type = file.content_type or "image/png"
+        
+        # Validar archivo
+        try:
+            extension, safe_mime = image_validator.validate_file(
+                file=file.file,
+                filename=filename,
+                size=size,
+                mime_type=content_type
+            )
+        except FileValidationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
+        
+        # Reset file position
+        file.file.seek(0)
+        
+        # Generar nombre único
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        file_hash = hashlib.md5(file.file.read()[:1024]).hexdigest()[:8]
+        file.file.seek(0)
+        
+        safe_filename = f"writeup_{timestamp}_{file_hash}{extension}"
+        
+        # Guardar archivo
+        saved_path = storage_service.save_file(
+            file=file.file,
+            filename=safe_filename,
+            subfolder="writeup-images"
+        )
+        
+        # Construir URL
+        image_url = f"/uploads/writeup-images/{safe_filename}"
+        
+        # Crear snippet Markdown
+        alt_text = os.path.splitext(filename)[0]
+        markdown_snippet = f"![{alt_text}]({image_url})"
+        
+        return ImageUploadResponse(
+            url=image_url,
+            filename=safe_filename,
+            markdown=markdown_snippet
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error uploading image",
+        )
+
+
+# ==================== ENDPOINTS DE WRITEUPS ====================
+
+
+def _build_writeup_response(
+    writeup: Writeup,
+    writeup_service: WriteupService,
+    include_html: bool = True,
+    base_url: str = ""
+) -> WriteupResponseDTO:
+    """Helper para construir WriteupResponseDTO con HTML renderizado."""
+    from ...application.dto.writeup_dto import TOCItemDTO
+    
+    # Renderizar Markdown si se solicita
+    content_html = None
+    toc = []
+    word_count = 0
+    languages_used = []
+    read_time = writeup_service.calculate_read_time(writeup.content)
+    
+    if include_html and writeup.content:
+        render_result = markdown_service.process_markdown(
+            content=writeup.content,
+            base_url=base_url
+        )
+        content_html = render_result.html
+        toc = [TOCItemDTO(id=item.id, text=item.text, level=item.level) 
+               for item in render_result.toc]
+        word_count = render_result.word_count
+        languages_used = render_result.languages_used
+        read_time = render_result.read_time_minutes
+    
+    return WriteupResponseDTO(
+        id=writeup.id,
+        title=writeup.title,
+        ctf_id=writeup.ctf_id,
+        content=writeup.content,
+        content_html=content_html,
+        summary=writeup.summary,
+        tools_used=writeup.tools_used,
+        techniques=writeup.techniques,
+        attachments=writeup.attachments,
+        status=writeup.status.value,
+        views=writeup.views,
+        author_id=writeup.author_id,
+        created_at=writeup.created_at,
+        updated_at=writeup.updated_at,
+        published_at=writeup.published_at,
+        read_time=read_time,
+        word_count=word_count,
+        toc=toc,
+        languages_used=languages_used,
+    )
 
 
 @router.get("", response_model=WriteupListResponseDTO)
@@ -52,24 +268,9 @@ async def list_writeups(
     
     total = writeup_repo.count(status=WriteupStatus.PUBLISHED)
     
+    # Para listados no incluimos HTML (performance)
     items = [
-        WriteupResponseDTO(
-            id=w.id,
-            title=w.title,
-            ctf_id=w.ctf_id,
-            content=w.content,
-            summary=w.summary,
-            tools_used=w.tools_used,
-            techniques=w.techniques,
-            attachments=w.attachments,
-            status=w.status.value,
-            views=w.views,
-            author_id=w.author_id,
-            created_at=w.created_at,
-            updated_at=w.updated_at,
-            published_at=w.published_at,
-            read_time=writeup_service.calculate_read_time(w.content),
-        )
+        _build_writeup_response(w, writeup_service, include_html=False)
         for w in writeups
     ]
     
@@ -87,6 +288,7 @@ async def list_writeups(
 async def get_popular_writeups(
     limit: int = Query(10, ge=1, le=100),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
+    writeup_service: WriteupService = Depends(get_writeup_service),
 ):
     """Obtiene los writeups más vistos."""
     writeups = writeup_repo.get_most_viewed(limit=limit)
@@ -101,6 +303,7 @@ async def get_popular_writeups(
             views=w.views,
             created_at=w.created_at,
             published_at=w.published_at,
+            read_time=writeup_service.calculate_read_time(w.content),
         )
         for w in writeups
     ]
@@ -123,24 +326,9 @@ async def get_writeup_by_ctf(
     
     # Incrementar vistas
     writeup_repo.increment_views(writeup.id)
+    writeup.views += 1  # Reflejar en respuesta
     
-    return WriteupResponseDTO(
-        id=writeup.id,
-        title=writeup.title,
-        ctf_id=writeup.ctf_id,
-        content=writeup.content,
-        summary=writeup.summary,
-        tools_used=writeup.tools_used,
-        techniques=writeup.techniques,
-        attachments=writeup.attachments,
-        status=writeup.status.value,
-        views=writeup.views + 1,
-        author_id=writeup.author_id,
-        created_at=writeup.created_at,
-        updated_at=writeup.updated_at,
-        published_at=writeup.published_at,
-        read_time=writeup_service.calculate_read_time(writeup.content),
-    )
+    return _build_writeup_response(writeup, writeup_service, include_html=True)
 
 
 @router.get("/{writeup_id}", response_model=WriteupResponseDTO)
@@ -160,24 +348,9 @@ async def get_writeup(
     
     # Incrementar vistas
     writeup_repo.increment_views(writeup_id)
+    writeup.views += 1  # Reflejar en respuesta
     
-    return WriteupResponseDTO(
-        id=writeup.id,
-        title=writeup.title,
-        ctf_id=writeup.ctf_id,
-        content=writeup.content,
-        summary=writeup.summary,
-        tools_used=writeup.tools_used,
-        techniques=writeup.techniques,
-        attachments=writeup.attachments,
-        status=writeup.status.value,
-        views=writeup.views + 1,
-        author_id=writeup.author_id,
-        created_at=writeup.created_at,
-        updated_at=writeup.updated_at,
-        published_at=writeup.published_at,
-        read_time=writeup_service.calculate_read_time(writeup.content),
-    )
+    return _build_writeup_response(writeup, writeup_service, include_html=True)
 
 
 @router.post("", response_model=WriteupResponseDTO, status_code=status.HTTP_201_CREATED)
@@ -230,23 +403,7 @@ async def update_writeup(
     
     saved_writeup = writeup_repo.save(writeup)
     
-    return WriteupResponseDTO(
-        id=saved_writeup.id,
-        title=saved_writeup.title,
-        ctf_id=saved_writeup.ctf_id,
-        content=saved_writeup.content,
-        summary=saved_writeup.summary,
-        tools_used=saved_writeup.tools_used,
-        techniques=saved_writeup.techniques,
-        attachments=saved_writeup.attachments,
-        status=saved_writeup.status.value,
-        views=saved_writeup.views,
-        author_id=saved_writeup.author_id,
-        created_at=saved_writeup.created_at,
-        updated_at=saved_writeup.updated_at,
-        published_at=saved_writeup.published_at,
-        read_time=writeup_service.calculate_read_time(saved_writeup.content),
-    )
+    return _build_writeup_response(saved_writeup, writeup_service, include_html=True)
 
 
 @router.post("/{writeup_id}/publish", response_model=WriteupResponseDTO)

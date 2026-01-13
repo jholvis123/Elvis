@@ -3,22 +3,46 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 
+// ==================== INTERFACES ====================
+
+export interface TOCItem {
+    id: string;
+    text: string;
+    level: number;
+}
+
 export interface Writeup {
     id: string;
     title: string;
     ctf_id: string;
     content: string;
+    content_html?: string;
     summary: string;
     tools_used: string[];
     techniques: string[];
     attachments: string[];
-    status: 'draft' | 'published';
+    status: 'draft' | 'published' | 'archived';
     views: number;
     author_id: string;
     created_at: string;
     updated_at: string;
     published_at?: string;
-    read_time?: number;
+    read_time: number;
+    word_count: number;
+    toc: TOCItem[];
+    languages_used: string[];
+}
+
+export interface WriteupSummary {
+    id: string;
+    title: string;
+    ctf_id?: string;
+    summary?: string;
+    status: string;
+    views: number;
+    created_at: string;
+    published_at?: string;
+    read_time: number;
 }
 
 export interface WriteupListResponse {
@@ -31,11 +55,31 @@ export interface WriteupListResponse {
 
 export interface WriteupForm {
     title: string;
-    ctf_id: string;
+    ctf_id?: string;
     content: string;
-    summary: string;
+    summary?: string;
     tools_used: string[];
     techniques: string[];
+}
+
+export interface MarkdownRenderRequest {
+    content: string;
+    base_url?: string;
+}
+
+export interface MarkdownRenderResponse {
+    html: string;
+    toc: TOCItem[];
+    word_count: number;
+    read_time_minutes: number;
+    has_code_blocks: boolean;
+    languages_used: string[];
+}
+
+export interface ImageUploadResponse {
+    url: string;
+    filename: string;
+    markdown: string;
 }
 
 @Injectable({
@@ -43,6 +87,29 @@ export interface WriteupForm {
 })
 export class WriteupsService {
     constructor(private api: ApiService) { }
+
+    // ==================== MARKDOWN ====================
+
+    /**
+     * Renderiza Markdown a HTML desde el backend
+     */
+    renderMarkdown(content: string): Observable<MarkdownRenderResponse> {
+        return this.api.post<MarkdownRenderResponse>('/writeups/render-markdown', {
+            content,
+            base_url: ''
+        });
+    }
+
+    /**
+     * Sube una imagen para usar en writeups
+     */
+    uploadImage(file: File): Observable<ImageUploadResponse> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.api.upload<ImageUploadResponse>('/writeups/upload-image', formData);
+    }
+
+    // ==================== CRUD ====================
 
     /**
      * Obtiene lista de writeups con paginación
@@ -62,8 +129,8 @@ export class WriteupsService {
     /**
      * Obtiene writeups más populares
      */
-    getPopularWriteups(limit: number = 10): Observable<Writeup[]> {
-        return this.api.get<Writeup[]>('/writeups/popular', { limit }).pipe(
+    getPopularWriteups(limit: number = 10): Observable<WriteupSummary[]> {
+        return this.api.get<WriteupSummary[]>('/writeups/popular', { limit }).pipe(
             catchError(() => of([]))
         );
     }

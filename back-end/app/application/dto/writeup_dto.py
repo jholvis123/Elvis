@@ -13,7 +13,7 @@ class WriteupCreateDTO(BaseModel):
     
     title: str = Field(..., min_length=3, max_length=200)
     ctf_id: Optional[UUID] = None
-    content: str = Field(..., min_length=100, max_length=100000)
+    content: str = Field(..., min_length=100, max_length=200000)
     summary: Optional[str] = Field(None, max_length=500)
     tools_used: List[str] = Field(default_factory=list)
     techniques: List[str] = Field(default_factory=list)
@@ -35,10 +35,17 @@ class WriteupUpdateDTO(BaseModel):
     """DTO para actualizar un writeup."""
     
     title: Optional[str] = Field(None, min_length=3, max_length=200)
-    content: Optional[str] = Field(None, min_length=100, max_length=100000)
+    content: Optional[str] = Field(None, min_length=100, max_length=200000)
     summary: Optional[str] = Field(None, max_length=500)
     tools_used: Optional[List[str]] = None
     techniques: Optional[List[str]] = None
+
+
+class TOCItemDTO(BaseModel):
+    """DTO para ítem del índice de contenidos."""
+    id: str
+    text: str
+    level: int
 
 
 class WriteupResponseDTO(BaseModel):
@@ -47,7 +54,8 @@ class WriteupResponseDTO(BaseModel):
     id: UUID
     title: str
     ctf_id: Optional[UUID]
-    content: str
+    content: str  # Markdown raw
+    content_html: Optional[str] = None  # HTML renderizado
     summary: Optional[str]
     tools_used: List[str]
     techniques: List[str]
@@ -59,6 +67,9 @@ class WriteupResponseDTO(BaseModel):
     updated_at: Optional[datetime]
     published_at: Optional[datetime]
     read_time: int = 0  # Minutos estimados de lectura
+    word_count: int = 0
+    toc: List[TOCItemDTO] = Field(default_factory=list)
+    languages_used: List[str] = Field(default_factory=list)
     
     class Config:
         from_attributes = True
@@ -85,6 +96,7 @@ class WriteupSummaryDTO(BaseModel):
     views: int
     created_at: datetime
     published_at: Optional[datetime]
+    read_time: int = 0
     
     class Config:
         from_attributes = True
