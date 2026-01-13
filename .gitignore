@@ -76,6 +76,13 @@ build/
 uploads/
 media/
 
+# Backups (local only)
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+*.rdb
+
 # ============================================
 # NODE / ANGULAR (front-end)
 # ============================================
