@@ -5,25 +5,25 @@
 # ============================================
 
 # Core Framework
-fastapi==0.115.6
-uvicorn[standard]==0.34.0
+fastapi==0.128.0
+uvicorn[standard]==0.40.0
 # starlette se instala automáticamente con FastAPI (versión compatible)
 
 # Database
-sqlalchemy==2.0.36
-alembic==1.14.0
-pymysql==1.1.1
+sqlalchemy==2.0.45
+alembic==1.18.1
+pymysql==1.1.2
 cryptography==44.0.0
 
 # Validation & Settings
-pydantic==2.10.4
-pydantic-settings==2.7.1
-email-validator==2.2.0
+pydantic==2.12.5
+pydantic-settings==2.12.0
+email-validator==2.3.0
 
 # Security
 pyjwt[crypto]==2.10.1
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.20
+python-multipart==0.0.21
 slowapi==0.1.9  # Rate limiting
 
 # HTTP Client (for external APIs)
@@ -35,7 +35,7 @@ pytest-asyncio==0.25.2
 pytest-cov==6.0.0
 
 # Development
-python-dotenv==1.0.1
+python-dotenv==1.2.1
 
 # Optional: PostgreSQL (for production)
 # psycopg2-binary==2.9.9
