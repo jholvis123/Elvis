@@ -13,15 +13,28 @@
             Retos de ciberseguridad para todos los niveles. Practica técnicas ofensivas 
             y mejora tus skills en un entorno controlado.
           </p>
-          <!-- Admin Button - Solo visible para administradores -->
-          <a *ngIf="isAdmin"
-             routerLink="/ctf/admin/new" 
-             class="inline-flex items-center gap-2 px-5 py-3 bg-primary text-background font-semibold rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 mt-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Crear nuevo reto
-          </a>
+          
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-3 mt-4">
+            <!-- Leaderboard Button - Visible para todos -->
+            <a routerLink="/ctf/leaderboard" 
+               class="inline-flex items-center gap-2 px-5 py-3 bg-surface border border-primary/30 text-primary font-semibold rounded-lg hover:bg-primary/10 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Ver Ranking
+            </a>
+            
+            <!-- Admin Button - Solo visible para administradores -->
+            <a *ngIf="isAdmin"
+               routerLink="/ctf/admin/new" 
+               class="inline-flex items-center gap-2 px-5 py-3 bg-primary text-background font-semibold rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Crear nuevo reto
+            </a>
+          </div>
         </div>
 
         <!-- Stats Cards -->

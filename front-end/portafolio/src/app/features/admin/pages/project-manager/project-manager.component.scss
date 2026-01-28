@@ -1,0 +1,63 @@
+// Project Manager Component Styles
+
+// Fix for select options in dark theme
+select option {
+  background-color: #1e293b;
+  color: white;
+}
+
+// Table styles
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Loading spinner animation
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+// Modal overlay
+.modal-overlay {
+  backdrop-filter: blur(4px);
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 700px;
+  }
+}
+
+// Technology badges
+.tech-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(168, 85, 247, 0.2);
+  color: rgb(216, 180, 254);
+}
+
+// Featured star animation
+.star-featured {
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.2);
+  }
+}

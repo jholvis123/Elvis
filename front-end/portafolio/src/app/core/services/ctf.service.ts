@@ -351,6 +351,29 @@ export class CtfService {
     };
     return mapping[level] || 'medium';
   }
+
+  // ==================== LEADERBOARD METHODS ====================
+
+  /**
+   * Obtiene el leaderboard/ranking de usuarios por puntos
+   */
+  getLeaderboard(limit: number = 10): Observable<LeaderboardResponse> {
+    return this.api.get<LeaderboardResponse>(`/ctfs/leaderboard/top?limit=${limit}`);
+  }
+
+  /**
+   * Obtiene las estadísticas del usuario autenticado
+   */
+  getMyStats(): Observable<UserStats> {
+    return this.api.get<UserStats>('/ctfs/leaderboard/me', { withCredentials: true });
+  }
+
+  /**
+   * Obtiene las estadísticas de un usuario específico
+   */
+  getUserStats(userId: string): Observable<UserStats> {
+    return this.api.get<UserStats>(`/ctfs/leaderboard/user/${userId}`);
+  }
 }
 
 // Interface extendida para admin
@@ -360,4 +383,37 @@ export interface CTFChallengeAdmin extends CTFChallenge {
   platform: string;
   solved: boolean;
   updatedAt?: Date;
+}
+
+// Interfaces para Leaderboard
+export interface LeaderboardEntry {
+  rank: number;
+  user_id: string;
+  username: string;
+  total_points: number;
+  solved_count: number;
+}
+
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[];
+  total_players: number;
+  updated_at: string;
+}
+
+export interface SolvedCTF {
+  id: string;
+  title: string;
+  points: number;
+  category: string;
+  level: string;
+  solved_at: string | null;
+}
+
+export interface UserStats {
+  user_id: string;
+  username: string;
+  total_points: number;
+  solved_count: number;
+  rank: number | null;
+  solved_ctfs: SolvedCTF[];
 }

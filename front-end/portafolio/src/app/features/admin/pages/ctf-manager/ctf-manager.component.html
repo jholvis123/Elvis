@@ -1,0 +1,221 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-2">Gestión de CTFs</h1>
+        <p class="text-gray-400">Administra todos los challenges CTF</p>
+      </div>
+      <div class="flex gap-3">
+        <a routerLink="/admin/dashboard" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition">
+          ← Volver
+        </a>
+        <a routerLink="/ctf/admin/new" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+          + Nuevo CTF
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-4 mb-6">
+      <div class="flex flex-wrap gap-4 items-center">
+        <div class="flex-1 min-w-[200px]">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            placeholder="Buscar por título..."
+            class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+        <select
+          [(ngModel)]="filterStatus"
+          (change)="loadChallenges()"
+          class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="">Todos los estados</option>
+          <option value="draft">Borrador</option>
+          <option value="published">Publicado</option>
+          <option value="archived">Archivado</option>
+        </select>
+        <select
+          [(ngModel)]="filterCategory"
+          (change)="loadChallenges()"
+          class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="">Todas las categorías</option>
+          <option value="web">Web</option>
+          <option value="crypto">Crypto</option>
+          <option value="forensics">Forensics</option>
+          <option value="pwn">Pwn</option>
+          <option value="reverse">Reverse</option>
+          <option value="misc">Misc</option>
+          <option value="osint">OSINT</option>
+          <option value="stego">Stego</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-4 text-center">
+        <p class="text-3xl font-bold text-white">{{ totalChallenges }}</p>
+        <p class="text-gray-400 text-sm">Total CTFs</p>
+      </div>
+      <div class="bg-green-500/10 backdrop-blur-lg rounded-xl border border-green-500/30 p-4 text-center">
+        <p class="text-3xl font-bold text-green-400">{{ publishedCount }}</p>
+        <p class="text-gray-400 text-sm">Publicados</p>
+      </div>
+      <div class="bg-yellow-500/10 backdrop-blur-lg rounded-xl border border-yellow-500/30 p-4 text-center">
+        <p class="text-3xl font-bold text-yellow-400">{{ draftCount }}</p>
+        <p class="text-gray-400 text-sm">Borradores</p>
+      </div>
+      <div class="bg-blue-500/10 backdrop-blur-lg rounded-xl border border-blue-500/30 p-4 text-center">
+        <p class="text-3xl font-bold text-blue-400">{{ activeCount }}</p>
+        <p class="text-gray-400 text-sm">Activos</p>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+
+    <!-- CTFs Table -->
+    <div *ngIf="!loading" class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-white/10">
+            <tr>
+              <th class="text-left px-6 py-4 text-white font-semibold">Título</th>
+              <th class="text-center px-4 py-4 text-white font-semibold">Categoría</th>
+              <th class="text-center px-4 py-4 text-white font-semibold">Dificultad</th>
+              <th class="text-center px-4 py-4 text-white font-semibold">Puntos</th>
+              <th class="text-center px-4 py-4 text-white font-semibold">Estado</th>
+              <th class="text-center px-4 py-4 text-white font-semibold">Activo</th>
+              <th class="text-center px-4 py-4 text-white font-semibold">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ctf of challenges" class="border-t border-white/10 hover:bg-white/5 transition">
+              <td class="px-6 py-4">
+                <div>
+                  <p class="text-white font-medium">{{ ctf.title }}</p>
+                  <p class="text-gray-400 text-sm line-clamp-1">{{ ctf.platform }} • {{ ctf.solvedCount }} resoluciones</p>
+                </div>
+              </td>
+              <td class="px-4 py-4 text-center">
+                <span [class]="getCategoryClass(ctf.category)" class="px-2 py-1 rounded text-xs font-medium">
+                  {{ ctf.category | uppercase }}
+                </span>
+              </td>
+              <td class="px-4 py-4 text-center">
+                <span [class]="getDifficultyClass(ctf.level)" class="px-2 py-1 rounded text-xs font-medium">
+                  {{ getDifficultyLabel(ctf.level) }}
+                </span>
+              </td>
+              <td class="px-4 py-4 text-center text-white font-medium">
+                {{ ctf.points }}
+              </td>
+              <td class="px-4 py-4 text-center">
+                <span [class]="getStatusClass(ctf.status)" class="px-2 py-1 rounded text-xs font-medium">
+                  {{ getStatusLabel(ctf.status) }}
+                </span>
+              </td>
+              <td class="px-4 py-4 text-center">
+                <button
+                  (click)="toggleActive(ctf)"
+                  [class]="ctf.isActive ? 'text-green-400 hover:text-green-300' : 'text-gray-500 hover:text-gray-400'"
+                  [title]="ctf.isActive ? 'Desactivar' : 'Activar'"
+                >
+                  <span *ngIf="ctf.isActive">✅</span>
+                  <span *ngIf="!ctf.isActive">⭕</span>
+                </button>
+              </td>
+              <td class="px-4 py-4">
+                <div class="flex justify-center gap-2">
+                  <a [routerLink]="['/ctf', ctf.id]" class="p-2 text-blue-400 hover:text-blue-300" title="Ver">
+                    👁️
+                  </a>
+                  <a [routerLink]="['/ctf', ctf.id, 'edit']" class="p-2 text-purple-400 hover:text-purple-300" title="Editar">
+                    ✏️
+                  </a>
+                  <button
+                    *ngIf="ctf.status === 'draft'"
+                    (click)="publishChallenge(ctf)"
+                    class="p-2 text-green-400 hover:text-green-300"
+                    title="Publicar"
+                  >
+                    🚀
+                  </button>
+                  <button
+                    (click)="confirmDelete(ctf)"
+                    class="p-2 text-red-400 hover:text-red-300"
+                    title="Eliminar"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="challenges.length === 0">
+              <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                <div class="flex flex-col items-center gap-4">
+                  <span class="text-4xl">🎯</span>
+                  <p>No hay CTFs creados aún</p>
+                  <a routerLink="/ctf/admin/new" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Crear primer CTF
+                  </a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+  <div class="bg-slate-800 rounded-xl border border-white/10 p-6 max-w-md w-full">
+    <h3 class="text-xl font-bold text-white mb-4">⚠️ Confirmar eliminación</h3>
+    <p class="text-gray-300 mb-2">
+      ¿Estás seguro de que deseas eliminar el CTF <strong class="text-white">{{ ctfToDelete?.title }}</strong>?
+    </p>
+    <p class="text-red-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
+
+    <div *ngIf="ctfToDelete && ctfToDelete.solvedCount && ctfToDelete.solvedCount > 0" class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4">
+      <p class="text-yellow-300 text-sm">
+        ⚠️ Este CTF tiene {{ ctfToDelete.solvedCount }} resoluciones registradas.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2 mb-6">
+      <input
+        type="checkbox"
+        id="forceDelete"
+        [(ngModel)]="forceDelete"
+        class="rounded"
+      />
+      <label for="forceDelete" class="text-gray-400 text-sm">
+        Eliminar también writeups asociados (forzar)
+      </label>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+      <button
+        (click)="cancelDelete()"
+        class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="executeDelete()"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+      >
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>

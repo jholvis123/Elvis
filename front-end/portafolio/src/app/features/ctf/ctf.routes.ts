@@ -9,6 +9,11 @@ export const CTF_ROUTES: Routes = [
       import('./pages/ctf-list/ctf-list.component').then(m => m.CtfListComponent)
   },
   {
+    path: 'leaderboard',
+    loadComponent: () =>
+      import('./pages/leaderboard/leaderboard.component').then(m => m.LeaderboardComponent)
+  },
+  {
     path: 'admin/new',
     canActivate: [AuthGuard, AdminGuard],
     loadComponent: () =>

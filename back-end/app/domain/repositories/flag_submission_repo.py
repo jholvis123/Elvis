@@ -4,7 +4,7 @@ Define la interfaz para registrar y consultar intentos de flags.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from ..entities.flag_submission import FlagSubmission
@@ -41,4 +41,24 @@ class FlagSubmissionRepository(ABC):
     @abstractmethod
     def count_solvers(self, ctf_id: UUID) -> int:
         """Cuenta usuarios únicos que resolvieron un CTF."""
+        pass
+    
+    @abstractmethod
+    def get_leaderboard(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Obtiene el ranking de usuarios por puntos de CTF.
+        
+        Returns:
+            Lista de diccionarios con user_id, username, total_points, solved_count, rank
+        """
+        pass
+    
+    @abstractmethod
+    def get_user_stats(self, user_id: UUID) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene estadísticas de CTF de un usuario específico.
+        
+        Returns:
+            Diccionario con total_points, solved_count, rank, solved_ctfs
+        """
         pass

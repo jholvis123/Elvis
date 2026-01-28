@@ -1,0 +1,63 @@
+// Writeup Manager Component Styles
+
+// Table styles
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Loading spinner animation
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+}
+
+// Tool badges
+.tool-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(59, 130, 246, 0.2);
+  color: rgb(147, 197, 253);
+}
+
+// Status badges
+.status-published {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: rgb(134, 239, 172);
+}
+
+.status-draft {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: rgb(253, 224, 71);
+}
+
+// Action buttons hover effect
+.action-btn {
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}

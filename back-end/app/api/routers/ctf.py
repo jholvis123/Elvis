@@ -2,6 +2,7 @@
 Router de CTFs.
 """
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -17,6 +18,10 @@ from ...application.dto.ctf_dto import (
 from ...application.dto.flag_dto import (
     FlagSubmitDTO,
     FlagSubmitResponseDTO,
+    LeaderboardEntryDTO,
+    LeaderboardResponseDTO,
+    UserStatsDTO,
+    SolvedCTFDTO,
 )
 from ...application.use_cases import (
     CreateCTFUseCase,
@@ -29,6 +34,7 @@ from ...core.security_middleware import limiter
 from ...domain.entities.user import User
 from ...domain.repositories.ctf_repo import CTFRepository
 from ...domain.repositories.writeup_repo import WriteupRepository
+from ...domain.repositories.flag_submission_repo import FlagSubmissionRepository
 from ...domain.services.ctf_service import CTFService
 from ...domain.services.flag_service import FlagService
 from ..dependencies import (
@@ -39,6 +45,7 @@ from ..dependencies import (
     get_current_user,
     get_current_admin,
     get_current_user_optional,
+    get_flag_submission_repository,
 )
 
 router = APIRouter(prefix="/ctfs", tags=["CTFs"])
@@ -276,3 +283,121 @@ async def delete_ctf(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+
+# =============================================
+# LEADERBOARD / RANKING ENDPOINTS
+# =============================================
+
+@router.get("/leaderboard/top", response_model=LeaderboardResponseDTO, tags=["Leaderboard"])
+async def get_leaderboard(
+    limit: int = Query(10, ge=1, le=100, description="Número de usuarios en el ranking"),
+    submission_repo: FlagSubmissionRepository = Depends(get_flag_submission_repository),
+):
+    """
+    Obtiene el ranking de usuarios por puntos de CTF.
+    
+    Retorna los mejores jugadores ordenados por puntos totales.
+    """
+    leaderboard_data = submission_repo.get_leaderboard(limit=limit)
+    
+    entries = [
+        LeaderboardEntryDTO(
+            rank=entry['rank'],
+            user_id=entry['user_id'],
+            username=entry['username'],
+            total_points=entry['total_points'],
+            solved_count=entry['solved_count']
+        )
+        for entry in leaderboard_data
+    ]
+    
+    return LeaderboardResponseDTO(
+        entries=entries,
+        total_players=len(entries),
+        updated_at=datetime.utcnow()
+    )
+
+
+@router.get("/leaderboard/me", response_model=UserStatsDTO, tags=["Leaderboard"])
+async def get_my_stats(
+    current_user: User = Depends(get_current_user),
+    submission_repo: FlagSubmissionRepository = Depends(get_flag_submission_repository),
+):
+    """
+    Obtiene las estadísticas de CTF del usuario autenticado.
+    
+    Incluye puntos totales, ranking, y CTFs resueltos.
+    """
+    stats = submission_repo.get_user_stats(current_user.id)
+    
+    if not stats:
+        return UserStatsDTO(
+            user_id=str(current_user.id),
+            username=current_user.username,
+            total_points=0,
+            solved_count=0,
+            rank=None,
+            solved_ctfs=[]
+        )
+    
+    solved_ctfs = [
+        SolvedCTFDTO(
+            id=ctf['id'],
+            title=ctf['title'],
+            points=ctf['points'],
+            category=ctf['category'],
+            level=ctf['level'],
+            solved_at=ctf.get('solved_at')
+        )
+        for ctf in stats.get('solved_ctfs', [])
+    ]
+    
+    return UserStatsDTO(
+        user_id=stats['user_id'],
+        username=stats['username'],
+        total_points=stats['total_points'],
+        solved_count=stats['solved_count'],
+        rank=stats.get('rank'),
+        solved_ctfs=solved_ctfs
+    )
+
+
+@router.get("/leaderboard/user/{user_id}", response_model=UserStatsDTO, tags=["Leaderboard"])
+async def get_user_stats(
+    user_id: UUID,
+    submission_repo: FlagSubmissionRepository = Depends(get_flag_submission_repository),
+):
+    """
+    Obtiene las estadísticas de CTF de un usuario específico.
+    
+    Endpoint público para ver stats de cualquier usuario.
+    """
+    stats = submission_repo.get_user_stats(user_id)
+    
+    if not stats:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or has no CTF activity"
+        )
+    
+    solved_ctfs = [
+        SolvedCTFDTO(
+            id=ctf['id'],
+            title=ctf['title'],
+            points=ctf['points'],
+            category=ctf['category'],
+            level=ctf['level'],
+            solved_at=ctf.get('solved_at')
+        )
+        for ctf in stats.get('solved_ctfs', [])
+    ]
+    
+    return UserStatsDTO(
+        user_id=stats['user_id'],
+        username=stats['username'],
+        total_points=stats['total_points'],
+        solved_count=stats['solved_count'],
+        rank=stats.get('rank'),
+        solved_ctfs=solved_ctfs
+    )
