@@ -4,8 +4,8 @@
       <a routerLink="/" class="flex items-center gap-3 group min-w-0">
         <div
           class="w-10 h-10 rounded-full overflow-hidden border border-slate-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center bg-slate-800 shrink-0">
-          <img src="/assets/imagen.jpg" alt="Elvis Dev" class="w-full h-full object-cover"
-            onerror="this.src='https://ui-avatars.com/api/?name=Elvis&background=0D8ABC&color=fff'">
+          <img [src]="avatarSrc" alt="Elvis Dev" class="w-full h-full object-cover"
+            (error)="onAvatarError()">
         </div>
         <span class="text-xl font-bold text-textPrimary group-hover:text-primary transition-colors truncate">
           Elvis<span class="text-primary">Dev</span>
