@@ -92,14 +92,6 @@ export class CtfDetailComponent implements OnInit {
     if (!this.challenge || !this.flagInput.trim() || this.isSubmitting) return;
 
     // Verificar si el usuario está autenticado
-    if (!this.authService.isAuthenticated) {
-      this.submitResult = {
-        success: false,
-        message: 'Debes iniciar sesión para enviar flags'
-      };
-      return;
-    }
-
     this.isSubmitting = true;
     this.submitResult = null;
 
@@ -111,7 +103,6 @@ export class CtfDetailComponent implements OnInit {
           this.isSolved = true;
           this.flagInput = '';
 
-          // ✅ Recargar el challenge actual para actualizar su estado
           this.loadChallengeFromApi(this.challenge!.id);
         }
         this.isSubmitting = false;
