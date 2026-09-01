@@ -61,7 +61,6 @@ export class ProfileEditorComponent implements OnInit {
     saving = false;
     errorMessage = '';
     saveError = '';
-    saveUnavailable = false;
     showConfirm = false;
     loaded = false;
 
@@ -90,7 +89,6 @@ export class ProfileEditorComponent implements OnInit {
         this.loading = true;
         this.errorMessage = '';
         this.saveError = '';
-        this.saveUnavailable = false;
         this.loaded = false;
 
         this.portfolioService.getProfile().pipe(
@@ -104,14 +102,7 @@ export class ProfileEditorComponent implements OnInit {
             error: (err: unknown) => {
                 this.loading = false;
                 this.loaded = false;
-                if (err instanceof ApiError && err.status === 404) {
-                    this.errorMessage =
-                        'El endpoint de perfil no está disponible (404). No se encontró GET /portfolio/profile.';
-                    return;
-                }
-                this.errorMessage = err instanceof Error && err.message
-                    ? err.message
-                    : 'No se pudo cargar el perfil.';
+                this.errorMessage = this.humanLoadError(err);
             }
         });
     }
@@ -127,9 +118,6 @@ export class ProfileEditorComponent implements OnInit {
     }
 
     requestSave(): void {
-        if (this.saveUnavailable) {
-            return;
-        }
         if (this.form.invalid) {
             this.form.markAllAsTouched();
             this.saveError = 'Revisa los campos marcados antes de guardar.';
@@ -144,7 +132,7 @@ export class ProfileEditorComponent implements OnInit {
     }
 
     executeSave(): void {
-        if (this.form.invalid || this.saveUnavailable) {
+        if (this.form.invalid) {
             this.showConfirm = false;
             return;
         }
@@ -166,15 +154,7 @@ export class ProfileEditorComponent implements OnInit {
             error: (err: unknown) => {
                 this.saving = false;
                 this.showConfirm = false;
-                if (err instanceof ApiError && err.status === 404) {
-                    this.saveUnavailable = true;
-                    this.saveError =
-                        'No se pudo guardar: el servidor no expone PUT /portfolio/profile (404).';
-                    return;
-                }
-                this.saveError = err instanceof Error && err.message
-                    ? err.message
-                    : 'No se pudo guardar el perfil.';
+                this.saveError = this.humanSaveError(err);
             }
         });
     }
@@ -182,11 +162,7 @@ export class ProfileEditorComponent implements OnInit {
     private applyProfile(profile: PortfolioProfile): void {
         this.highlights.clear();
         const highlights = profile.highlights ?? [];
-        if (highlights.length === 0) {
-            // keep empty — no fake rows
-        } else {
-            highlights.forEach((h) => this.highlights.push(this.buildHighlightGroup(h)));
-        }
+        highlights.forEach((h) => this.highlights.push(this.buildHighlightGroup(h)));
 
         const social = profile.social_links || {};
         this.form.patchValue({
@@ -257,5 +233,46 @@ export class ProfileEditorComponent implements OnInit {
             highlights,
             social_links
         };
+    }
+
+    private humanLoadError(err: unknown): string {
+        if (err instanceof ApiError) {
+            if (err.status === 404) {
+                return 'No se encontró el perfil del portafolio.';
+            }
+            if (err.status === 401) {
+                return err.message || 'Sesión expirada. Inicia sesión de nuevo.';
+            }
+            if (err.status === 403) {
+                return err.message || 'No tienes permisos para ver este perfil.';
+            }
+            return err.message || 'No se pudo cargar el perfil.';
+        }
+        if (err instanceof Error && err.message) {
+            return err.message;
+        }
+        return 'No se pudo cargar el perfil.';
+    }
+
+    private humanSaveError(err: unknown): string {
+        if (err instanceof ApiError) {
+            if (err.status === 404) {
+                return 'La actualización de perfil aún no está disponible. El servidor no expone PUT /portfolio/profile (backend PR #34).';
+            }
+            if (err.status === 401) {
+                return err.message || 'Sesión expirada. Inicia sesión de nuevo.';
+            }
+            if (err.status === 403) {
+                return err.message || 'No tienes permisos de administrador para actualizar el perfil.';
+            }
+            if (err.status === 422) {
+                return err.message || 'Los datos del perfil no son válidos. Revisa los campos.';
+            }
+            return err.message || 'No se pudo guardar el perfil.';
+        }
+        if (err instanceof Error && err.message) {
+            return err.message;
+        }
+        return 'No se pudo guardar el perfil.';
     }
 }
