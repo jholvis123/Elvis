@@ -16,6 +16,7 @@ class TestHealthEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
+        assert data["db"] == "ok"
 
 
 class TestAuthEndpoints:
@@ -84,8 +85,15 @@ class TestAuthEndpoints:
         
         assert response.status_code == 200
         data = response.json()
-        assert "access_token" in data
-        assert data["token_type"] == "bearer"
+        assert data["authenticated"] is True
+        assert data["user"]["email"] == "test@example.com"
+        assert data["user"]["username"] == "testuser"
+        assert "expires_in" in data
+        assert "access_token" not in data
+        assert "refresh_token" not in data
+        assert "access_token" in response.cookies
+        assert "refresh_token" in response.cookies
+        assert "csrf_token" in response.cookies
     
     def test_login_invalid_credentials(self, client: TestClient):
         """Test: login con credenciales inválidas."""

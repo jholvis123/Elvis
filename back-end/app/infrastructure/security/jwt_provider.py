@@ -4,6 +4,7 @@ Proveedor de JWT para autenticación.
 
 from datetime import datetime, timedelta
 from typing import Optional
+from uuid import uuid4
 import jwt
 from jwt import InvalidTokenError
 from pydantic import BaseModel
@@ -87,6 +88,7 @@ class JWTProvider:
             "exp": expire,
             "iat": datetime.utcnow(),
             "type": "refresh",
+            "jti": str(uuid4()),  # cada rotación emite un JWT distinto
         }
         
         return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)

@@ -10,6 +10,7 @@ from .update_ctf import UpdateCTFUseCase
 from .delete_ctf import DeleteCTFUseCase
 from .publish_writeup import PublishWriteupUseCase
 from .create_writeup import CreateWriteupUseCase
+from .update_writeup import UpdateWriteupUseCase
 
 __all__ = [
     "CreateCTFUseCase",
@@ -19,4 +20,5 @@ __all__ = [
     "DeleteCTFUseCase",
     "PublishWriteupUseCase",
     "CreateWriteupUseCase",
+    "UpdateWriteupUseCase",
 ]

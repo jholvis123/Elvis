@@ -22,6 +22,7 @@ from ...application.dto.writeup_dto import (
 from ...application.use_cases import (
     CreateWriteupUseCase,
     PublishWriteupUseCase,
+    UpdateWriteupUseCase,
 )
 from ...domain.entities.user import User
 from ...domain.entities.writeup import Writeup, WriteupStatus
@@ -457,28 +458,15 @@ async def update_writeup(
     writeup_service: WriteupService = Depends(get_writeup_service),
 ):
     """Actualiza un writeup existente (requiere autenticación)."""
-    writeup = writeup_repo.get_by_id(writeup_id)
-    
-    if not writeup:
+    use_case = UpdateWriteupUseCase(writeup_repo, writeup_service)
+    saved_writeup = use_case.execute(writeup_id, data)
+
+    if not saved_writeup:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Writeup not found",
         )
-    
-    # Actualizar campos
-    if data.title is not None:
-        writeup.title = data.title
-    if data.content is not None:
-        writeup.update_content(data.content)
-    if data.summary is not None:
-        writeup.summary = data.summary
-    if data.tools_used is not None:
-        writeup.tools_used = data.tools_used
-    if data.techniques is not None:
-        writeup.techniques = data.techniques
-    
-    saved_writeup = writeup_repo.save(writeup)
-    
+
     return _build_writeup_response(saved_writeup, writeup_service, include_html=True)
 
 

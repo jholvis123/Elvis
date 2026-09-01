@@ -140,6 +140,10 @@ async def refresh_token(
 ):
     """
     Refresca el access token usando el refresh token de la cookie.
+
+    Emite un refresh token nuevo (rotación) vía Set-Cookie. No incluye
+    tokens en el body (AuthStatus). Los JWT son stateless: el refresh
+    anterior sigue siendo verificable hasta su exp (riesgo residual).
     """
     # Obtener refresh token de la cookie
     refresh_token_value = cookie_service.get_refresh_token_from_cookie(request)
@@ -171,12 +175,13 @@ async def refresh_token(
             detail="User not found or inactive",
         )
     
-    # Generar nuevo access token y CSRF token
+    # Rotar access, refresh y CSRF. Tokens solo en cookies HttpOnly.
     access_token = jwt_provider.create_access_token(str(user.id))
+    new_refresh_token = jwt_provider.create_refresh_token(str(user.id))
     csrf_token = csrf_service.generate_token(str(user.id))
     
-    # Actualizar cookies
     cookie_service.set_access_token_cookie(response, access_token)
+    cookie_service.set_refresh_token_cookie(response, new_refresh_token)
     cookie_service.set_csrf_token_cookie(response, csrf_token)
     
     return AuthStatusDTO(

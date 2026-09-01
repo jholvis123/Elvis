@@ -6,6 +6,7 @@ from typing import Optional
 from uuid import UUID
 
 from ..dto.ctf_dto import CTFResponseDTO
+from ...domain.entities.ctf import CTFStatus
 from ...domain.repositories.ctf_repo import CTFRepository
 from ...domain.repositories.writeup_repo import WriteupRepository
 
@@ -21,19 +22,23 @@ class GetCTFUseCase:
         self.ctf_repository = ctf_repository
         self.writeup_repository = writeup_repository
     
-    def execute(self, ctf_id: UUID) -> Optional[CTFResponseDTO]:
+    def execute(self, ctf_id: UUID, is_admin: bool = False) -> Optional[CTFResponseDTO]:
         """
         Ejecuta el caso de uso de obtener un CTF.
         
         Args:
             ctf_id: ID del CTF a obtener.
+            is_admin: Si True, permite devolver CTFs no publicados.
             
         Returns:
-            DTO del CTF o None si no existe.
+            DTO del CTF o None si no existe (o no es visible).
         """
         ctf = self.ctf_repository.get_by_id(ctf_id)
         
         if not ctf:
+            return None
+
+        if ctf.status != CTFStatus.PUBLISHED and not is_admin:
             return None
         
         # Verificar si tiene writeup

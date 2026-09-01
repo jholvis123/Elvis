@@ -6,7 +6,7 @@ Punto de entrada principal de la aplicación FastAPI.
 
 import traceback
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -14,7 +14,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi.errors import RateLimitExceeded
 
 from .core.config import settings
-from .core.database import engine
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+
+from .core.database import engine, get_db
 from .core.logging import logger
 from .core.security_middleware import (
     limiter,
@@ -42,6 +46,7 @@ from .infrastructure.persistence.models import (
     AttachmentModel,
     ContactModel,
     FlagSubmissionModel,
+    PortfolioProfileModel,
 )
 
 
@@ -88,8 +93,9 @@ app = FastAPI(
     - **Infrastructure**: Implementaciones SQL, storage, JWT
     - **API**: Routers FastAPI
     """,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url="/openapi.json" if settings.DEBUG else None,
     lifespan=lifespan,
 )
 
@@ -152,22 +158,27 @@ app.include_router(admin_router, prefix=settings.API_V1_PREFIX)
 @app.get("/", tags=["Root"])
 async def root():
     """Endpoint raíz."""
-    return {
+    payload = {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "docs": "/docs",
-        "redoc": "/redoc",
     }
+    if settings.DEBUG:
+        payload["docs"] = "/docs"
+        payload["redoc"] = "/redoc"
+    return payload
 
 
 @app.get("/health", tags=["Health"])
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "app": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-    }
+async def health_check(db: Session = Depends(get_db)):
+    """Health check: ping de base de datos (SELECT 1)."""
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "db": "ok"}
+    except SQLAlchemyError:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "db": "error"},
+        )
 
 
 if __name__ == "__main__":

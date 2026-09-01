@@ -23,9 +23,22 @@ from ..dependencies import (
     get_project_service,
     get_current_user,
     get_current_admin,
+    get_current_user_optional,
 )
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
+
+
+def _ensure_project_visible(project: Project, current_user: Optional[User]) -> None:
+    """404 unpublished drafts unless the requester is admin (no existence leak)."""
+    if project.status == ProjectStatus.PUBLISHED:
+        return
+    if current_user is not None and current_user.is_admin:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Project not found",
+    )
 
 
 @router.get("/admin/all", response_model=ProjectListResponseDTO)
@@ -158,6 +171,7 @@ async def get_technologies_summary(
 async def get_project(
     project_id: UUID,
     project_repo: ProjectRepository = Depends(get_project_repository),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """Obtiene un proyecto por su ID."""
     project = project_repo.get_by_id(project_id)
@@ -167,6 +181,8 @@ async def get_project(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Project not found",
         )
+
+    _ensure_project_visible(project, current_user)
     
     return ProjectResponseDTO(
         id=project.id,
