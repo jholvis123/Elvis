@@ -58,7 +58,7 @@ export class PortfolioService {
 
   /**
    * Reemplazo completo del perfil (admin). PUT, no PATCH.
-   * CSRF lo añade el interceptor. Nunca envia twitter.
+   * CSRF lo añade el interceptor. social_links es un dict; twitter opcional se persiste si va en el PUT.
    */
   updateProfile(profile: PortfolioProfile): Observable<PortfolioProfile> {
     const social = profile.social_links || { email: '' };
@@ -79,6 +79,7 @@ export class PortfolioService {
         email: social.email || '',
         github: social.github || '',
         linkedin: social.linkedin || '',
+        twitter: social.twitter || '',
       }
     };
     return this.api.put<PortfolioProfile>('/portfolio/profile', body, { withCredentials: true });
