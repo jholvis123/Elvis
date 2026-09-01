@@ -1,12 +1,12 @@
-<div class="min-h-screen bg-slate-950 p-6">
+<div class="admin-page">
   <div class="max-w-7xl mx-auto">
-    <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+    <div class="admin-toolbar">
       <div>
         <p class="eyebrow">Administración</p>
-        <h1 class="text-3xl font-bold text-textPrimary mb-2">Gestión de CTFs</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-textPrimary mb-2">Gestión de CTFs</h1>
         <p class="text-textSecondary">Administra todos los challenges CTF</p>
       </div>
-      <div class="flex gap-3">
+      <div class="admin-toolbar__actions">
         <a routerLink="/admin/dashboard" class="btn-outline inline-flex items-center gap-2">
           <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
           Volver
@@ -19,30 +19,36 @@
     </div>
 
     <div class="card mb-6">
-      <div class="flex flex-wrap gap-4 items-center">
-        <div class="flex-1 min-w-[200px]">
+      <div class="admin-filters">
+        <div class="flex-1 w-full sm:min-w-[200px]">
+          <label for="ctf-search" class="sr-only">Buscar CTFs</label>
           <input
-            type="text"
+            id="ctf-search"
+            type="search"
             [(ngModel)]="searchTerm"
             (input)="onSearch()"
             placeholder="Buscar por título..."
             class="input w-full"
           />
         </div>
+        <label for="ctf-status" class="sr-only">Filtrar por estado</label>
         <select
+          id="ctf-status"
           [(ngModel)]="filterStatus"
           (change)="loadChallenges()"
-          class="input"
+          class="input w-full sm:w-auto"
         >
           <option value="">Todos los estados</option>
           <option value="draft">Borrador</option>
           <option value="published">Publicado</option>
           <option value="archived">Archivado</option>
         </select>
+        <label for="ctf-category" class="sr-only">Filtrar por categoría</label>
         <select
+          id="ctf-category"
           [(ngModel)]="filterCategory"
           (change)="loadChallenges()"
-          class="input"
+          class="input w-full sm:w-auto"
         >
           <option value="">Todas las categorías</option>
           <option value="web">Web</option>
@@ -57,21 +63,21 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <div class="card text-center">
-        <p class="text-3xl font-bold text-textPrimary">{{ totalChallenges }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-textPrimary">{{ totalChallenges }}</p>
         <p class="text-textSecondary text-sm">Total CTFs</p>
       </div>
       <div class="card text-center border-success/30">
-        <p class="text-3xl font-bold text-success">{{ publishedCount }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-success">{{ publishedCount }}</p>
         <p class="text-textSecondary text-sm">Publicados</p>
       </div>
       <div class="card text-center border-warning/30">
-        <p class="text-3xl font-bold text-warning">{{ draftCount }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-warning">{{ draftCount }}</p>
         <p class="text-textSecondary text-sm">Borradores</p>
       </div>
       <div class="card text-center border-primary/30">
-        <p class="text-3xl font-bold text-primary">{{ activeCount }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-primary">{{ activeCount }}</p>
         <p class="text-textSecondary text-sm">Activos</p>
       </div>
     </div>
@@ -82,69 +88,73 @@
     </div>
 
     <div *ngIf="!loading" class="card overflow-hidden p-0">
-      <div class="overflow-x-auto">
-        <table class="w-full">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <caption class="sr-only">Challenges CTF con categoría, dificultad, puntos, estado y acciones</caption>
           <thead class="bg-surface">
             <tr>
-              <th class="text-left px-6 py-4 text-textPrimary font-semibold">Título</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Categoría</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Dificultad</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Puntos</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Estado</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Activo</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Acciones</th>
+              <th scope="col" class="text-left px-6 py-4 text-textPrimary font-semibold">Título</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Categoría</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Dificultad</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Puntos</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Estado</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Activo</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let ctf of challenges" class="border-t border-slate-800 hover:bg-slate-800/40 transition">
-              <td class="px-6 py-4">
-                <div>
-                  <p class="text-textPrimary font-medium">{{ ctf.title }}</p>
+              <td class="px-6 py-4 admin-table__primary">
+                <div class="min-w-0">
+                  <p class="text-textPrimary font-medium break-words">{{ ctf.title }}</p>
                   <p class="text-textSecondary text-sm line-clamp-1">{{ ctf.platform }} • {{ ctf.solvedCount }} resoluciones</p>
                 </div>
               </td>
-              <td class="px-4 py-4 text-center">
+              <td class="px-4 py-4 text-center" data-label="Categoría">
                 <span [class]="getCategoryClass(ctf.category)" class="px-2 py-1 rounded text-xs font-medium">
                   {{ ctf.category | uppercase }}
                 </span>
               </td>
-              <td class="px-4 py-4 text-center">
+              <td class="px-4 py-4 text-center" data-label="Dificultad">
                 <span [class]="getDifficultyClass(ctf.level)" class="px-2 py-1 rounded text-xs font-medium">
                   {{ getDifficultyLabel(ctf.level) }}
                 </span>
               </td>
-              <td class="px-4 py-4 text-center text-textPrimary font-medium">
+              <td class="px-4 py-4 text-center text-textPrimary font-medium" data-label="Puntos">
                 {{ ctf.points }}
               </td>
-              <td class="px-4 py-4 text-center">
+              <td class="px-4 py-4 text-center" data-label="Estado">
                 <span [class]="getStatusClass(ctf.status)" class="px-2 py-1 rounded text-xs font-medium">
                   {{ getStatusLabel(ctf.status) }}
                 </span>
               </td>
-              <td class="px-4 py-4 text-center">
+              <td class="px-4 py-4 text-center" data-label="Activo">
                 <button
                   type="button"
                   (click)="toggleActive(ctf)"
-                  class="p-2"
+                  class="admin-action"
                   [class]="ctf.isActive ? 'text-success' : 'text-textSecondary'"
+                  [attr.aria-pressed]="ctf.isActive"
+                  [attr.aria-label]="ctf.isActive ? 'Desactivar' : 'Activar'"
                   [title]="ctf.isActive ? 'Desactivar' : 'Activar'"
                 >
                   <app-icon [name]="ctf.isActive ? 'check-circle' : 'x-circle'" cssClass="w-5 h-5"></app-icon>
                 </button>
               </td>
-              <td class="px-4 py-4">
-                <div class="flex justify-center gap-1">
-                  <a [routerLink]="['/ctf', ctf.id]" class="p-2 text-primary hover:text-primaryHover" title="Ver">
+              <td class="px-4 py-4 admin-table__actions" data-label="Acciones">
+                <div class="flex flex-wrap justify-start sm:justify-center gap-1">
+                  <a [routerLink]="['/ctf', ctf.id]" class="admin-action text-primary hover:text-primaryHover" [attr.aria-label]="'Ver ' + ctf.title" title="Ver">
                     <app-icon name="eye" cssClass="w-4 h-4"></app-icon>
                   </a>
-                  <a [routerLink]="['/ctf', ctf.id, 'edit']" class="p-2 text-primary hover:text-primaryHover" title="Editar">
+                  <a [routerLink]="['/ctf', ctf.id, 'edit']" class="admin-action text-primary hover:text-primaryHover" [attr.aria-label]="'Editar ' + ctf.title" title="Editar">
                     <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
                   </a>
                   <button
                     *ngIf="ctf.status === 'draft'"
                     type="button"
                     (click)="publishChallenge(ctf)"
-                    class="p-2 text-success hover:text-emerald-300"
+                    class="admin-action text-success hover:text-emerald-300"
+                    [attr.aria-label]="'Publicar ' + ctf.title"
                     title="Publicar"
                   >
                     <app-icon name="rocket-launch" cssClass="w-4 h-4"></app-icon>
@@ -152,7 +162,8 @@
                   <button
                     type="button"
                     (click)="confirmDelete(ctf)"
-                    class="p-2 text-danger hover:text-red-300"
+                    class="admin-action text-danger hover:text-red-300"
+                    [attr.aria-label]="'Eliminar ' + ctf.title"
                     title="Eliminar"
                   >
                     <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
@@ -183,12 +194,12 @@
   [warning]="(ctfToDelete?.solvedCount || 0) > 0 ? ('Este CTF tiene ' + ctfToDelete?.solvedCount + ' resoluciones registradas.') : 'Esta acción no se puede deshacer.'"
   (confirmed)="executeDelete()"
   (cancelled)="cancelDelete()">
-  <div class="flex items-center gap-2 mt-4">
+  <div class="flex items-start gap-2 mt-4">
     <input
       type="checkbox"
       id="forceDelete"
       [(ngModel)]="forceDelete"
-      class="rounded"
+      class="rounded mt-1 min-h-[20px] min-w-[20px]"
     />
     <label for="forceDelete" class="text-textSecondary text-sm">
       Eliminar también writeups asociados (forzar)

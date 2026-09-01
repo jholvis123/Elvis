@@ -154,7 +154,9 @@
               <!-- Result Message -->
               <div *ngIf="submitResult" class="p-3 rounded-lg text-sm"
                 [ngClass]="submitResult.success ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'">
-                {{ submitResult.message }}
+                <p>{{ submitResult.message }}</p>
+                <p *ngIf="submitResult.success && submitResult.already_solved" class="mt-1 opacity-80">Ya lo habías resuelto.</p>
+                <p *ngIf="submitResult.success && submitResult.points" class="mt-1 opacity-80">+{{ submitResult.points }} puntos</p>
               </div>
 
               <button type="submit" class="btn-primary w-full" [disabled]="!flagInput.trim() || isSubmitting">

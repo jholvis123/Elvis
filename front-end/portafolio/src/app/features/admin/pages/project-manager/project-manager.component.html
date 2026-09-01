@@ -1,12 +1,12 @@
-<div class="min-h-screen bg-slate-950 p-6">
+<div class="admin-page">
   <div class="max-w-7xl mx-auto">
-    <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+    <div class="admin-toolbar">
       <div>
         <p class="eyebrow">Administración</p>
-        <h1 class="text-3xl font-bold text-textPrimary mb-2">Gestión de Proyectos</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-textPrimary mb-2">Gestión de Proyectos</h1>
         <p class="text-textSecondary">Administra todos los proyectos del portafolio</p>
       </div>
-      <div class="flex gap-3">
+      <div class="admin-toolbar__actions">
         <a routerLink="/admin/dashboard" class="btn-outline inline-flex items-center gap-2">
           <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
           Volver
@@ -19,20 +19,24 @@
     </div>
 
     <div class="card mb-6">
-      <div class="flex flex-wrap gap-4 items-center">
-        <div class="flex-1 min-w-[200px]">
+      <div class="admin-filters">
+        <div class="flex-1 w-full sm:min-w-[200px]">
+          <label for="project-search" class="sr-only">Buscar proyectos</label>
           <input
-            type="text"
+            id="project-search"
+            type="search"
             [(ngModel)]="searchTerm"
             (input)="onSearch()"
             placeholder="Buscar por título..."
             class="input w-full"
           />
         </div>
+        <label for="project-status" class="sr-only">Filtrar por estado</label>
         <select
+          id="project-status"
           [(ngModel)]="filterStatus"
           (change)="loadProjects()"
-          class="input"
+          class="input w-full sm:w-auto"
         >
           <option value="">Todos los estados</option>
           <option value="draft">Borrador</option>
@@ -42,21 +46,21 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <div class="card text-center">
-        <p class="text-3xl font-bold text-textPrimary">{{ totalProjects }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-textPrimary">{{ totalProjects }}</p>
         <p class="text-textSecondary text-sm">Total Proyectos</p>
       </div>
       <div class="card text-center border-success/30">
-        <p class="text-3xl font-bold text-success">{{ publishedCount }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-success">{{ publishedCount }}</p>
         <p class="text-textSecondary text-sm">Publicados</p>
       </div>
       <div class="card text-center border-warning/30">
-        <p class="text-3xl font-bold text-warning">{{ draftCount }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-warning">{{ draftCount }}</p>
         <p class="text-textSecondary text-sm">Borradores</p>
       </div>
       <div class="card text-center border-primary/30">
-        <p class="text-3xl font-bold text-primary">{{ featuredCount }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-primary">{{ featuredCount }}</p>
         <p class="text-textSecondary text-sm">Destacados</p>
       </div>
     </div>
@@ -67,27 +71,28 @@
     </div>
 
     <div *ngIf="!loading" class="card overflow-hidden p-0">
-      <div class="overflow-x-auto">
-        <table class="w-full">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <caption class="sr-only">Proyectos del portafolio con estado, tecnologías y acciones</caption>
           <thead class="bg-surface">
             <tr>
-              <th class="text-left px-6 py-4 text-textPrimary font-semibold">Título</th>
-              <th class="text-left px-4 py-4 text-textPrimary font-semibold">Tecnologías</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Estado</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Destacado</th>
-              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Acciones</th>
+              <th scope="col" class="text-left px-6 py-4 text-textPrimary font-semibold">Título</th>
+              <th scope="col" class="text-left px-4 py-4 text-textPrimary font-semibold">Tecnologías</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Estado</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Destacado</th>
+              <th scope="col" class="text-center px-4 py-4 text-textPrimary font-semibold">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let project of filteredProjects" class="border-t border-slate-800 hover:bg-slate-800/40 transition">
-              <td class="px-6 py-4">
-                <div>
-                  <p class="text-textPrimary font-medium">{{ project.title }}</p>
+              <td class="px-6 py-4 admin-table__primary">
+                <div class="min-w-0">
+                  <p class="text-textPrimary font-medium break-words">{{ project.title }}</p>
                   <p class="text-textSecondary text-sm line-clamp-1">{{ project.short_description }}</p>
                 </div>
               </td>
-              <td class="px-4 py-4">
-                <div class="flex flex-wrap gap-1">
+              <td class="px-4 py-4" data-label="Tecnologías">
+                <div class="flex flex-wrap gap-1 justify-end sm:justify-start">
                   <span *ngFor="let tech of project.technologies.slice(0, 3)" class="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
                     {{ tech }}
                   </span>
@@ -96,35 +101,38 @@
                   </span>
                 </div>
               </td>
-              <td class="px-4 py-4 text-center">
+              <td class="px-4 py-4 text-center" data-label="Estado">
                 <span [class]="getStatusClass(project.status)" class="px-2 py-1 rounded text-xs font-medium">
                   {{ getStatusLabel(project.status) }}
                 </span>
               </td>
-              <td class="px-4 py-4 text-center">
+              <td class="px-4 py-4 text-center" data-label="Destacado">
                 <button
                   type="button"
                   (click)="toggleFeatured(project)"
-                  class="p-2"
+                  class="admin-action"
                   [class]="project.featured ? 'text-warning' : 'text-textSecondary'"
+                  [attr.aria-pressed]="project.featured"
+                  [attr.aria-label]="project.featured ? 'Quitar de destacados' : 'Destacar'"
                   [title]="project.featured ? 'Quitar de destacados' : 'Destacar'"
                 >
                   <app-icon name="star" cssClass="w-5 h-5"></app-icon>
                 </button>
               </td>
-              <td class="px-4 py-4">
-                <div class="flex justify-center gap-1">
-                  <a [routerLink]="['/projects', project.id]" class="p-2 text-primary hover:text-primaryHover" title="Ver">
+              <td class="px-4 py-4 admin-table__actions" data-label="Acciones">
+                <div class="flex flex-wrap justify-start sm:justify-center gap-1">
+                  <a [routerLink]="['/projects', project.id]" class="admin-action text-primary hover:text-primaryHover" [attr.aria-label]="'Ver ' + project.title" title="Ver">
                     <app-icon name="eye" cssClass="w-4 h-4"></app-icon>
                   </a>
-                  <a [routerLink]="['/projects', project.id, 'edit']" class="p-2 text-primary hover:text-primaryHover" title="Editar">
+                  <a [routerLink]="['/projects', project.id, 'edit']" class="admin-action text-primary hover:text-primaryHover" [attr.aria-label]="'Editar ' + project.title" title="Editar">
                     <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
                   </a>
                   <button
                     *ngIf="project.status === 'draft'"
                     type="button"
                     (click)="publishProject(project)"
-                    class="p-2 text-success hover:text-emerald-300"
+                    class="admin-action text-success hover:text-emerald-300"
+                    [attr.aria-label]="'Publicar ' + project.title"
                     title="Publicar"
                   >
                     <app-icon name="rocket-launch" cssClass="w-4 h-4"></app-icon>
@@ -133,7 +141,8 @@
                     *ngIf="project.status === 'published'"
                     type="button"
                     (click)="archiveProject(project)"
-                    class="p-2 text-warning hover:text-amber-300"
+                    class="admin-action text-warning hover:text-amber-300"
+                    [attr.aria-label]="'Archivar ' + project.title"
                     title="Archivar"
                   >
                     <app-icon name="archive-box" cssClass="w-4 h-4"></app-icon>
@@ -141,7 +150,8 @@
                   <button
                     type="button"
                     (click)="confirmDelete(project)"
-                    class="p-2 text-danger hover:text-red-300"
+                    class="admin-action text-danger hover:text-red-300"
+                    [attr.aria-label]="'Eliminar ' + project.title"
                     title="Eliminar"
                   >
                     <app-icon name="trash" cssClass="w-4 h-4"></app-icon>

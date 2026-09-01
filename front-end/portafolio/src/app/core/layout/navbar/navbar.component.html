@@ -1,18 +1,18 @@
 <nav class="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-slate-800/50">
-  <div class="max-w-6xl mx-auto px-6 py-4">
-    <div class="flex items-center justify-between">
-      <a routerLink="/" class="flex items-center gap-3 group">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+    <div class="flex items-center justify-between gap-3">
+      <a routerLink="/" class="flex items-center gap-3 group min-w-0">
         <div
-          class="w-10 h-10 rounded-full overflow-hidden border border-slate-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center bg-slate-800">
-          <img src="/assets/imagen.jpg" alt="Elvis Dev" class="w-full h-full object-cover"
-            onerror="this.src='https://ui-avatars.com/api/?name=Elvis&background=0D8ABC&color=fff'">
+          class="w-10 h-10 rounded-full overflow-hidden border border-slate-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center bg-slate-800 shrink-0">
+          <img [src]="avatarSrc" alt="Elvis Dev" class="w-full h-full object-cover"
+            (error)="onAvatarError()">
         </div>
-        <span class="text-xl font-bold text-textPrimary group-hover:text-primary transition-colors">
+        <span class="text-xl font-bold text-textPrimary group-hover:text-primary transition-colors truncate">
           Elvis<span class="text-primary">Dev</span>
         </span>
       </a>
 
-      <div class="hidden md:flex items-center gap-8">
+      <div class="hidden lg:flex items-center gap-6 xl:gap-8">
         <a routerLink="/" routerLinkActive="text-primary" [routerLinkActiveOptions]="{exact: true}"
           class="nav-link">Inicio</a>
         <a routerLink="/" fragment="about" class="nav-link">Sobre Mí</a>
@@ -23,10 +23,12 @@
           class="nav-link text-primary font-semibold border border-primary/30 px-2 py-1 rounded hover:bg-primary/10 transition-all">Admin</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/contact" routerLinkActive="text-primary"
           class="nav-link">Bandeja</a>
+        <a *ngIf="authService.isAdmin" routerLink="/admin/profile" routerLinkActive="text-primary"
+          class="nav-link">Perfil</a>
         <a routerLink="/" fragment="contact" class="nav-link">Contacto</a>
         <ng-container *ngIf="authService.isAuthenticated; else loginLink">
           <button type="button" (click)="logout()"
-            class="nav-link text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
+            class="nav-link text-red-400 hover:text-red-300 transition-colors inline-flex items-center gap-1 min-h-[44px]">
             <app-icon name="arrow-right-on-rectangle" cssClass="h-4 w-4"></app-icon>
             Salir
           </button>
@@ -36,7 +38,7 @@
         </ng-template>
       </div>
 
-      <div class="hidden md:block">
+      <div class="hidden lg:block shrink-0">
         <a routerLink="/" fragment="contact" class="btn-primary text-sm">
           Contáctame
         </a>
@@ -45,7 +47,7 @@
       <button
         type="button"
         (click)="toggleMenu()"
-        class="md:hidden text-textPrimary hover:text-primary transition-colors p-2"
+        class="lg:hidden text-textPrimary hover:text-primary transition-colors p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center"
         [attr.aria-expanded]="isMenuOpen"
         aria-controls="mobile-menu"
         [attr.aria-label]="isMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'">
@@ -54,8 +56,8 @@
       </button>
     </div>
 
-    <div *ngIf="isMenuOpen" id="mobile-menu" class="md:hidden mt-4 pb-4 border-t border-slate-800 pt-4">
-      <div class="flex flex-col gap-4">
+    <div *ngIf="isMenuOpen" id="mobile-menu" class="lg:hidden mt-4 pb-4 border-t border-slate-800 pt-4">
+      <div class="flex flex-col">
         <a routerLink="/" (click)="closeMenu()" class="nav-link-mobile">Inicio</a>
         <a routerLink="/" fragment="about" (click)="closeMenu()" class="nav-link-mobile">Sobre Mí</a>
         <a routerLink="/" fragment="projects" (click)="closeMenu()" class="nav-link-mobile">Proyectos</a>
@@ -65,11 +67,13 @@
           class="nav-link-mobile text-primary font-bold">Admin</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/contact" (click)="closeMenu()"
           class="nav-link-mobile">Bandeja de contacto</a>
+        <a *ngIf="authService.isAdmin" routerLink="/admin/profile" (click)="closeMenu()"
+          class="nav-link-mobile">Perfil</a>
         <a routerLink="/" fragment="contact" (click)="closeMenu()" class="nav-link-mobile">Contacto</a>
 
-        <div class="pt-2 border-t border-slate-800">
+        <div class="pt-2 mt-2 border-t border-slate-800">
           <button *ngIf="authService.isAuthenticated" type="button" (click)="logout()"
-            class="nav-link-mobile text-red-400 flex items-center justify-center gap-2">
+            class="nav-link-mobile text-red-400 flex items-center justify-center gap-2 w-full">
             <app-icon name="arrow-right-on-rectangle" cssClass="h-5 w-5"></app-icon>
             Cerrar Sesión
           </button>
@@ -77,10 +81,12 @@
             class="nav-link-mobile text-primary text-center">Iniciar Sesión</a>
         </div>
 
-        <a routerLink="/" fragment="contact" (click)="closeMenu()" class="btn-primary text-center mt-2">Contáctame</a>
+        <a routerLink="/" fragment="contact" (click)="closeMenu()" class="btn-primary text-center mt-3">Contáctame</a>
       </div>
     </div>
   </div>
 </nav>
 
-<div class="h-[72px]"></div>
+<div *ngIf="isMenuOpen" class="fixed inset-0 top-[64px] sm:top-[72px] bg-black/50 lg:hidden z-40" (click)="closeMenu()" aria-hidden="true"></div>
+
+<div class="h-[64px] sm:h-[72px]"></div>

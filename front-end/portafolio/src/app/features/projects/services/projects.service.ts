@@ -1,59 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import {
+    Project,
+    ProjectForm,
+    ProjectListResponse,
+    ProjectSummary,
+    ProjectStatus
+} from '../../../core/models/project.model';
 
-export interface Project {
-    id: string;
-    title: string;
-    description: string;
-    short_description: string;
-    image_url: string;
-    github_url?: string;
-    demo_url?: string;
-    technologies: string[];
-    highlights: string[];
-    status: 'draft' | 'published' | 'archived';
-    featured: boolean;
-    order: number;
-    created_at: string;
-    updated_at: string;
-}
-
-/**
- * Resumen de proyecto para cards del Home
- */
-export interface ProjectSummary {
-    id: string;
-    title: string;
-    short_description: string;
-    image_url: string;
-    technologies: string[];
-    featured: boolean;
-    created_at: string;
-}
-
-export interface ProjectListResponse {
-    items: Project[];
-    total: number;
-    page: number;
-    size: number;
-    pages: number;
-}
-
-export interface ProjectForm {
-    title: string;
-    description: string;
-    short_description: string;
-    image_url: string;
-    github_url?: string;
-    demo_url?: string;
-    technologies: string[];
-    highlights: string[];
-    featured?: boolean;
-    order?: number;
-    status?: 'draft' | 'published' | 'archived';
-}
+export type { Project, ProjectForm, ProjectListResponse, ProjectSummary, ProjectStatus };
 
 @Injectable({
     providedIn: 'root'
@@ -129,7 +86,7 @@ export class ProjectsService {
     /**
      * Cambia el estado de un proyecto
      */
-    updateProjectStatus(id: string, status: 'draft' | 'published' | 'archived'): Observable<Project> {
+    updateProjectStatus(id: string, status: ProjectStatus): Observable<Project> {
         return this.api.put<Project>(`/projects/${id}`, { status });
     }
 
