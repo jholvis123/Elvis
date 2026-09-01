@@ -4,11 +4,20 @@ Configuración compartida para tests.
 
 import pytest
 from typing import Generator
+from uuid import uuid4
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-from ..core.database import Base
-from ..core.config import settings
+from ..infrastructure.persistence.base import Base
+from ..infrastructure.persistence.models import (  # noqa: F401 - register metadata
+    UserModel,
+    ProjectModel,
+    CTFModel,
+    WriteupModel,
+    AttachmentModel,
+    ContactModel,
+    FlagSubmissionModel,
+)
 
 
 # Base de datos en memoria para tests
@@ -60,3 +69,38 @@ def client(db: Session):
         yield c
     
     app.dependency_overrides.clear()
+
+
+def _auth_headers(db: Session, *, email: str, username: str, is_admin: bool) -> dict:
+    from ..core.security import get_password_hash
+    from ..infrastructure.security.jwt_provider import JWTProvider
+
+    uid = str(uuid4())
+    user = UserModel(
+        id=uid,
+        email=email,
+        username=username,
+        hashed_password=get_password_hash("securepassword123"),
+        is_active=True,
+        is_admin=is_admin,
+    )
+    db.add(user)
+    db.commit()
+    token = JWTProvider().create_access_token(uid)
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def admin_headers(db: Session) -> dict:
+    """Headers Bearer de un usuario administrador."""
+    return _auth_headers(
+        db, email="admin@example.com", username="adminuser", is_admin=True
+    )
+
+
+@pytest.fixture
+def user_headers(db: Session) -> dict:
+    """Headers Bearer de un usuario no administrador."""
+    return _auth_headers(
+        db, email="user@example.com", username="regularuser", is_admin=False
+    )

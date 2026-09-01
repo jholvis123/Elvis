@@ -9,6 +9,7 @@ from .writeups import router as writeups_router
 from .contact import router as contact_router
 from .attachments import router as attachments_router
 from .portfolio import router as portfolio_router
+from .admin import router as admin_router
 
 __all__ = [
     "auth_router",
@@ -18,4 +19,5 @@ __all__ = [
     "contact_router",
     "attachments_router",
     "portfolio_router",
+    "admin_router",
 ]

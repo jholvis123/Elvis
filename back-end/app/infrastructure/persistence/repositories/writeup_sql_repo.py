@@ -104,9 +104,9 @@ class WriteupSqlRepository(WriteupRepository):
         )
         return [self._to_entity(w) for w in db_writeups]
     
-    def search(self, query: str) -> List[Writeup]:
-        """Busca writeups por título o contenido."""
-        db_writeups = (
+    def _search_query(self, query: str):
+        """Filtro de búsqueda sobre writeups publicados."""
+        return (
             self.db.query(WriteupModel)
             .filter(
                 or_(
@@ -116,9 +116,22 @@ class WriteupSqlRepository(WriteupRepository):
                 )
             )
             .filter(WriteupModel.status == "published")
+        )
+
+    def search(self, query: str, skip: int = 0, limit: int = 100) -> List[Writeup]:
+        """Busca writeups publicados por título o contenido, con paginación."""
+        db_writeups = (
+            self._search_query(query)
+            .order_by(WriteupModel.created_at.desc())
+            .offset(skip)
+            .limit(limit)
             .all()
         )
         return [self._to_entity(w) for w in db_writeups]
+
+    def count_search(self, query: str) -> int:
+        """Cuenta writeups publicados que coinciden con la búsqueda."""
+        return self._search_query(query).count()
     
     def delete(self, writeup_id: UUID) -> bool:
         """Elimina un writeup por su ID."""

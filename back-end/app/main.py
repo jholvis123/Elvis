@@ -27,6 +27,7 @@ from .api.routers import (
     contact_router,
     attachments_router,
     portfolio_router,
+    admin_router,
 )
 # Importar Base de persistence donde están definidos los modelos
 from .infrastructure.persistence.base import Base
@@ -112,6 +113,7 @@ app.include_router(writeups_router, prefix=settings.API_V1_PREFIX)
 app.include_router(contact_router, prefix=settings.API_V1_PREFIX)
 app.include_router(attachments_router, prefix=settings.API_V1_PREFIX)
 app.include_router(portfolio_router, prefix=settings.API_V1_PREFIX)
+app.include_router(admin_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/", tags=["Root"])
