@@ -4,20 +4,23 @@ Portfolio Backend - Clean Architecture + Hexagonal
 Punto de entrada principal de la aplicación FastAPI.
 """
 
+import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from slowapi import _rate_limit_exceeded_handler
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi.errors import RateLimitExceeded
 
 from .core.config import settings
 from .core.database import engine
 from .core.logging import logger
 from .core.security_middleware import (
-    limiter, 
+    limiter,
     security_headers_middleware,
-    rate_limit_exceeded_handler
+    csrf_protect_middleware,
+    rate_limit_exceeded_handler,
 )
 from .api.routers import (
     auth_router,
@@ -42,18 +45,22 @@ from .infrastructure.persistence.models import (
 )
 
 
+UNHANDLED_ERROR_DETAIL = "No fue posible completar la operación. Intenta nuevamente."
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager para la aplicación."""
     # Startup
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-    
-    # Crear tablas de la base de datos
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created")
-    
+
+    # create_all solo en desarrollo; producción usa migraciones Alembic
+    if settings.DEBUG:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created")
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down application")
 
@@ -98,9 +105,35 @@ app.add_middleware(
 # Middleware de seguridad (headers HTTP)
 app.middleware("http")(security_headers_middleware)
 
+# CSRF: Angular interceptor envía el header X-CSRF-Token
+app.middleware("http")(csrf_protect_middleware)
+
 # Configurar rate limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Errores no controlados: 500 genérico, traceback solo en logs."""
+    if isinstance(exc, StarletteHTTPException):
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    if isinstance(exc, RequestValidationError):
+        return JSONResponse(status_code=422, content={"detail": exc.errors()})
+    if isinstance(exc, RateLimitExceeded):
+        return rate_limit_exceeded_handler(request, exc)
+
+    logger.error(
+        "Unhandled exception on %s %s\n%s",
+        request.method,
+        request.url.path,
+        traceback.format_exc(),
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": UNHANDLED_ERROR_DETAIL},
+    )
+
 
 # Montar archivos estáticos (uploads)
 # app.mount("/files", StaticFiles(directory=settings.UPLOAD_DIR), name="files")
@@ -139,7 +172,7 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",

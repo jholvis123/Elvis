@@ -101,6 +101,12 @@ async def render_markdown(
     
     Todo el procesamiento se hace en backend para seguridad.
     """
+    if len(request.content) > 100000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El contenido Markdown supera el límite de 100000 caracteres.",
+        )
+
     base_url = request.base_url or str(req.base_url).rstrip('/')
     
     result = markdown_service.process_markdown(
@@ -361,7 +367,7 @@ async def get_writeup_by_ctf(
 async def list_all_writeups_admin(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
-    status: Optional[str] = None,
+    status_filter: Optional[str] = Query(None, alias="status"),
     current_user: User = Depends(get_current_admin),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
     writeup_service: WriteupService = Depends(get_writeup_service),
@@ -369,7 +375,16 @@ async def list_all_writeups_admin(
     """Lista TODOS los writeups para administradores (incluye drafts)."""
     skip = (page - 1) * size
 
-    writeup_status = WriteupStatus(status) if status else None
+    writeup_status = None
+    if status_filter:
+        try:
+            writeup_status = WriteupStatus(status_filter)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Estado inválido: {status_filter}",
+            )
+
     writeups = writeup_repo.get_all(skip=skip, limit=size, status=writeup_status)
     total = writeup_repo.count(status=writeup_status)
 

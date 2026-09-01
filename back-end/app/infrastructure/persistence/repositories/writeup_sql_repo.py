@@ -6,7 +6,7 @@ import json
 from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, bindparam
 
 from ....domain.entities.writeup import Writeup, WriteupStatus
 from ....domain.repositories.writeup_repo import WriteupRepository
@@ -104,18 +104,30 @@ class WriteupSqlRepository(WriteupRepository):
         )
         return [self._to_entity(w) for w in db_writeups]
     
+    @staticmethod
+    def _escape_ilike(query: str) -> str:
+        """Escapa % y _ para que ilike no los trate como wildcards."""
+        return (
+            query.replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_")
+        )
+
     def _search_query(self, query: str):
-        """Filtro de búsqueda sobre writeups publicados."""
+        """Filtro de búsqueda sobre writeups publicados (params bound, wildcards escapados)."""
+        pattern = f"%{self._escape_ilike(query)}%"
+        search_pattern = bindparam("writeup_search_pattern", pattern)
+        published = WriteupStatus.PUBLISHED.value
         return (
             self.db.query(WriteupModel)
+            .filter(WriteupModel.status == published)
             .filter(
                 or_(
-                    WriteupModel.title.ilike(f"%{query}%"),
-                    WriteupModel.content.ilike(f"%{query}%"),
-                    WriteupModel.summary.ilike(f"%{query}%"),
+                    WriteupModel.title.ilike(search_pattern, escape="\\"),
+                    WriteupModel.content.ilike(search_pattern, escape="\\"),
+                    WriteupModel.summary.ilike(search_pattern, escape="\\"),
                 )
             )
-            .filter(WriteupModel.status == "published")
         )
 
     def search(self, query: str, skip: int = 0, limit: int = 100) -> List[Writeup]:

@@ -6,6 +6,7 @@ from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 
+from ...core.security_middleware import limiter
 from ...application.dto.contact_dto import (
     ContactCreateDTO,
     ContactResponseDTO,
@@ -25,9 +26,10 @@ router = APIRouter(prefix="/contact", tags=["Contact"])
     status_code=status.HTTP_201_CREATED,
     summary="Enviar mensaje de contacto",
 )
+@limiter.limit("5/hour")
 async def send_contact_message(
-    contact_data: ContactCreateDTO,
     request: Request,
+    contact_data: ContactCreateDTO,
     contact_service: ContactService = Depends(get_contact_service),
 ) -> ContactResponseDTO:
     """
@@ -46,7 +48,11 @@ async def send_contact_message(
         contact = contact_service.create_contact(
             name=contact_data.name,
             email=contact_data.email,
-            project_type=contact_data.project_type.value,
+            project_type=(
+                contact_data.project_type.value
+                if hasattr(contact_data.project_type, "value")
+                else contact_data.project_type
+            ),
             message=contact_data.message,
             ip_address=ip_address,
             user_agent=user_agent,

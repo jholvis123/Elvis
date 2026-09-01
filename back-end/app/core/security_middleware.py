@@ -2,6 +2,7 @@
 Middleware de seguridad para agregar headers y rate limiting.
 """
 
+import hmac
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
@@ -40,7 +41,49 @@ RATE_LIMITS = {
     "upload": "10/minute",      # Subida de archivos
     "api_write": "30/minute",   # Operaciones de escritura
     "api_read": "100/minute",   # Operaciones de lectura
+    "contact": "5/hour",        # Formulario de contacto por IP
 }
+
+# Métodos que no mutan estado no requieren CSRF
+_CSRF_SAFE_METHODS = {"GET", "HEAD", "OPTIONS", "TRACE"}
+# Login/registro aún no tienen cookie CSRF; logout/refresh se tratan igual
+_CSRF_EXEMPT_SUFFIXES = (
+    "/auth/login",
+    "/auth/register",
+    "/auth/logout",
+    "/auth/refresh",
+)
+# Header exacto que envía authInterceptor de Angular (X-CSRF-Token)
+CSRF_HEADER_NAME = "X-CSRF-Token"
+CSRF_COOKIE_NAME = "csrf_token"
+
+
+async def csrf_protect_middleware(request: Request, call_next):
+    """
+    Double-submit CSRF usando el header X-CSRF-Token que envía Angular.
+
+    Solo se exige cuando el navegador ya tiene la cookie csrf_token
+    (sesión cookie). Clientes Bearer sin esa cookie no se ven afectados.
+    """
+    if request.method.upper() in _CSRF_SAFE_METHODS:
+        return await call_next(request)
+
+    path = request.url.path
+    if any(path.endswith(suffix) for suffix in _CSRF_EXEMPT_SUFFIXES):
+        return await call_next(request)
+
+    cookie_token = request.cookies.get(CSRF_COOKIE_NAME)
+    if not cookie_token:
+        return await call_next(request)
+
+    header_token = request.headers.get(CSRF_HEADER_NAME)
+    if not header_token or not hmac.compare_digest(cookie_token, header_token):
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "CSRF token mismatch"},
+        )
+
+    return await call_next(request)
 
 
 async def security_headers_middleware(request: Request, call_next):
