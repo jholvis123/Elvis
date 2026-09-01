@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <a routerLink="/projects/new" class="card hover:border-primary transition group">
                     <app-icon name="plus" cssClass="w-8 h-8 text-primary mb-3"></app-icon>
                     <h3 class="font-bold text-lg text-textPrimary">Nuevo Proyecto</h3>
@@ -93,6 +93,12 @@
                     <app-icon name="puzzle-piece" cssClass="w-8 h-8 text-primary mb-3"></app-icon>
                     <h3 class="font-bold text-lg text-textPrimary">Nuevo CTF</h3>
                     <p class="text-textSecondary text-sm">Crea un nuevo challenge</p>
+                </a>
+
+                <a routerLink="/admin/profile" class="card hover:border-primary transition group">
+                    <app-icon name="user" cssClass="w-8 h-8 text-primary mb-3"></app-icon>
+                    <h3 class="font-bold text-lg text-textPrimary">Editar perfil</h3>
+                    <p class="text-textSecondary text-sm">Nombre, bio, roles, stack y redes</p>
                 </a>
             </div>
 

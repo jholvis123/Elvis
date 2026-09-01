@@ -36,6 +36,11 @@ export const ADMIN_ROUTES: Routes = [
                 path: 'contact',
                 loadComponent: () =>
                     import('./pages/contact-inbox/contact-inbox.component').then(m => m.ContactInboxComponent)
+            },
+            {
+                path: 'profile',
+                loadComponent: () =>
+                    import('./pages/profile-editor/profile-editor.component').then(m => m.ProfileEditorComponent)
             }
         ]
     }

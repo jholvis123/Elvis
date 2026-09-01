@@ -79,13 +79,19 @@ export class ContactService {
     return items;
   }
 
-  mapSocialLinks(social: Record<string, string> | null | undefined): ContactInfo[] {
+  mapSocialLinks(social: {
+    email?: string;
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+  } | Record<string, string> | null | undefined): ContactInfo[] {
     if (!social) return [];
+    const record = social as Record<string, string | undefined>;
     return this.mapContactInfo({
-      email: social['email'] || '',
-      github: social['github'],
-      linkedin: social['linkedin'],
-      twitter: social['twitter']
+      email: record['email'] || '',
+      github: record['github'],
+      linkedin: record['linkedin'],
+      twitter: record['twitter']
     });
   }
 

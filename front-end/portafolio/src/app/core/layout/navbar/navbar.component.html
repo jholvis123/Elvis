@@ -23,6 +23,8 @@
           class="nav-link text-primary font-semibold border border-primary/30 px-2 py-1 rounded hover:bg-primary/10 transition-all">Admin</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/contact" routerLinkActive="text-primary"
           class="nav-link">Bandeja</a>
+        <a *ngIf="authService.isAdmin" routerLink="/admin/profile" routerLinkActive="text-primary"
+          class="nav-link">Perfil</a>
         <a routerLink="/" fragment="contact" class="nav-link">Contacto</a>
         <ng-container *ngIf="authService.isAuthenticated; else loginLink">
           <button type="button" (click)="logout()"
@@ -65,6 +67,8 @@
           class="nav-link-mobile text-primary font-bold">Admin</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/contact" (click)="closeMenu()"
           class="nav-link-mobile">Bandeja de contacto</a>
+        <a *ngIf="authService.isAdmin" routerLink="/admin/profile" (click)="closeMenu()"
+          class="nav-link-mobile">Perfil</a>
         <a routerLink="/" fragment="contact" (click)="closeMenu()" class="nav-link-mobile">Contacto</a>
 
         <div class="pt-2 mt-2 border-t border-slate-800">
