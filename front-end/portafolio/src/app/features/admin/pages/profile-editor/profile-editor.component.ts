@@ -54,7 +54,8 @@ export class ProfileEditorComponent implements OnInit {
         highlights: this.fb.array([]),
         email: ['', [Validators.email]],
         github: [''],
-        linkedin: ['']
+        linkedin: [''],
+        twitter: ['']
     });
 
     loading = true;
@@ -175,7 +176,8 @@ export class ProfileEditorComponent implements OnInit {
             about_points: profile.about_points || [],
             email: social.email || '',
             github: social.github || '',
-            linkedin: social.linkedin || ''
+            linkedin: social.linkedin || '',
+            twitter: social.twitter || ''
         });
         this.form.markAsPristine();
     }
@@ -204,6 +206,7 @@ export class ProfileEditorComponent implements OnInit {
             email: string;
             github: string;
             linkedin: string;
+            twitter: string;
         };
 
         const highlights: PortfolioHighlight[] = this.highlights.controls.map((ctrl) => {
@@ -219,7 +222,8 @@ export class ProfileEditorComponent implements OnInit {
         const social_links: PortfolioSocialLinks = {
             email: (raw.email || '').trim(),
             github: (raw.github || '').trim(),
-            linkedin: (raw.linkedin || '').trim()
+            linkedin: (raw.linkedin || '').trim(),
+            twitter: (raw.twitter || '').trim()
         };
 
         return {
@@ -256,9 +260,6 @@ export class ProfileEditorComponent implements OnInit {
 
     private humanSaveError(err: unknown): string {
         if (err instanceof ApiError) {
-            if (err.status === 404) {
-                return 'La actualización de perfil aún no está disponible. El servidor no expone PUT /portfolio/profile (backend PR #34).';
-            }
             if (err.status === 401) {
                 return err.message || 'Sesión expirada. Inicia sesión de nuevo.';
             }
