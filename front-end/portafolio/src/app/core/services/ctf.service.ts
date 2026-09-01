@@ -48,7 +48,9 @@ interface CTFListResponse {
 }
 
 interface FlagSubmitResponse {
-  is_correct: boolean;
+  success?: boolean;
+  is_correct?: boolean;
+  isCorrect?: boolean;
   message: string;
   attempts_remaining?: number;
 }
@@ -132,7 +134,7 @@ export class CtfService {
   submitFlagToApi(challengeId: string, flag: string): Observable<FlagSubmitResult> {
     return this.api.post<FlagSubmitResponse>(`/ctfs/${challengeId}/submit`, { flag }).pipe(
       map(response => ({
-        success: response.is_correct,
+        success: !!(response.success ?? response.is_correct ?? response.isCorrect),
         message: response.message
       })),
       tap(result => {

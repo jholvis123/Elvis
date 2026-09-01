@@ -95,7 +95,7 @@ export class CtfDetailComponent implements OnInit {
     if (!this.authService.isAuthenticated) {
       this.submitResult = {
         success: false,
-        message: '🔒 Debes iniciar sesión para enviar flags'
+        message: 'Debes iniciar sesión para enviar flags'
       };
       return;
     }
