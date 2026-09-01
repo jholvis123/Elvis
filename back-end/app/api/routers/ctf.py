@@ -32,6 +32,7 @@ from ...application.use_cases import (
 )
 from ...core.security_middleware import limiter, RATE_LIMITS
 from ...domain.entities.user import User
+from ...domain.entities.ctf import CTF, CTFStatus
 from ...domain.repositories.ctf_repo import CTFRepository
 from ...domain.repositories.writeup_repo import WriteupRepository
 from ...domain.repositories.flag_submission_repo import FlagSubmissionRepository
@@ -49,6 +50,18 @@ from ..dependencies import (
 )
 
 router = APIRouter(prefix="/ctfs", tags=["CTFs"])
+
+
+def _ensure_ctf_visible(ctf: CTF, current_user: Optional[User]) -> None:
+    """404 unpublished CTFs unless the requester is admin (no existence leak)."""
+    if ctf.status == CTFStatus.PUBLISHED:
+        return
+    if current_user is not None and current_user.is_admin:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="CTF not found",
+    )
 
 
 @router.get("/admin/all", response_model=CTFListResponseDTO)
@@ -117,10 +130,12 @@ async def get_ctf(
     ctf_id: UUID,
     ctf_repo: CTFRepository = Depends(get_ctf_repository),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """Obtiene un CTF por su ID."""
+    is_admin = current_user is not None and current_user.is_admin
     use_case = GetCTFUseCase(ctf_repo, writeup_repo)
-    result = use_case.execute(ctf_id)
+    result = use_case.execute(ctf_id, is_admin=is_admin)
     
     if not result:
         raise HTTPException(
@@ -224,6 +239,9 @@ async def submit_flag(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="CTF not found",
         )
+
+    # Unpublished (draft/archived) → 404 for non-admin even if is_active
+    _ensure_ctf_visible(ctf, current_user)
     
     # Verificar si el CTF está activo
     if not ctf.is_active:
@@ -247,6 +265,7 @@ async def submit_flag(
         
         return FlagSubmitResponseDTO(
             success=is_correct,
+            is_correct=is_correct,
             message=message,
             points=points,
         )

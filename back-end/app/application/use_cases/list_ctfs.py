@@ -147,9 +147,15 @@ class ListCTFsUseCase:
             size=size,
             pages=ceil(total / size) if size > 0 else 0,
         )
-    
-        solved_ctfs = self.ctf_repository.get_solved()
-        
+
+    def get_statistics(self) -> CTFStatisticsDTO:
+        """Estadísticas públicas de CTFs publicados. Nunca 500 por método faltante."""
+        stats = self.ctf_repository.get_statistics() or {}
+        total = self.ctf_repository.count(status=CTFStatus.PUBLISHED)
+        solved_ctfs = [
+            c for c in self.ctf_repository.get_solved()
+            if c.status == CTFStatus.PUBLISHED
+        ]
         return CTFStatisticsDTO(
             total=total,
             solved=len(solved_ctfs),
