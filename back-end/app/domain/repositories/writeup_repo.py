@@ -54,8 +54,13 @@ class WriteupRepository(ABC):
         ...
     
     @abstractmethod
-    def search(self, query: str) -> List[Writeup]:
-        """Busca writeups por título o contenido."""
+    def search(self, query: str, skip: int = 0, limit: int = 100) -> List[Writeup]:
+        """Busca writeups publicados por título o contenido, con paginación."""
+        ...
+    
+    @abstractmethod
+    def count_search(self, query: str) -> int:
+        """Cuenta writeups publicados que coinciden con la búsqueda."""
         ...
     
     @abstractmethod

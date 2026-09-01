@@ -5,8 +5,6 @@ Implementa autenticación segura con cookies HttpOnly.
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from ...application.dto.user_dto import (
     UserCreateDTO,
@@ -32,9 +30,9 @@ from ..dependencies import (
 from ...infrastructure.security.jwt_provider import JWTProvider
 from ...infrastructure.security.cookie_service import CookieService
 from ...infrastructure.security.csrf_service import CSRFService
+from ...core.security_middleware import limiter
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/register", response_model=UserResponseDTO, status_code=status.HTTP_201_CREATED)

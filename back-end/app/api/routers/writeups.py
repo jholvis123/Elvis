@@ -37,6 +37,7 @@ from ..dependencies import (
     get_writeup_service,
     get_current_user,
     get_current_admin,
+    get_current_user_optional,
     get_storage_service,
 )
 
@@ -75,7 +76,7 @@ router = APIRouter(prefix="/writeups", tags=["Writeups"])
 
 # Validador de imágenes (10MB máximo)
 image_validator = FileValidator(
-    allowed_extensions=['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'],
+    allowed_extensions=['.jpg', '.jpeg', '.png', '.gif', '.webp'],
     max_size=10 * 1024 * 1024  # 10MB en bytes
 )
 
@@ -86,6 +87,7 @@ image_validator = FileValidator(
 async def render_markdown(
     request: MarkdownRenderRequest,
     req: Request,
+    current_user: User = Depends(get_current_admin),
 ):
     """
     Renderiza contenido Markdown a HTML sanitizado.
@@ -99,6 +101,12 @@ async def render_markdown(
     
     Todo el procesamiento se hace en backend para seguridad.
     """
+    if len(request.content) > 100000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El contenido Markdown supera el límite de 100000 caracteres.",
+        )
+
     base_url = request.base_url or str(req.base_url).rstrip('/')
     
     result = markdown_service.process_markdown(
@@ -129,7 +137,7 @@ async def upload_writeup_image(
     """
     Sube una imagen para usar en writeups.
     
-    - Acepta: JPG, PNG, GIF, WebP, SVG
+    - Acepta: JPG, PNG, GIF, WebP
     - Tamaño máximo: 10MB
     - Valida magic bytes
     - Retorna URL y snippet Markdown listo para insertar
@@ -250,6 +258,19 @@ def _build_writeup_response(
     )
 
 
+
+def _ensure_writeup_visible(writeup: Writeup, current_user: Optional[User]) -> None:
+    """404 unpublished drafts unless the requester is admin (no existence leak)."""
+    if writeup.status == WriteupStatus.PUBLISHED:
+        return
+    if current_user is not None and current_user.is_admin:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Writeup not found",
+    )
+
+
 @router.get("", response_model=WriteupListResponseDTO)
 async def list_writeups(
     page: int = Query(1, ge=1),
@@ -262,11 +283,11 @@ async def list_writeups(
     skip = (page - 1) * size
     
     if search:
-        writeups = writeup_repo.search(search)
+        writeups = writeup_repo.search(search, skip=skip, limit=size)
+        total = writeup_repo.count_search(search)
     else:
         writeups = writeup_repo.get_published(skip=skip, limit=size)
-    
-    total = writeup_repo.count(status=WriteupStatus.PUBLISHED)
+        total = writeup_repo.count(status=WriteupStatus.PUBLISHED)
     
     # Para listados no incluimos HTML (performance)
     items = [
@@ -314,6 +335,7 @@ async def get_writeup_by_ctf(
     ctf_id: UUID,
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
     writeup_service: WriteupService = Depends(get_writeup_service),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """Obtiene el writeup asociado a un CTF."""
     writeup = writeup_repo.get_by_ctf_id(ctf_id)
@@ -323,12 +345,62 @@ async def get_writeup_by_ctf(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Writeup not found for this CTF",
         )
+
+    try:
+        _ensure_writeup_visible(writeup, current_user)
+    except HTTPException:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Writeup not found for this CTF",
+        )
     
-    # Incrementar vistas
-    writeup_repo.increment_views(writeup.id)
-    writeup.views += 1  # Reflejar en respuesta
+    # Incrementar vistas solo en publicados
+    if writeup.status == WriteupStatus.PUBLISHED:
+        writeup_repo.increment_views(writeup.id)
+        writeup.views += 1
     
     return _build_writeup_response(writeup, writeup_service, include_html=True)
+
+
+
+@router.get("/admin/all", response_model=WriteupListResponseDTO)
+async def list_all_writeups_admin(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    status_filter: Optional[str] = Query(None, alias="status"),
+    current_user: User = Depends(get_current_admin),
+    writeup_repo: WriteupRepository = Depends(get_writeup_repository),
+    writeup_service: WriteupService = Depends(get_writeup_service),
+):
+    """Lista TODOS los writeups para administradores (incluye drafts)."""
+    skip = (page - 1) * size
+
+    writeup_status = None
+    if status_filter:
+        try:
+            writeup_status = WriteupStatus(status_filter)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Estado inválido: {status_filter}",
+            )
+
+    writeups = writeup_repo.get_all(skip=skip, limit=size, status=writeup_status)
+    total = writeup_repo.count(status=writeup_status)
+
+    items = [
+        _build_writeup_response(w, writeup_service, include_html=False)
+        for w in writeups
+    ]
+
+    from math import ceil
+    return WriteupListResponseDTO(
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        pages=ceil(total / size) if size > 0 else 0,
+    )
 
 
 @router.get("/{writeup_id}", response_model=WriteupResponseDTO)
@@ -336,6 +408,7 @@ async def get_writeup(
     writeup_id: UUID,
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
     writeup_service: WriteupService = Depends(get_writeup_service),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """Obtiene un writeup por su ID."""
     writeup = writeup_repo.get_by_id(writeup_id)
@@ -345,10 +418,13 @@ async def get_writeup(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Writeup not found",
         )
+
+    _ensure_writeup_visible(writeup, current_user)
     
-    # Incrementar vistas
-    writeup_repo.increment_views(writeup_id)
-    writeup.views += 1  # Reflejar en respuesta
+    # Incrementar vistas solo en publicados
+    if writeup.status == WriteupStatus.PUBLISHED:
+        writeup_repo.increment_views(writeup_id)
+        writeup.views += 1
     
     return _build_writeup_response(writeup, writeup_service, include_html=True)
 
