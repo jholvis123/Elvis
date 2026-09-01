@@ -30,7 +30,7 @@ from ...application.use_cases import (
     UpdateCTFUseCase,
     DeleteCTFUseCase,
 )
-from ...core.security_middleware import limiter
+from ...core.security_middleware import limiter, RATE_LIMITS
 from ...domain.entities.user import User
 from ...domain.repositories.ctf_repo import CTFRepository
 from ...domain.repositories.writeup_repo import WriteupRepository
@@ -202,7 +202,7 @@ async def publish_ctf(
 
 
 @router.post("/{ctf_id}/submit", response_model=FlagSubmitResponseDTO)
-@limiter.limit("5/minute")
+@limiter.limit(RATE_LIMITS["flag_submit"])
 async def submit_flag(
     ctf_id: UUID,
     data: FlagSubmitDTO,
@@ -213,11 +213,9 @@ async def submit_flag(
 ):
     """
     Envía una flag para validación.
-    
-    - **flag**: La flag a verificar (formato: FLAG{...} o similar)
-    
-    Retorna si la flag es correcta y el mensaje correspondiente.
-    Funciona con o sin autenticación (usuario opcional).
+
+    Rate limit compartido (~20/minuto por IP). La respuesta nunca incluye
+    la flag correcta ni el valor enviado.
     """
     # Obtener el CTF
     ctf = ctf_repo.get_by_id(ctf_id)
@@ -252,10 +250,11 @@ async def submit_flag(
             message=message,
             points=points,
         )
-    except ValueError as e:
+    except ValueError:
+        # No filtrar el valor de la flag ni detalles internos
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail="Unable to validate flag",
         )
 
 

@@ -9,6 +9,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 from enum import Enum
 import hashlib
+import hmac
 import re
 
 
@@ -161,8 +162,12 @@ class CTF:
             except re.error:
                 return False
         else:
-            # Verificación mediante Hash
-            return hashlib.sha256(flag.encode()).hexdigest() == self.flag_hash
+            # Verificación mediante Hash (comparación constante para no filtrar)
+            submitted = hashlib.sha256(flag.encode()).hexdigest()
+            stored = self.flag_hash
+            if len(submitted) != len(stored):
+                return False
+            return hmac.compare_digest(submitted, stored)
     
     def add_hint(self, hint: str) -> None:
         """Añade una pista al CTF."""
