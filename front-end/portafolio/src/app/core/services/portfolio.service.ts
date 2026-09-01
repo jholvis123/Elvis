@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { Project, Technology, Highlight } from '../models';
+import { catchError } from 'rxjs/operators';
+import { Technology, Highlight } from '../models';
 import { ApiService } from './api.service';
 
 interface PortfolioProfileResponse {
@@ -113,23 +113,6 @@ export class PortfolioService {
 
   getAboutPoints(): string[] {
     return [...this.fallbackAboutPoints];
-  }
-
-  // DEPRECADO: Los proyectos ahora se cargan desde ProjectsService
-  // Estos métodos se mantienen vacíos por compatibilidad
-  getProjects(): Project[] {
-    console.warn('PortfolioService.getProjects() está deprecado. Usar ProjectsService.getFeaturedProjects()');
-    return [];
-  }
-
-  getProjectById(id: string): Project | undefined {
-    console.warn('PortfolioService.getProjectById() está deprecado. Usar ProjectsService.getProjectById()');
-    return undefined;
-  }
-
-  getProjectsByCategory(category: Project['category']): Project[] {
-    console.warn('PortfolioService.getProjectsByCategory() está deprecado.');
-    return [];
   }
 
   getRoles(): string[] {

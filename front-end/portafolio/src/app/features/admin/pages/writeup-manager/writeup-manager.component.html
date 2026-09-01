@@ -1,12 +1,12 @@
-<div class="min-h-screen bg-slate-950 p-6">
+<div class="admin-page">
   <div class="max-w-7xl mx-auto">
-    <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+    <div class="admin-toolbar">
       <div>
         <p class="eyebrow">Administración</p>
-        <h1 class="text-3xl font-bold text-textPrimary mb-2">Gestión de Writeups</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-textPrimary mb-2">Gestión de Writeups</h1>
         <p class="text-textSecondary">Administra todos los writeups, incluidos borradores</p>
       </div>
-      <div class="flex gap-3">
+      <div class="admin-toolbar__actions">
         <a routerLink="/admin/dashboard" class="btn-outline inline-flex items-center gap-2">
           <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
           Volver
@@ -30,76 +30,79 @@
     </div>
 
     <div *ngIf="!loading && !errorMessage" class="card overflow-hidden p-0">
-      <table class="w-full">
-        <thead class="bg-surface">
-          <tr>
-            <th class="text-left px-6 py-4 text-textPrimary font-semibold">Título</th>
-            <th class="text-left px-6 py-4 text-textPrimary font-semibold">Herramientas</th>
-            <th class="text-center px-6 py-4 text-textPrimary font-semibold">Vistas</th>
-            <th class="text-center px-6 py-4 text-textPrimary font-semibold">Estado</th>
-            <th class="text-center px-6 py-4 text-textPrimary font-semibold">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let writeup of writeups" class="border-t border-slate-800 hover:bg-slate-800/40 transition">
-            <td class="px-6 py-4">
-              <div>
-                <p class="text-textPrimary font-medium">{{ writeup.title }}</p>
-                <p class="text-textSecondary text-sm line-clamp-1">{{ writeup.summary }}</p>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex flex-wrap gap-1">
-                <span *ngFor="let tool of tools(writeup).slice(0, 3)" class="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
-                  {{ tool }}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <caption class="sr-only">Writeups con herramientas, vistas, estado y acciones</caption>
+          <thead class="bg-surface">
+            <tr>
+              <th scope="col" class="text-left px-6 py-4 text-textPrimary font-semibold">Título</th>
+              <th scope="col" class="text-left px-6 py-4 text-textPrimary font-semibold">Herramientas</th>
+              <th scope="col" class="text-center px-6 py-4 text-textPrimary font-semibold">Vistas</th>
+              <th scope="col" class="text-center px-6 py-4 text-textPrimary font-semibold">Estado</th>
+              <th scope="col" class="text-center px-6 py-4 text-textPrimary font-semibold">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let writeup of writeups" class="border-t border-slate-800 hover:bg-slate-800/40 transition">
+              <td class="px-6 py-4 admin-table__primary">
+                <div class="min-w-0">
+                  <p class="text-textPrimary font-medium break-words">{{ writeup.title }}</p>
+                  <p class="text-textSecondary text-sm line-clamp-1">{{ writeup.summary }}</p>
+                </div>
+              </td>
+              <td class="px-6 py-4" data-label="Herramientas">
+                <div class="flex flex-wrap gap-1 justify-end sm:justify-start">
+                  <span *ngFor="let tool of tools(writeup).slice(0, 3)" class="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
+                    {{ tool }}
+                  </span>
+                  <span *ngIf="tools(writeup).length > 3" class="text-textSecondary text-xs">
+                    +{{ tools(writeup).length - 3 }}
+                  </span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center text-textSecondary" data-label="Vistas">
+                {{ writeup.views }}
+              </td>
+              <td class="px-6 py-4 text-center" data-label="Estado">
+                <span *ngIf="writeup.status === 'published'" class="px-2 py-1 bg-success/20 text-success rounded text-xs">
+                  Publicado
                 </span>
-                <span *ngIf="tools(writeup).length > 3" class="text-textSecondary text-xs">
-                  +{{ tools(writeup).length - 3 }}
+                <span *ngIf="writeup.status === 'draft'" class="px-2 py-1 bg-warning/20 text-warning rounded text-xs">
+                  Borrador
                 </span>
-              </div>
-            </td>
-            <td class="px-6 py-4 text-center text-textSecondary">
-              {{ writeup.views }}
-            </td>
-            <td class="px-6 py-4 text-center">
-              <span *ngIf="writeup.status === 'published'" class="px-2 py-1 bg-success/20 text-success rounded text-xs">
-                Publicado
-              </span>
-              <span *ngIf="writeup.status === 'draft'" class="px-2 py-1 bg-warning/20 text-warning rounded text-xs">
-                Borrador
-              </span>
-              <span *ngIf="writeup.status === 'archived'" class="px-2 py-1 bg-slate-700 text-textSecondary rounded text-xs">
-                Archivado
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex justify-center gap-1">
-                <a [routerLink]="['/writeups', writeup.id]" class="p-2 text-primary hover:text-primaryHover" title="Ver">
-                  <app-icon name="eye" cssClass="w-4 h-4"></app-icon>
-                </a>
-                <a [routerLink]="['/writeups', writeup.id, 'edit']" class="p-2 text-primary hover:text-primaryHover" title="Editar">
-                  <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
-                </a>
-                <button *ngIf="writeup.status === 'draft'" type="button" (click)="publishWriteup(writeup.id)" class="p-2 text-success hover:text-emerald-300" title="Publicar">
-                  <app-icon name="rocket-launch" cssClass="w-4 h-4"></app-icon>
-                </button>
-                <button type="button" (click)="confirmDelete(writeup)" class="p-2 text-danger hover:text-red-300" title="Eliminar">
-                  <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="writeups.length === 0">
-            <td colspan="5" class="px-6 py-12 text-center text-textSecondary">
-              <div class="flex flex-col items-center gap-4">
-                <app-icon name="document-text" cssClass="w-10 h-10"></app-icon>
-                <p>No hay writeups creados aún</p>
-                <a routerLink="/writeups/new" class="btn-primary">Crear primer writeup</a>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                <span *ngIf="writeup.status === 'archived'" class="px-2 py-1 bg-slate-700 text-textSecondary rounded text-xs">
+                  Archivado
+                </span>
+              </td>
+              <td class="px-6 py-4 admin-table__actions" data-label="Acciones">
+                <div class="flex flex-wrap justify-start sm:justify-center gap-1">
+                  <a [routerLink]="['/writeups', writeup.id]" class="admin-action text-primary hover:text-primaryHover" [attr.aria-label]="'Ver ' + writeup.title" title="Ver">
+                    <app-icon name="eye" cssClass="w-4 h-4"></app-icon>
+                  </a>
+                  <a [routerLink]="['/writeups', writeup.id, 'edit']" class="admin-action text-primary hover:text-primaryHover" [attr.aria-label]="'Editar ' + writeup.title" title="Editar">
+                    <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
+                  </a>
+                  <button *ngIf="writeup.status === 'draft'" type="button" (click)="publishWriteup(writeup.id)" class="admin-action text-success hover:text-emerald-300" [attr.aria-label]="'Publicar ' + writeup.title" title="Publicar">
+                    <app-icon name="rocket-launch" cssClass="w-4 h-4"></app-icon>
+                  </button>
+                  <button type="button" (click)="confirmDelete(writeup)" class="admin-action text-danger hover:text-red-300" [attr.aria-label]="'Eliminar ' + writeup.title" title="Eliminar">
+                    <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="writeups.length === 0">
+              <td colspan="5" class="px-6 py-12 text-center text-textSecondary">
+                <div class="flex flex-col items-center gap-4">
+                  <app-icon name="document-text" cssClass="w-10 h-10"></app-icon>
+                  <p>No hay writeups creados aún</p>
+                  <a routerLink="/writeups/new" class="btn-primary">Crear primer writeup</a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

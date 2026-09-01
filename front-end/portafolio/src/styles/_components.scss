@@ -2,13 +2,15 @@
 @layer components {
   // Botones
   .btn-primary {
-    @apply bg-primary text-black px-6 py-2 rounded font-semibold 
+    @apply bg-primary text-black px-6 py-2 rounded font-semibold min-h-[44px]
+           inline-flex items-center justify-center
            hover:bg-primaryHover transition-all duration-300 
            hover:shadow-lg hover:shadow-primary/20;
   }
 
   .btn-outline {
-    @apply border border-primary text-primary px-6 py-2 rounded 
+    @apply border border-primary text-primary px-6 py-2 rounded min-h-[44px]
+           inline-flex items-center justify-center
            hover:bg-primary hover:text-black transition-all duration-300;
   }
 
@@ -56,5 +58,106 @@
     @apply px-3 py-1 rounded-full bg-card border border-slate-800 
            text-textSecondary hover:border-primary/50 hover:text-primary 
            transition-all duration-300;
+  }
+
+
+  // Admin responsive tables / toolbars
+  .admin-page {
+    @apply min-h-screen bg-slate-950 p-4 sm:p-6;
+  }
+
+  .admin-toolbar {
+    @apply flex flex-col gap-4 mb-8 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between;
+  }
+
+  .admin-toolbar__actions {
+    @apply flex flex-col gap-3 w-full sm:w-auto sm:flex-row;
+  }
+
+  .admin-toolbar__actions .btn-primary,
+  .admin-toolbar__actions .btn-outline,
+  .admin-toolbar__actions a {
+    @apply w-full sm:w-auto justify-center min-h-[44px] inline-flex items-center;
+  }
+
+  .admin-filters {
+    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center;
+  }
+
+  .admin-table-wrap {
+    @apply overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    @apply w-full;
+  }
+
+  @media (min-width: 768px) {
+    .admin-table {
+      min-width: 640px;
+    }
+  }
+
+  .admin-action {
+    @apply inline-flex items-center justify-center min-w-[44px] min-h-[44px] p-2 rounded-lg;
+  }
+
+  @media (max-width: 767px) {
+    .admin-table thead {
+      @apply sr-only;
+    }
+
+    .admin-table,
+    .admin-table tbody,
+    .admin-table tr,
+    .admin-table td {
+      display: block;
+      width: 100%;
+    }
+
+    .admin-table tbody {
+      @apply divide-y divide-slate-800;
+    }
+
+    .admin-table tr {
+      @apply px-4 py-4;
+    }
+
+    .admin-table td {
+      @apply px-0 py-2 text-left;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .admin-table td[data-label]::before {
+      content: attr(data-label);
+      @apply text-textSecondary text-xs font-semibold uppercase tracking-wide shrink-0 pt-1;
+      min-width: 5.5rem;
+    }
+
+    .admin-table td.admin-table__primary {
+      display: block;
+    }
+
+    .admin-table td.admin-table__primary::before {
+      display: none;
+    }
+
+    .admin-table td.admin-table__actions {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .admin-table td[colspan] {
+      display: block;
+      text-align: center;
+    }
+
+    .admin-table td[colspan]::before {
+      display: none;
+    }
   }
 }
