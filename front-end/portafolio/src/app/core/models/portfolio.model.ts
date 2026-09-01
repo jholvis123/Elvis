@@ -2,7 +2,6 @@ export interface PortfolioSocialLinks {
   email?: string;
   github?: string;
   linkedin?: string;
-  twitter?: string;
 }
 
 export interface PortfolioHighlight {

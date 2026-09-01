@@ -145,7 +145,7 @@
       <section class="card space-y-4">
         <h2 class="text-lg font-semibold text-textPrimary">Redes (perfil)</h2>
         <p class="text-textSecondary text-sm">
-          Email, GitHub, LinkedIn y Twitter van en social_links. Si omites Twitter, el servidor no lo guarda.
+          El PUT de perfil solo envia email, GitHub y LinkedIn. Twitter se gestiona en contact-info, no aqui.
         </p>
         <div>
           <label for="profile-email" class="block text-sm text-textSecondary mb-2">Email</label>
@@ -163,10 +163,7 @@
             <label for="profile-linkedin" class="block text-sm text-textSecondary mb-2">LinkedIn</label>
             <input id="profile-linkedin" type="url" formControlName="linkedin" class="input min-h-[44px]" placeholder="https://linkedin.com/in/…" />
           </div>
-          <div>
-            <label for="profile-twitter" class="block text-sm text-textSecondary mb-2">Twitter / X</label>
-            <input id="profile-twitter" type="url" formControlName="twitter" class="input min-h-[44px]" placeholder="https://x.com/…" />
-          </div>
+          
         </div>
       </section>
 

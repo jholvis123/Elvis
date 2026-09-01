@@ -55,7 +55,6 @@ export class ProfileEditorComponent implements OnInit {
         email: ['', [Validators.email]],
         github: [''],
         linkedin: [''],
-        twitter: ['']
     });
 
     loading = true;
@@ -177,7 +176,6 @@ export class ProfileEditorComponent implements OnInit {
             email: social.email || '',
             github: social.github || '',
             linkedin: social.linkedin || '',
-            twitter: social.twitter || ''
         });
         this.form.markAsPristine();
     }
@@ -206,7 +204,6 @@ export class ProfileEditorComponent implements OnInit {
             email: string;
             github: string;
             linkedin: string;
-            twitter: string;
         };
 
         const highlights: PortfolioHighlight[] = this.highlights.controls.map((ctrl) => {
@@ -223,7 +220,6 @@ export class ProfileEditorComponent implements OnInit {
             email: (raw.email || '').trim(),
             github: (raw.github || '').trim(),
             linkedin: (raw.linkedin || '').trim(),
-            twitter: (raw.twitter || '').trim()
         };
 
         return {
