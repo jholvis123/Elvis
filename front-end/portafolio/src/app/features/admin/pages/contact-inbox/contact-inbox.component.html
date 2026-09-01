@@ -1,0 +1,148 @@
+<div class="min-h-screen bg-background p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+      <div>
+        <p class="eyebrow">Administración</p>
+        <h1 class="text-3xl font-bold text-textPrimary mb-2">Bandeja de contacto</h1>
+        <p class="text-textSecondary">Mensajes reales recibidos desde el formulario público</p>
+      </div>
+      <a routerLink="/admin/dashboard" class="btn-outline inline-flex items-center gap-2">
+        <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
+        Volver
+      </a>
+    </div>
+
+    <div class="card mb-6">
+      <label class="text-sm text-textSecondary mb-2 block">Filtrar por estado</label>
+      <select
+        [(ngModel)]="filterStatus"
+        (change)="onFilterChange()"
+        class="input max-w-xs">
+        <option value="">Todos</option>
+        <option value="pending">Pendientes</option>
+        <option value="read">Leídos</option>
+        <option value="replied">Respondidos</option>
+      </select>
+    </div>
+
+    <div *ngIf="loading" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="card text-center py-10 space-y-3">
+      <app-icon name="exclamation-triangle" cssClass="w-10 h-10 text-warning mx-auto"></app-icon>
+      <p class="text-textSecondary">{{ errorMessage }}</p>
+    </div>
+
+    <div *ngIf="!loading && !errorMessage" class="grid lg:grid-cols-5 gap-6">
+      <div class="lg:col-span-3 card overflow-hidden p-0">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-surface">
+              <tr>
+                <th class="text-left px-4 py-3 text-textPrimary text-sm font-semibold">Remitente</th>
+                <th class="text-left px-4 py-3 text-textPrimary text-sm font-semibold">Tipo</th>
+                <th class="text-center px-4 py-3 text-textPrimary text-sm font-semibold">Estado</th>
+                <th class="text-center px-4 py-3 text-textPrimary text-sm font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let message of messages"
+                class="border-t border-slate-800 hover:bg-slate-800/40 transition cursor-pointer"
+                (click)="openMessage(message)">
+                <td class="px-4 py-3">
+                  <p class="text-textPrimary font-medium">{{ message.name }}</p>
+                  <p class="text-textSecondary text-sm">{{ message.email }}</p>
+                </td>
+                <td class="px-4 py-3 text-textSecondary text-sm">{{ projectTypeLabel(message.project_type) }}</td>
+                <td class="px-4 py-3 text-center">
+                  <span class="px-2 py-1 rounded text-xs font-medium" [ngClass]="statusClass(message.status)">
+                    {{ statusLabel(message.status) }}
+                  </span>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex justify-center gap-1" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      class="p-2 text-primary hover:text-primaryHover"
+                      title="Marcar leído"
+                      (click)="markRead(message)">
+                      <app-icon name="eye" cssClass="w-4 h-4"></app-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-2 text-success hover:text-emerald-300"
+                      title="Marcar respondido"
+                      (click)="markReplied(message)">
+                      <app-icon name="check" cssClass="w-4 h-4"></app-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-2 text-danger hover:text-red-300"
+                      title="Eliminar"
+                      (click)="confirmDelete(message)">
+                      <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="messages.length === 0">
+                <td colspan="4" class="px-6 py-12 text-center text-textSecondary">
+                  <div class="flex flex-col items-center gap-3">
+                    <app-icon name="inbox" cssClass="w-10 h-10 text-textSecondary"></app-icon>
+                    <p>No hay mensajes en la bandeja</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="p-4 border-t border-slate-800" *ngIf="total > limit">
+          <app-pagination
+            [currentPage]="page"
+            [totalPages]="totalPages"
+            [onPageChange]="goToPage">
+          </app-pagination>
+        </div>
+      </div>
+
+      <aside class="lg:col-span-2 card space-y-4">
+        <ng-container *ngIf="selected; else emptyDetail">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-semibold text-textPrimary">{{ selected.name }}</h2>
+              <p class="text-sm text-textSecondary">{{ selected.email }}</p>
+            </div>
+            <span class="px-2 py-1 rounded text-xs font-medium" [ngClass]="statusClass(selected.status)">
+              {{ statusLabel(selected.status) }}
+            </span>
+          </div>
+          <p class="text-sm text-textSecondary">
+            {{ projectTypeLabel(selected.project_type) }} · {{ selected.created_at | date:'medium' }}
+          </p>
+          <p class="text-textPrimary whitespace-pre-wrap">{{ selected.message }}</p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button type="button" class="btn-outline text-sm" (click)="markRead(selected)">Marcar leído</button>
+            <button type="button" class="btn-primary text-sm" (click)="markReplied(selected)">Marcar respondido</button>
+            <button type="button" class="text-sm text-danger hover:underline" (click)="confirmDelete(selected)">Eliminar</button>
+          </div>
+        </ng-container>
+        <ng-template #emptyDetail>
+          <div class="text-center py-10 text-textSecondary space-y-3">
+            <app-icon name="chat-bubble" cssClass="w-10 h-10 mx-auto"></app-icon>
+            <p>Selecciona un mensaje para ver el detalle</p>
+          </div>
+        </ng-template>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [open]="showDeleteModal"
+  title="Eliminar mensaje"
+  [message]="'¿Eliminar el mensaje de ' + (messageToDelete?.name || 'este contacto') + '?'"
+  (confirmed)="executeDelete()"
+  (cancelled)="cancelDelete()">
+</app-confirm-dialog>

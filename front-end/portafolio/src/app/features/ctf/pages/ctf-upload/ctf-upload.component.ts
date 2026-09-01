@@ -8,7 +8,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 
 import { CtfService } from '@core/services/ctf.service';
 import { AttachmentService } from '@core/services/attachment.service';
@@ -238,7 +238,14 @@ export class CtfUploadComponent implements OnDestroy {
         attachments
       };
 
-      await this.ctfService.createChallenge(formValue);
+      const created = await this.ctfService.createChallenge(formValue);
+      if (this.urlAttachment && created?.id) {
+        await firstValueFrom(this.attachmentService.addUrlAttachment({
+          ctf_id: created.id,
+          url: this.urlAttachment,
+          filename: this.urlAttachment
+        }));
+      }
       this.router.navigate(['/ctf']);
 
     } catch (error) {

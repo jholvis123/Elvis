@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
       <button
         (click)="onPageChange(currentPage - 1)"
         [disabled]="currentPage === 1"
-        class="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
+        class="px-4 py-2 bg-gray-700 text-textPrimary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
       >
         ← Anterior
       </button>
@@ -18,9 +18,10 @@ import { CommonModule } from '@angular/common';
       <button
         *ngFor="let page of visiblePages"
         (click)="onPageChange(page)"
-        [class.bg-purple-600]="page === currentPage"
+        [class.bg-primary]="page === currentPage"
+        [class.text-black]="page === currentPage"
         [class.bg-gray-700]="page !== currentPage"
-        class="px-4 py-2 text-white rounded-lg hover:bg-purple-700 transition"
+        class="px-4 py-2 text-textPrimary rounded-lg hover:bg-primaryHover transition"
       >
         {{ page }}
       </button>
@@ -28,7 +29,7 @@ import { CommonModule } from '@angular/common';
       <button
         (click)="onPageChange(currentPage + 1)"
         [disabled]="currentPage === totalPages"
-        class="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
+        class="px-4 py-2 bg-gray-700 text-textPrimary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
       >
         Siguiente →
       </button>

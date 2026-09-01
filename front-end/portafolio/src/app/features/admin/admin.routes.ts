@@ -31,6 +31,11 @@ export const ADMIN_ROUTES: Routes = [
                 path: 'ctfs',
                 loadComponent: () =>
                     import('./pages/ctf-manager/ctf-manager.component').then(m => m.CtfManagerComponent)
+            },
+            {
+                path: 'contact',
+                loadComponent: () =>
+                    import('./pages/contact-inbox/contact-inbox.component').then(m => m.ContactInboxComponent)
             }
         ]
     }

@@ -75,7 +75,7 @@
     <ul class="file-upload__files">
       <li *ngFor="let file of files; let i = index" class="file-upload__file">
         <div class="file-upload__file-info">
-          <span class="file-upload__file-icon">{{ getFileIcon(file) }}</span>
+          <app-icon class="file-upload__file-icon" [name]="getFileIcon(file)" cssClass="w-5 h-5"></app-icon>
           <div class="file-upload__file-details">
             <span class="file-upload__file-name" [title]="file.name">{{ file.name }}</span>
             <span class="file-upload__file-size">{{ formatSize(file.size) }}</span>
@@ -126,10 +126,17 @@
   <!-- Uploaded Files (success) -->
   <div *ngIf="uploadedAttachments.length > 0" class="file-upload__uploaded">
     <p class="file-upload__uploaded-title">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-      </svg>
+      <app-icon name="check-circle" cssClass="w-5 h-5 text-emerald-400"></app-icon>
       {{ uploadedAttachments.length }} archivo(s) subido(s)
     </p>
+    <ul class="file-upload__files mt-2">
+      <li *ngFor="let att of uploadedAttachments" class="file-upload__file">
+        <span class="file-upload__file-name">{{ att.name }}</span>
+        <a [href]="downloadUrl(att)" target="_blank" rel="noopener noreferrer" class="text-primary text-sm inline-flex items-center gap-1">
+          <app-icon name="arrow-down-tray" cssClass="w-4 h-4"></app-icon>
+          Descargar
+        </a>
+      </li>
+    </ul>
   </div>
 </div>

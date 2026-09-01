@@ -17,3 +17,7 @@ export * from './dynamic-list/dynamic-list.component';
 export * from './markdown-editor/markdown-editor.component';
 export * from './markdown-viewer/markdown-viewer.component';
 export * from './table-of-contents/table-of-contents.component';
+
+export * from './confirm-dialog/confirm-dialog.component';
+export * from './pagination/pagination.component';
+export * from './toast-container/toast-container.component';

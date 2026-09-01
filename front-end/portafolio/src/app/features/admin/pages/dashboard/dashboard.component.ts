@@ -1,48 +1,46 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProjectsService } from '../../../projects/services/projects.service';
 import { WriteupsService } from '../../../writeups/services/writeups.service';
 import { CtfService } from '../../../../core/services/ctf.service';
-
-interface DashboardStats {
-    totalProjects: number;
-    featuredProjects: number;
-    totalWriteups: number;
-    publishedWriteups: number;
-    totalCTFs: number;
-    publishedCTFs: number;
-    totalViews: number;
-}
+import { AdminService, AdminStats } from '../../../../core/services/admin.service';
+import { IconComponent } from '@shared/icons/icon.component';
+import { ApiError } from '@core/services/api.service';
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, IconComponent],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-    stats: DashboardStats = {
-        totalProjects: 0,
-        featuredProjects: 0,
-        totalWriteups: 0,
-        publishedWriteups: 0,
-        totalCTFs: 0,
-        publishedCTFs: 0,
-        totalViews: 0
+    private readonly adminService = inject(AdminService);
+    private readonly projectsService = inject(ProjectsService);
+    private readonly writeupsService = inject(WriteupsService);
+    private readonly ctfService = inject(CtfService);
+    private readonly destroyRef = inject(DestroyRef);
+
+    stats: AdminStats = {
+        projects: 0,
+        writeups_published: 0,
+        writeups_draft: 0,
+        ctfs: 0,
+        contact_pending: 0,
+        contact_total: 0
     };
 
     loading = true;
-    recentProjects: any[] = [];
-    recentWriteups: any[] = [];
-    recentCTFs: any[] = [];
+    errorMessage = '';
+    statsDegraded = false;
+    recentProjects: { id: string; title: string; short_description?: string }[] = [];
+    recentWriteups: { id: string; title: string; views?: number }[] = [];
 
-    constructor(
-        private projectsService: ProjectsService,
-        private writeupsService: WriteupsService,
-        private ctfService: CtfService
-    ) { }
+    get totalWriteups(): number {
+        return this.stats.writeups_published + this.stats.writeups_draft;
+    }
 
     ngOnInit(): void {
         this.loadStats();
@@ -50,70 +48,70 @@ export class DashboardComponent implements OnInit {
     }
 
     loadStats(): void {
-        // Cargar estadísticas de proyectos
-        this.projectsService.getProjects({ page: 1, size: 1 }).subscribe({
-            next: (response) => {
-                this.stats.totalProjects = response.total;
-            }
-        });
-
-        this.projectsService.getFeaturedProjects(100).subscribe({
-            next: (projects) => {
-                this.stats.featuredProjects = projects.length;
-            }
-        });
-
-        // Cargar estadísticas de writeups
-        this.writeupsService.getWriteups({ page: 1, size: 1 }).subscribe({
-            next: (response) => {
-                this.stats.totalWriteups = response.total;
-            }
-        });
-
-        this.writeupsService.getPopularWriteups(100).subscribe({
-            next: (writeups) => {
-                this.stats.totalViews = writeups.reduce((sum, w) => sum + (w.views || 0), 0);
-            }
-        });
-
-        // Cargar estadísticas de CTFs
-        this.ctfService.getAllChallengesAdmin().subscribe({
-            next: (response) => {
-                this.stats.totalCTFs = response.total;
-                this.stats.publishedCTFs = response.items.filter(c => c.status === 'published').length;
+        this.loading = true;
+        this.errorMessage = '';
+        this.statsDegraded = false;
+        this.adminService.getStats().pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+            next: (stats) => {
+                this.stats = stats;
+                this.loading = false;
             },
-            error: () => {
-                // Si falla (no admin), usar endpoint público
-                this.ctfService.getStatsFromApi().subscribe({
-                    next: (stats) => {
-                        this.stats.totalCTFs = stats.totalChallenges;
-                    }
-                });
+            error: (err: unknown) => {
+                this.loading = false;
+                if (err instanceof ApiError && err.status === 404) {
+                    this.statsDegraded = true;
+                    this.degradeStats();
+                    return;
+                }
+                this.errorMessage = err instanceof Error && err.message
+                    ? err.message
+                    : 'No se pudieron cargar las estadísticas.';
             }
         });
-
-        this.loading = false;
     }
 
     loadRecentContent(): void {
-        // Cargar proyectos recientes
-        this.projectsService.getProjects({ page: 1, size: 5 }).subscribe({
+        this.projectsService.getProjects({ page: 1, size: 5 }).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
             next: (response) => {
                 this.recentProjects = response.items;
             }
         });
 
-        // Cargar writeups recientes
-        this.writeupsService.getWriteups({ page: 1, size: 5 }).subscribe({
+        this.writeupsService.getAdminAll({ page: 1, size: 5 }).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
             next: (response) => {
                 this.recentWriteups = response.items;
             }
         });
+    }
 
-        // Cargar CTFs recientes
-        this.ctfService.getAllChallengesAdmin().subscribe({
+    private degradeStats(): void {
+        this.projectsService.getProjects({ page: 1, size: 1 }).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
             next: (response) => {
-                this.recentCTFs = response.items.slice(0, 5);
+                this.stats.projects = response.total;
+            }
+        });
+
+        this.writeupsService.getWriteups({ page: 1, size: 1 }).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+            next: (response) => {
+                this.stats.writeups_published = response.total;
+            }
+        });
+
+        this.ctfService.getAllChallengesAdmin().pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+            next: (response) => {
+                this.stats.ctfs = response.total;
             }
         });
     }

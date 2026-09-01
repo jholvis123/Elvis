@@ -1,15 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-//   content: [
-//     "./src/**/*.{html,ts}",
-//   ],
-//   theme: {
-//     extend: {},
-//   },
-//   plugins: [],
-// }
-
-// export default {
   content: [
     "./src/**/*.{html,ts}",
   ],
@@ -28,6 +18,16 @@ module.exports = {
 
         success: '#22c55e',
         danger: '#ef4444',
+        warning: '#f59e0b',
+      },
+      borderRadius: {
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+      },
+      boxShadow: {
+        card: 'var(--shadow-card)',
+        primary: 'var(--shadow-primary)',
       }
     },
   },

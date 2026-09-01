@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProjectsService, Project } from '../../services/projects.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
     selector: 'app-project-detail',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, ConfirmDialogComponent],
     templateUrl: './project-detail.component.html',
     styleUrls: ['./project-detail.component.scss']
 })
@@ -46,17 +47,26 @@ export class ProjectDetailComponent implements OnInit {
         });
     }
 
+    showDeleteModal = false;
+
+    confirmDelete(): void {
+        if (!this.project) return;
+        this.showDeleteModal = true;
+    }
+
+    cancelDelete(): void {
+        this.showDeleteModal = false;
+    }
+
     deleteProject(): void {
-        if (!this.project || !confirm('¿Estás seguro de eliminar este proyecto?')) {
-            return;
-        }
+        if (!this.project) return;
 
         this.projectsService.deleteProject(this.project.id).subscribe({
             next: () => {
                 this.router.navigate(['/projects']);
             },
-            error: (err) => {
-                alert('Error al eliminar el proyecto');
+            error: () => {
+                this.showDeleteModal = false;
             }
         });
     }

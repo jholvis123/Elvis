@@ -18,11 +18,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { AttachmentService } from '@core/services/attachment.service';
 import { CTFCategory, CTFAttachment, ValidationResult } from '@core/models/ctf.model';
 import { FileValidators } from '@core/validators/file.validators';
+import { IconComponent, IconName } from '@shared/icons/icon.component';
 
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IconComponent],
   templateUrl: './file-upload.component.html',
   styleUrls: ['./file-upload.component.scss'],
   providers: [
@@ -49,6 +50,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   @Input() label: string = 'Archivos adjuntos';
   @Input() hint: string = '';
   @Input() disabled: boolean = false;
+  @Input() ctfId: string | null = null;
   
   // Eventos
   @Output() filesSelected = new EventEmitter<File[]>();
@@ -314,15 +316,28 @@ export class FileUploadComponent implements ControlValueAccessor {
   // UTILIDADES
   // ============================================
   
-  getFileIcon(file: File): string {
+  getFileIcon(file: File): IconName {
     const type = file.type;
-    if (type.startsWith('image/')) return '🖼️';
-    if (type.startsWith('audio/')) return '🎵';
-    if (type.startsWith('video/')) return '🎬';
-    if (type.includes('pdf')) return '📄';
-    if (type.includes('zip') || type.includes('tar') || type.includes('rar')) return '📦';
-    if (type.includes('executable') || type.includes('x-msdownload')) return '⚙️';
-    return '📎';
+    if (type.startsWith('image/')) return 'photo';
+    if (type.startsWith('audio/')) return 'musical-note';
+    if (type.startsWith('video/')) return 'film';
+    if (type.includes('pdf')) return 'document-text';
+    if (type.includes('zip') || type.includes('tar') || type.includes('rar')) return 'archive-box';
+    if (type.includes('executable') || type.includes('x-msdownload')) return 'cog-6-tooth';
+    return 'paper-clip';
+  }
+
+  downloadUrl(attachment: CTFAttachment): string {
+    return this.attachmentService.getDownloadUrl(attachment.id);
+  }
+
+  registerUrl(url: string, filename?: string) {
+    if (!this.ctfId || !url) return;
+    return this.attachmentService.addUrlAttachment({
+      ctf_id: this.ctfId,
+      url,
+      filename
+    });
   }
   
   formatSize(bytes: number): string {

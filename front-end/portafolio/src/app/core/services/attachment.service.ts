@@ -3,7 +3,7 @@
  * Servicio para gestión de adjuntos (archivos y URLs) en retos CTF
  */
 
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
   CTFCategory,
   CTFAttachment,
@@ -14,6 +14,8 @@ import {
 } from '@core/models/ctf.model';
 import { FileValidators } from '@core/validators/file.validators';
 import { ApiService } from './api.service';
+import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs'; // For toPromise replacement if strictly angular 16+ (using toPromise for now as it's common)
 
 export interface FileUploadResult {
@@ -351,4 +353,29 @@ export class AttachmentService {
 
     return [mimes, exts].filter(Boolean).join(',');
   }
+
+  addUrlAttachment(data: {
+    ctf_id: string;
+    url: string;
+    filename?: string;
+    attachment_type?: string;
+  }): Observable<{
+    id: string;
+    filename: string;
+    attachment_type: string;
+    url?: string;
+    ctf_id: string;
+  }> {
+    return this.api.post('/attachments/url', {
+      ctf_id: data.ctf_id,
+      url: data.url,
+      filename: data.filename,
+      attachment_type: data.attachment_type || 'url'
+    });
+  }
+
+  getDownloadUrl(attachmentId: string): string {
+    return `${environment.apiUrl}/attachments/${attachmentId}/download`;
+  }
+
 }

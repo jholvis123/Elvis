@@ -83,28 +83,13 @@ export class RegisterComponent implements OnInit {
 
         this.authService.register({ username, email, password }).subscribe({
             next: () => {
-                this.notificationService.success('¡Cuenta creada exitosamente! Bienvenido');
+                this.notificationService.success('Cuenta creada. Sesión iniciada.');
                 this.successMessage = 'Registro exitoso. Redirigiendo...';
-
-                // Auto-login después del registro
-                this.authService.login({ email, password }).subscribe({
-                    next: () => {
-                        setTimeout(() => {
-                            this.router.navigate(['/']);
-                        }, 1000);
-                    },
-                    error: () => {
-                        this.notificationService.info('Por favor inicia sesión con tus credenciales');
-                        setTimeout(() => {
-                            this.router.navigate(['/auth/login']);
-                        }, 1000);
-                    }
-                });
+                this.router.navigate(['/']);
             },
             error: (error) => {
                 this.loading = false;
                 this.errorMessage = error.message || 'Error al registrarse. Intenta nuevamente.';
-                this.notificationService.error(this.errorMessage);
             },
             complete: () => {
                 this.loading = false;

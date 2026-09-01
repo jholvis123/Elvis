@@ -2,13 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { IconComponent } from '@shared/icons/icon.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ProjectsService, Project } from '../../../projects/services/projects.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
     selector: 'app-project-manager',
     standalone: true,
-    imports: [CommonModule, RouterLink, FormsModule],
+    imports: [CommonModule, RouterLink, FormsModule, IconComponent, ConfirmDialogComponent],
     templateUrl: './project-manager.component.html',
     styleUrls: ['./project-manager.component.scss']
 })
@@ -61,9 +63,7 @@ export class ProjectManagerComponent implements OnInit {
                 this.updateStats();
                 this.loading = false;
             },
-            error: (err) => {
-                console.error('Error loading projects:', err);
-                this.notificationService.error('Error al cargar los proyectos');
+            error: () => {
                 this.loading = false;
             }
         });
@@ -105,7 +105,7 @@ export class ProjectManagerComponent implements OnInit {
                 );
             },
             error: () => {
-                this.notificationService.error('Error al cambiar estado del proyecto');
+                // El interceptor ya muestra el mensaje humano
             }
         });
     }
@@ -117,9 +117,8 @@ export class ProjectManagerComponent implements OnInit {
                 this.updateStats();
                 this.notificationService.success('Proyecto publicado exitosamente');
             },
-            error: (err) => {
-                const message = err.error?.detail || 'Error al publicar el proyecto';
-                this.notificationService.error(message);
+            error: () => {
+                // El interceptor ya muestra el mensaje humano
             }
         });
     }
@@ -132,7 +131,7 @@ export class ProjectManagerComponent implements OnInit {
                 this.notificationService.success('Proyecto archivado');
             },
             error: () => {
-                this.notificationService.error('Error al archivar el proyecto');
+                // El interceptor ya muestra el mensaje humano
             }
         });
     }
@@ -158,7 +157,7 @@ export class ProjectManagerComponent implements OnInit {
                 this.loadProjects();
             },
             error: () => {
-                this.notificationService.error('Error al eliminar el proyecto');
+                // El interceptor ya muestra el mensaje humano
             }
         });
     }

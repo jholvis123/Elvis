@@ -2,13 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { IconComponent } from '@shared/icons/icon.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { CtfService, CTFChallengeAdmin } from '../../../../core/services/ctf.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
     selector: 'app-ctf-manager',
     standalone: true,
-    imports: [CommonModule, RouterLink, FormsModule],
+    imports: [CommonModule, RouterLink, FormsModule, IconComponent, ConfirmDialogComponent],
     templateUrl: './ctf-manager.component.html',
     styleUrls: ['./ctf-manager.component.scss']
 })
@@ -58,9 +60,7 @@ export class CtfManagerComponent implements OnInit {
                 this.updateStats();
                 this.loading = false;
             },
-            error: (err) => {
-                console.error('Error loading challenges:', err);
-                this.notificationService.error('Error al cargar los CTFs');
+            error: () => {
                 this.loading = false;
             }
         });
@@ -90,7 +90,7 @@ export class CtfManagerComponent implements OnInit {
                 );
             },
             error: () => {
-                this.notificationService.error('Error al cambiar estado del CTF');
+                // El interceptor ya muestra el mensaje humano
             }
         });
     }
@@ -102,9 +102,8 @@ export class CtfManagerComponent implements OnInit {
                 this.updateStats();
                 this.notificationService.success('CTF publicado exitosamente');
             },
-            error: (err) => {
-                const message = err.error?.detail || 'Error al publicar el CTF';
-                this.notificationService.error(message);
+            error: () => {
+                // El interceptor ya muestra el mensaje humano
             }
         });
     }
@@ -131,9 +130,8 @@ export class CtfManagerComponent implements OnInit {
                 this.ctfToDelete = null;
                 this.loadChallenges();
             },
-            error: (err) => {
-                const message = err.error?.detail || 'Error al eliminar el CTF';
-                this.notificationService.error(message);
+            error: () => {
+                // El interceptor ya muestra el mensaje humano
             }
         });
     }

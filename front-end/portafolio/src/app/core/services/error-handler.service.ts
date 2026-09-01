@@ -8,6 +8,10 @@ export class ErrorHandlerService {
      * Maneja errores y extrae mensajes legibles
      */
     handleError(error: any): string {
+        if (error instanceof Error && error.message && error.name === 'ApiError') {
+            return error.message;
+        }
+
         // Error de red
         if (error.status === 0) {
             return 'Error de conexión. Verifica tu internet.';
@@ -28,7 +32,7 @@ export class ErrorHandlerService {
         // Errores HTTP estándar
         switch (error.status) {
             case 400:
-                return 'Solicitud inválida. Verifica los dados.';
+                return 'Solicitud inválida. Verifica los datos.';
             case 401:
                 return 'No autorizado. Inicia sesión nuevamente.';
             case 403:
