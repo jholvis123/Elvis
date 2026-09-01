@@ -20,8 +20,9 @@ from app.core.config import settings
 from app.infrastructure.persistence.base import Base
 # Importar todos los modelos para que Base.metadata los reconozca
 from app.infrastructure.persistence.models import (
-    user_model, project_model, ctf_model, writeup_model, 
-    attachment_model, contact_model, flag_submission_model
+    user_model, project_model, ctf_model, writeup_model,
+    attachment_model, contact_model, flag_submission_model,
+    portfolio_model,
 )
 
 # Sobrescribir la URL de la base de datos con la de la configuración

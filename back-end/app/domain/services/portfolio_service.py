@@ -7,12 +7,13 @@ from typing import List, Dict, Optional
 
 from ..entities.portfolio import PortfolioProfile, Highlight
 from ..entities.technology import Technology
+from ..repositories.portfolio_repo import PortfolioRepository
 
 
 class PortfolioService:
     """Servicio de dominio para lógica del portfolio."""
-    
-    # Datos por defecto del portfolio (pueden venir de BD o config)
+
+    # Datos por defecto del portfolio (fallback si no hay fila persistida)
     DEFAULT_PROFILE = PortfolioProfile(
         name="Elvis",
         title="Desarrollador Fullstack & Especialista en Ciberseguridad",
@@ -42,23 +43,40 @@ class PortfolioService:
             "github": "https://github.com/elvis",
         },
     )
-    
+
+    def __init__(self, repository: Optional[PortfolioRepository] = None):
+        self.repository = repository
+
+    def _current(self) -> PortfolioProfile:
+        """Perfil persistido si existe; si no, DEFAULT_PROFILE."""
+        if self.repository is not None:
+            stored = self.repository.get()
+            if stored is not None:
+                return stored
+        return self.DEFAULT_PROFILE
+
     def get_profile(self) -> PortfolioProfile:
         """Obtiene el perfil del portfolio."""
-        return self.DEFAULT_PROFILE
-    
+        return self._current()
+
+    def update_profile(self, profile: PortfolioProfile) -> PortfolioProfile:
+        """Persiste el perfil. Requiere repositorio configurado."""
+        if self.repository is None:
+            raise RuntimeError("Portfolio persistence is not configured")
+        return self.repository.save(profile)
+
     def get_roles(self) -> List[str]:
         """Obtiene los roles del portfolio."""
-        return self.DEFAULT_PROFILE.roles
-    
+        return self._current().roles
+
     def get_stack_items(self) -> List[str]:
         """Obtiene los items del stack tecnológico."""
-        return self.DEFAULT_PROFILE.stack_items
-    
+        return self._current().stack_items
+
     def get_about_points(self) -> List[str]:
         """Obtiene los puntos del about."""
-        return self.DEFAULT_PROFILE.about_points
-    
+        return self._current().about_points
+
     def get_highlights(self) -> List[Dict]:
         """Obtiene los highlights como diccionarios."""
         return [
@@ -67,14 +85,14 @@ class PortfolioService:
                 "value": h.value,
                 "icon": h.icon,
             }
-            for h in sorted(self.DEFAULT_PROFILE.highlights, key=lambda x: x.order)
+            for h in sorted(self._current().highlights, key=lambda x: x.order)
         ]
-    
+
     def get_contact_info(self) -> List[Dict]:
         """Obtiene la información de contacto."""
         contact_info = []
-        social = self.DEFAULT_PROFILE.social_links
-        
+        social = self._current().social_links
+
         if "email" in social:
             contact_info.append({
                 "type": "email",
@@ -83,7 +101,7 @@ class PortfolioService:
                 "url": f"mailto:{social['email']}",
                 "icon": "email",
             })
-        
+
         if "linkedin" in social:
             contact_info.append({
                 "type": "linkedin",
@@ -92,7 +110,7 @@ class PortfolioService:
                 "url": social["linkedin"],
                 "icon": "linkedin",
             })
-        
+
         if "github" in social:
             contact_info.append({
                 "type": "github",
@@ -101,22 +119,22 @@ class PortfolioService:
                 "url": social["github"],
                 "icon": "github",
             })
-        
+
         return contact_info
-    
+
     def get_technologies_by_category(self, technologies: List[Technology]) -> Dict[str, List[Dict]]:
         """Agrupa tecnologías por categoría."""
         result: Dict[str, List[Dict]] = {}
-        
+
         for tech in technologies:
             category = tech.category.value
             if category not in result:
                 result[category] = []
-            
+
             result[category].append({
                 "name": tech.name,
                 "icon": tech.icon,
                 "proficiency": tech.proficiency,
             })
-        
+
         return result

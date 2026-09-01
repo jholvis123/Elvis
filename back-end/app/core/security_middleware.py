@@ -37,7 +37,7 @@ RATE_LIMITS = {
     "login": "5/minute",        # Login muy limitado
     "register": "3/minute",     # Registro muy limitado
     "password_reset": "3/hour", # Reset de password
-    "flag_submit": "10/minute", # Envío de flags
+    "flag_submit": "20/minute",  # Envío de flags (~20/minuto por IP)
     "upload": "10/minute",      # Subida de archivos
     "api_write": "30/minute",   # Operaciones de escritura
     "api_read": "100/minute",   # Operaciones de lectura

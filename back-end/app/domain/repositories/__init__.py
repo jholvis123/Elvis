@@ -10,6 +10,7 @@ from .writeup_repo import WriteupRepository
 from .attachment_repo import AttachmentRepository
 from .contact_repo import ContactRepository
 from .flag_submission_repo import FlagSubmissionRepository
+from .portfolio_repo import PortfolioRepository
 
 __all__ = [
     "UserRepository",
@@ -19,4 +20,5 @@ __all__ = [
     "AttachmentRepository",
     "ContactRepository",
     "FlagSubmissionRepository",
+    "PortfolioRepository",
 ]

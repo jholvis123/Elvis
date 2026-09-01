@@ -19,6 +19,7 @@ from ..domain.repositories.project_repo import ProjectRepository
 from ..domain.repositories.attachment_repo import AttachmentRepository
 from ..domain.repositories.contact_repo import ContactRepository
 from ..domain.repositories.flag_submission_repo import FlagSubmissionRepository
+from ..domain.repositories.portfolio_repo import PortfolioRepository
 from ..domain.services.ctf_service import CTFService
 from ..domain.services.writeup_service import WriteupService
 from ..domain.services.auth_service import AuthService
@@ -35,6 +36,7 @@ from ..infrastructure.persistence.repositories import (
     AttachmentSqlRepository,
     ContactSqlRepository,
     FlagSubmissionSqlRepository,
+    PortfolioSqlRepository,
 )
 from ..infrastructure.storage.local_storage import FileSystemStorage
 from ..domain.services.storage_service import StorageService
@@ -145,9 +147,16 @@ def get_attachment_service(
     return AttachmentService(attachment_repo)
 
 
-def get_portfolio_service() -> PortfolioService:
-    """Obtiene el servicio de portfolio."""
-    return PortfolioService()
+def get_portfolio_repository(db: Session = Depends(get_db)) -> PortfolioRepository:
+    """Obtiene el repositorio de perfil de portfolio."""
+    return PortfolioSqlRepository(db)
+
+
+def get_portfolio_service(
+    portfolio_repo: PortfolioRepository = Depends(get_portfolio_repository),
+) -> PortfolioService:
+    """Obtiene el servicio de portfolio (persistido, con fallback a DEFAULT_PROFILE)."""
+    return PortfolioService(portfolio_repo)
 
 
 # JWT Provider
