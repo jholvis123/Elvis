@@ -5,7 +5,7 @@ DTOs para Flag Submission.
 from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 
 class FlagSubmitDTO(BaseModel):
@@ -28,6 +28,19 @@ class FlagSubmitResponseDTO(BaseModel):
     message: str
     points: Optional[int] = None
     already_solved: bool = False
+    # Frontend (ctf.service.ts) lee is_correct; también se expone isCorrect.
+    is_correct: Optional[bool] = None
+
+    @model_validator(mode="after")
+    def _sync_is_correct(self):
+        if self.is_correct is None:
+            self.is_correct = self.success
+        return self
+
+    @computed_field
+    @property
+    def isCorrect(self) -> bool:
+        return bool(self.is_correct)
 
 
 class SubmissionHistoryDTO(BaseModel):
