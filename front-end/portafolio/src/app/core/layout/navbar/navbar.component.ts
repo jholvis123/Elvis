@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { IconComponent } from '../../../shared/icons/icon.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, IconComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
 })
@@ -16,14 +17,12 @@ export class NavbarComponent {
   isMenuOpen = false;
 
   logout(): void {
-    // IMPORTANTE: Suscribirse al Observable para que se ejecute
     this.authService.logout().subscribe({
       next: () => {
         this.router.navigate(['/']);
         this.closeMenu();
       },
       error: () => {
-        // Incluso si falla, redirigir al home
         this.router.navigate(['/']);
         this.closeMenu();
       }

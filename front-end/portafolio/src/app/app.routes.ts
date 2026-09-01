@@ -4,13 +4,10 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
-  // Rutas de autenticación (sin layout)
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
-
-  // Rutas principales con layout
   {
     path: '',
     component: MainLayoutComponent,
@@ -40,13 +37,17 @@ export const routes: Routes = [
         canActivate: [AuthGuard, AdminGuard],
         loadChildren: () =>
           import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
+      },
+      {
+        path: '404',
+        loadComponent: () =>
+          import('./features/not-found/not-found.component').then(m => m.NotFoundComponent)
+      },
+      {
+        path: '**',
+        loadComponent: () =>
+          import('./features/not-found/not-found.component').then(m => m.NotFoundComponent)
       }
     ]
-  },
-
-  // Redirección por defecto
-  {
-    path: '**',
-    redirectTo: ''
   }
 ];

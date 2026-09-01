@@ -17,20 +17,20 @@
 			<div class="space-y-3">
 				<p class="text-sm font-semibold text-textPrimary">Navegación</p>
 				<div class="flex flex-col gap-2 text-sm text-textSecondary">
-					<a href="#about" class="hover:text-primary transition">Sobre mí</a>
-					<a href="#projects" class="hover:text-primary transition">Proyectos</a>
+					<a routerLink="/" fragment="about" class="hover:text-primary transition">Sobre mí</a>
+					<a routerLink="/" fragment="projects" class="hover:text-primary transition">Proyectos</a>
 					<a routerLink="/ctf" class="hover:text-primary transition">CTF Lab</a>
-					<a href="#contact" class="hover:text-primary transition">Contacto</a>
+					<a routerLink="/" fragment="contact" class="hover:text-primary transition">Contacto</a>
 				</div>
 			</div>
 
 			<div class="space-y-3">
 				<p class="text-sm font-semibold text-textPrimary">Contacto rápido</p>
 				<div class="flex flex-col gap-2 text-sm text-textSecondary">
-					<span>elvis.dev@mail.com</span>
+					<a *ngIf="email" [href]="'mailto:' + email" class="hover:text-primary transition">{{ email }}</a>
 					<span>La Paz, Bolivia</span>
 				</div>
-				<a href="#contact" class="btn-outline inline-block text-center">Trabajemos juntos</a>
+				<a routerLink="/" fragment="contact" class="btn-outline inline-block text-center">Trabajemos juntos</a>
 			</div>
 		</div>
 

@@ -1,13 +1,66 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
+import { ApiError } from '../services/api.service';
 
-/**
- * Interceptor que maneja errores HTTP globalmente
- */
+function humanMessage(error: HttpErrorResponse, url: string): string {
+    if (error.status === 0) {
+        return 'No se puede conectar al servidor';
+    }
+
+    if (error.error instanceof ErrorEvent) {
+        return 'Ha ocurrido un error inesperado';
+    }
+
+    const detail = error.error?.detail;
+
+    switch (error.status) {
+        case 400:
+            if (typeof detail === 'string') return detail;
+            return 'Solicitud inválida. Verifica los datos.';
+        case 401:
+            if (url.includes('/auth/login')) {
+                if (typeof detail === 'string') return detail;
+                return 'Credenciales inválidas. Verifica tu correo y contraseña.';
+            }
+            return 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+        case 403:
+            return 'No tienes permisos para realizar esta acción.';
+        case 404:
+            return 'El recurso solicitado no fue encontrado.';
+        case 409:
+            if (typeof detail === 'string') return detail;
+            return 'Conflicto. El recurso ya existe.';
+        case 422:
+            if (Array.isArray(detail)) {
+                return detail.map((e: { msg?: string }) => e.msg).filter(Boolean).join(', ') || 'Datos de validación incorrectos.';
+            }
+            if (typeof detail === 'string') return detail;
+            return 'Datos de validación incorrectos.';
+        case 429:
+            return 'Demasiadas solicitudes. Intenta de nuevo en unos minutos.';
+        default:
+            if (error.status >= 500) {
+                return 'Error interno del servidor. Por favor, intenta más tarde.';
+            }
+            if (typeof detail === 'string') {
+                return detail;
+            }
+            return 'Ha ocurrido un error. Inténtalo de nuevo.';
+    }
+}
+
+function isSilentAuthUrl(req: HttpRequest<unknown>): boolean {
+    return req.url.includes('/auth/me')
+        || req.url.includes('/auth/refresh')
+        || req.url.includes('/auth/login')
+        || req.url.includes('/auth/logout')
+        || req.url.includes('/auth/register');
+}
+
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
     const authService = inject(AuthService);
@@ -15,82 +68,31 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
-            let errorMessage = 'Ha ocurrido un error';
-
-            // Ignorar errores de conexión interrumpida intencionalmente o cancelaciones
             if (error.status === 0 && error.error instanceof ProgressEvent) {
-                return throwError(() => error);
+                return throwError(() => new ApiError('No se puede conectar al servidor', 0));
             }
 
-            if (error.error instanceof ErrorEvent) {
-                // Error del lado del cliente
-                errorMessage = `Error: ${error.error.message}`;
-            } else {
-                // Error del lado del servidor
-                switch (error.status) {
-                    case 401:
-                        // No autorizado
-                        // Ignorar 401 de endpoints de verificación de auth (no mostrar notificación)
-                        // Estos endpoints esperan 401 cuando no hay sesión activa
-                        if (req.url.includes('/auth/me') || req.url.includes('/auth/refresh')) {
-                            // Solo propagar el error sin notificación ni redirección
-                            return throwError(() => error);
-                        }
-                        
-                        // Para otros endpoints: cerrar sesión y redirigir al login
-                        // Solo si no estamos ya en la página de login para evitar bucles
-                        if (!req.url.includes('/auth/login') && !req.url.includes('/auth/logout')) {
-                            // IMPORTANTE: Suscribirse para que el logout se ejecute
-                            authService.logout().subscribe(() => {
-                                router.navigate(['/']);
-                            });
-                            errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
-                        }
-                        break;
-                    case 403:
-                        errorMessage = 'No tienes permisos para realizar esta acción.';
-                        // No redirigir forzosamente, solo notificar
-                        break;
-                    case 404:
-                        errorMessage = 'El recurso solicitado no fue encontrado.';
-                        break;
-                    case 429:
-                        errorMessage = 'Demasiadas solicitudes. Intenta de nuevo en unos minutos.';
-                        break;
-                    case 422:
-                        // Error de validación (FastAPI/Pydantic)
-                        if (error.error?.detail) {
-                            if (Array.isArray(error.error.detail)) {
-                                // Formato pydantic: [{"loc":..., "msg":...}]
-                                errorMessage = error.error.detail.map((e: any) => e.msg).join(', ');
-                            } else {
-                                errorMessage = error.error.detail;
-                            }
-                        } else {
-                            errorMessage = 'Error de validación de datos.';
-                        }
-                        break;
-                    case 500:
-                        errorMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
-                        break;
-                    default:
-                        if (error.error?.detail) {
-                            errorMessage = typeof error.error.detail === 'string'
-                                ? error.error.detail
-                                : JSON.stringify(error.error.detail);
-                        } else {
-                            errorMessage = `Error ${error.status}: ${error.statusText || 'Desconocido'}`;
-                        }
+            const message = humanMessage(error, req.url);
+            const apiError = new ApiError(message, error.status);
+
+            if (error.status === 401) {
+                if (isSilentAuthUrl(req)) {
+                    return throwError(() => apiError);
                 }
+
+                authService.logout().subscribe(() => {
+                    router.navigate(['/auth/login']);
+                });
+                notificationService.error(message);
+                return throwError(() => apiError);
             }
 
-            console.error('HTTP Error:', errorMessage, error);
+            const skipToast = error.status === 404 || isSilentAuthUrl(req);
+            if (!skipToast) {
+                notificationService.error(message);
+            }
 
-            // Mostrar notificación visual (Toast)
-            notificationService.error(errorMessage);
-
-            // Re-lanzar el error estandarizado
-            return throwError(() => new Error(errorMessage));
+            return throwError(() => apiError);
         })
     );
 };

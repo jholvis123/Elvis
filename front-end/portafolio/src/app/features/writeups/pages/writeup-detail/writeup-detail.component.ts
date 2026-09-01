@@ -6,11 +6,13 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { MarkdownViewerComponent } from '../../../../shared/components/markdown-viewer/markdown-viewer.component';
 import { TableOfContentsComponent, TOCItem as TOCComponentItem, TOCStats } from '../../../../shared/components/table-of-contents/table-of-contents.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
     selector: 'app-writeup-detail',
     standalone: true,
-    imports: [CommonModule, RouterLink, MarkdownViewerComponent, TableOfContentsComponent],
+    imports: [CommonModule, RouterLink, MarkdownViewerComponent, TableOfContentsComponent, ConfirmDialogComponent, IconComponent],
     templateUrl: './writeup-detail.component.html',
     styleUrls: ['./writeup-detail.component.scss']
 })
@@ -121,10 +123,19 @@ export class WriteupDetailComponent implements OnInit, OnDestroy {
         });
     }
 
+    showDeleteModal = false;
+
+    confirmDelete(): void {
+        if (!this.writeup) return;
+        this.showDeleteModal = true;
+    }
+
+    cancelDelete(): void {
+        this.showDeleteModal = false;
+    }
+
     deleteWriteup(): void {
-        if (!this.writeup || !confirm('¿Estás seguro de eliminar este writeup?')) {
-            return;
-        }
+        if (!this.writeup) return;
 
         this.writeupsService.deleteWriteup(this.writeup.id).subscribe({
             next: () => {

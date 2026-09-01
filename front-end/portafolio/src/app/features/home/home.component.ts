@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PortfolioService, ContactService } from '@core/services';
 import { ProjectsService } from '../projects/services/projects.service';
@@ -31,8 +32,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly contactService = inject(ContactService);
   private readonly projectsService = inject(ProjectsService);
   private readonly elementRef = inject(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  // Data from services
   technologies: string[] = [];
   highlights: Highlight[] = [];
   aboutPoints: string[] = [];
@@ -42,18 +43,18 @@ export class HomeComponent implements OnInit, OnDestroy {
   stackItems: string[] = [];
   roles: string[] = [];
 
-  // Scroll to top
   showScrollTop = false;
-
-  // Intersection Observer
-  private observer!: IntersectionObserver;
-
-  // Estado de carga para proyectos
   loadingProjects = true;
 
+  private observer!: IntersectionObserver;
+
   ngOnInit(): void {
-    this.loadStaticData();
-    this.loadDataFromApi();
+    this.applyPortfolioFallback();
+    this.projectTypes = this.contactService.getProjectTypesSync();
+    this.loadProfile();
+    this.loadContact();
+    this.loadProjects();
+    this.loadProjectTypes();
     this.setupIntersectionObserver();
   }
 
@@ -72,29 +73,46 @@ export class HomeComponent implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /**
-   * Carga datos estáticos que no dependen de proyectos dinámicos
-   */
-  private loadStaticData(): void {
-    this.technologies = this.portfolioService.getTechnologies().map(t => t.name);
-    this.highlights = this.portfolioService.getHighlights();
-    this.aboutPoints = this.portfolioService.getAboutPoints();
-    // NO cargar proyectos hardcodeados - solo desde API
-    this.roles = this.portfolioService.getRoles();
-    this.stackItems = this.portfolioService.getStackItems();
-    this.contactInfo = this.contactService.getContactInfo();
-    this.projectTypes = this.contactService.getProjectTypesSync();
+  private loadProfile(): void {
+    this.portfolioService.getProfile().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (profile) => {
+        if (profile.roles?.length) this.roles = profile.roles;
+        if (profile.stack_items?.length) {
+          this.stackItems = profile.stack_items;
+          this.technologies = profile.stack_items;
+        }
+        if (profile.about_points?.length) this.aboutPoints = profile.about_points;
+        if (profile.highlights?.length) this.highlights = profile.highlights;
+        if (!this.contactInfo.length && profile.social_links) {
+          this.contactInfo = this.contactService.mapSocialLinks(profile.social_links);
+        }
+      },
+      error: () => {
+        this.applyPortfolioFallback();
+      }
+    });
   }
 
-  /**
-   * Carga datos desde la API (sobrescribe los datos locales cuando responde)
-   */
-  private loadDataFromApi(): void {
-    // Cargar proyectos destacados desde API (única fuente de verdad)
+  private loadContact(): void {
+    this.contactService.getContactInfo().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (info) => {
+        if (info.length) {
+          this.contactInfo = info;
+        }
+      }
+    });
+  }
+
+  private loadProjects(): void {
     this.loadingProjects = true;
-    this.projectsService.getFeaturedProjects(6).subscribe({
+    this.projectsService.getFeaturedProjects(6).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (projects) => {
-        // Mapear los proyectos de la API al formato de Project del home
         this.projects = projects.map(p => ({
           id: p.id,
           title: p.title,
@@ -106,52 +124,29 @@ export class HomeComponent implements OnInit, OnDestroy {
         }));
         this.loadingProjects = false;
       },
-      error: (err) => {
-        console.error('Error cargando proyectos:', err.message);
+      error: () => {
         this.projects = [];
         this.loadingProjects = false;
       }
     });
+  }
 
-    // Cargar roles desde API
-    this.portfolioService.getRolesFromApi().subscribe({
-      next: (roles) => {
-        if (roles.length > 0) this.roles = roles;
-      },
-      error: (err) => console.log('Usando roles locales:', err.message)
-    });
-
-    // Cargar stack items desde API
-    this.portfolioService.getStackFromApi().subscribe({
-      next: (stack) => {
-        if (stack.length > 0) this.stackItems = stack;
-      },
-      error: (err) => console.log('Usando stack local:', err.message)
-    });
-
-    // Cargar about points desde API
-    this.portfolioService.getAboutPointsFromApi().subscribe({
-      next: (points) => {
-        if (points.length > 0) this.aboutPoints = points;
-      },
-      error: (err) => console.log('Usando about points locales:', err.message)
-    });
-
-    // Cargar highlights desde API
-    this.portfolioService.getHighlightsFromApi().subscribe({
-      next: (highlights) => {
-        if (highlights.length > 0) this.highlights = highlights;
-      },
-      error: (err) => console.log('Usando highlights locales:', err.message)
-    });
-
-    // Cargar project types desde API
-    this.contactService.getProjectTypes().subscribe({
+  private loadProjectTypes(): void {
+    this.contactService.getProjectTypes().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (types) => {
         if (types.length > 0) this.projectTypes = types;
-      },
-      error: (err) => console.log('Usando project types locales:', err.message)
+      }
     });
+  }
+
+  private applyPortfolioFallback(): void {
+    this.roles = this.portfolioService.getRoles();
+    this.stackItems = this.portfolioService.getStackItems();
+    this.technologies = this.portfolioService.getTechnologies().map(t => t.name);
+    this.aboutPoints = this.portfolioService.getAboutPoints();
+    this.highlights = this.portfolioService.getHighlights();
   }
 
   private setupIntersectionObserver(): void {
@@ -169,7 +164,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       });
     }, options);
 
-    // Observar después de que el view esté listo
     setTimeout(() => {
       const elements = this.elementRef.nativeElement.querySelectorAll('.reveal, .reveal-left, .reveal-right');
       elements.forEach((el: Element) => this.observer.observe(el));

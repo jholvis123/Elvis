@@ -14,9 +14,11 @@
 
   // Cards
   .card {
-    @apply bg-card border border-slate-700 rounded-lg p-5 
+    @apply bg-card border border-slate-700 p-5 
            transition-all duration-300 hover:border-primary/50 
            hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
   }
 
   // Typography

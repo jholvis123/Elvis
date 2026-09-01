@@ -24,13 +24,13 @@
                 
                 <div class="admin-actions" *ngIf="authService.isAdmin">
                     <a [routerLink]="['/writeups', writeup.id, 'edit']" class="btn-icon" title="Editar">
-                        ✏️
+                        <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
                     </a>
                     <button *ngIf="writeup.status === 'draft'" (click)="publishWriteup()" class="btn-icon success" title="Publicar">
-                        ✅
+                        <app-icon name="check" cssClass="w-4 h-4"></app-icon>
                     </button>
-                    <button (click)="deleteWriteup()" class="btn-icon danger" title="Eliminar">
-                        🗑️
+                    <button (click)="confirmDelete()" class="btn-icon danger" title="Eliminar">
+                        <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
                     </button>
                 </div>
             </div>
@@ -101,3 +101,11 @@
     <p class="error-message">{{ error }}</p>
     <a routerLink="/writeups" class="error-link">Volver a writeups</a>
 </div>
+
+<app-confirm-dialog
+  [open]="showDeleteModal"
+  title="Eliminar writeup"
+  [message]="'¿Eliminar el writeup ' + (writeup?.title || '') + '?'"
+  (confirmed)="deleteWriteup()"
+  (cancelled)="cancelDelete()">
+</app-confirm-dialog>

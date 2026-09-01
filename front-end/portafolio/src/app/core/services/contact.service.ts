@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { ContactForm, ContactInfo } from '../models';
+import {
+  ContactForm,
+  ContactInfo,
+  ContactInfoApi,
+  ContactListResponse,
+  ContactMessage
+} from '../models';
 import { ApiService } from './api.service';
 
 interface ProjectTypeResponse {
@@ -9,46 +15,10 @@ interface ProjectTypeResponse {
   label: string;
 }
 
-interface ContactResponse {
-  id: string;
-  name: string;
-  email: string;
-  project_type: string;
-  message: string;
-  status: string;
-  created_at: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class ContactService {
-
-  // Datos de respaldo (fallback) si la API no responde
-  private readonly fallbackContactInfo: ContactInfo[] = [
-    {
-      type: 'email',
-      label: 'Correo directo',
-      value: 'elvis.dev@mail.com',
-      url: 'mailto:elvis.dev@mail.com',
-      icon: 'email'
-    },
-    {
-      type: 'linkedin',
-      label: 'Perfil profesional',
-      value: 'linkedin.com/in/elvis',
-      url: 'https://linkedin.com/in/elvis',
-      icon: 'linkedin'
-    },
-    {
-      type: 'github',
-      label: 'Código y proyectos',
-      value: 'github.com/elvis',
-      url: 'https://github.com/elvis',
-      icon: 'github'
-    }
-  ];
-
   private readonly fallbackProjectTypes = [
     { value: 'web', label: 'Desarrollo web' },
     { value: 'security', label: 'Consultoría de seguridad' },
@@ -58,36 +28,79 @@ export class ContactService {
 
   constructor(private api: ApiService) {}
 
-  /**
-   * Obtiene la información de contacto desde la API
-   */
-  getContactInfo(): ContactInfo[] {
-    // Por ahora retorna datos locales ya que el backend devuelve formato diferente
-    // TODO: Mapear respuesta del backend cuando se implemente
-    return [...this.fallbackContactInfo];
+  getContactInfo(): Observable<ContactInfo[]> {
+    return this.api.get<ContactInfoApi>('/portfolio/contact-info').pipe(
+      map(info => this.mapContactInfo(info)),
+      catchError(() => of([]))
+    );
   }
 
-  /**
-   * Obtiene los tipos de proyecto desde la API
-   */
+  mapContactInfo(info: ContactInfoApi | null | undefined): ContactInfo[] {
+    if (!info) return [];
+    const items: ContactInfo[] = [];
+
+    if (info.email) {
+      items.push({
+        type: 'email',
+        label: 'Correo directo',
+        value: info.email,
+        url: `mailto:${info.email}`,
+        icon: 'email'
+      });
+    }
+    if (info.github) {
+      items.push({
+        type: 'github',
+        label: 'Código y proyectos',
+        value: this.displayUrl(info.github),
+        url: this.ensureUrl(info.github),
+        icon: 'github'
+      });
+    }
+    if (info.linkedin) {
+      items.push({
+        type: 'linkedin',
+        label: 'Perfil profesional',
+        value: this.displayUrl(info.linkedin),
+        url: this.ensureUrl(info.linkedin),
+        icon: 'linkedin'
+      });
+    }
+    if (info.twitter) {
+      items.push({
+        type: 'twitter',
+        label: 'Red social',
+        value: this.displayUrl(info.twitter),
+        url: this.ensureUrl(info.twitter),
+        icon: 'twitter'
+      });
+    }
+
+    return items;
+  }
+
+  mapSocialLinks(social: Record<string, string> | null | undefined): ContactInfo[] {
+    if (!social) return [];
+    return this.mapContactInfo({
+      email: social['email'] || '',
+      github: social['github'],
+      linkedin: social['linkedin'],
+      twitter: social['twitter']
+    });
+  }
+
   getProjectTypes(): Observable<ProjectTypeResponse[]> {
     return this.api.get<ProjectTypeResponse[]>('/contact/project-types').pipe(
       catchError(() => of(this.fallbackProjectTypes))
     );
   }
 
-  /**
-   * Obtiene los tipos de proyecto de forma síncrona (fallback)
-   */
   getProjectTypesSync(): { value: string; label: string }[] {
     return [...this.fallbackProjectTypes];
   }
 
-  /**
-   * Envía el formulario de contacto a la API
-   */
-  submitContact(form: ContactForm): Observable<ContactResponse> {
-    return this.api.post<ContactResponse>('/contact', {
+  submitContact(form: ContactForm): Observable<ContactMessage> {
+    return this.api.post<ContactMessage>('/contact', {
       name: form.name,
       email: form.email,
       project_type: form.projectType,
@@ -95,18 +108,51 @@ export class ContactService {
     });
   }
 
-  /**
-   * Versión async para compatibilidad con código existente
-   */
   async submitContactAsync(form: ContactForm): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.submitContact(form).subscribe({
         next: () => resolve(true),
-        error: (err) => {
-          console.error('Error submitting contact:', err);
-          reject(err);
-        }
+        error: (err) => reject(err)
       });
     });
+  }
+
+  getMessages(params?: {
+    status?: string;
+    skip?: number;
+    limit?: number;
+  }): Observable<ContactListResponse> {
+    return this.api.get<ContactListResponse>('/contact', {
+      ...(params?.status && { status_filter: params.status }),
+      skip: params?.skip ?? 0,
+      limit: params?.limit ?? 20
+    });
+  }
+
+  getMessage(id: string): Observable<ContactMessage> {
+    return this.api.get<ContactMessage>(`/contact/${id}`);
+  }
+
+  markRead(id: string): Observable<ContactMessage> {
+    return this.api.patch<ContactMessage>(`/contact/${id}/mark-read`, {});
+  }
+
+  markReplied(id: string): Observable<ContactMessage> {
+    return this.api.patch<ContactMessage>(`/contact/${id}/mark-replied`, {});
+  }
+
+  deleteMessage(id: string): Observable<void> {
+    return this.api.delete<void>(`/contact/${id}`);
+  }
+
+  private displayUrl(value: string): string {
+    return value.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  }
+
+  private ensureUrl(value: string): string {
+    if (/^https?:\/\//i.test(value) || value.startsWith('mailto:')) {
+      return value;
+    }
+    return `https://${value}`;
   }
 }

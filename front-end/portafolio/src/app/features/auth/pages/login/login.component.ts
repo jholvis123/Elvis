@@ -69,7 +69,6 @@ export class LoginComponent implements OnInit {
             error: (error) => {
                 this.loading = false;
                 this.errorMessage = error.message || 'Error al iniciar sesión. Verifica tus credenciales.';
-                this.notificationService.error(this.errorMessage);
             },
             complete: () => {
                 this.loading = false;

@@ -136,6 +136,24 @@ export class WriteupsService {
     }
 
     /**
+     * Lista todos los writeups para administración (incluye borradores).
+     * Si el endpoint no existe aún, el componente muestra estado vacío/error.
+     */
+    getAdminAll(params?: {
+        page?: number;
+        size?: number;
+        search?: string;
+        status?: string;
+    }): Observable<WriteupListResponse> {
+        return this.api.get<WriteupListResponse>('/writeups/admin/all', {
+            page: params?.page || 1,
+            size: params?.size || 20,
+            ...(params?.search && { search: params.search }),
+            ...(params?.status && { status: params.status })
+        });
+    }
+
+    /**
      * Obtiene writeup por ID
      */
     getWriteupById(id: string): Observable<Writeup> {

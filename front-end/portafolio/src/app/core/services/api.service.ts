@@ -1,8 +1,17 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
 
 export interface RequestOptions {
   params?: Record<string, string | number | boolean>;
@@ -69,7 +78,7 @@ export class ApiService {
       params: this.buildParams(options.params),
       headers: this.buildHeaders(options.headers),
       withCredentials: options.withCredentials ?? true
-    }).pipe(catchError(this.handleError));
+    });
   }
 
   /**
@@ -81,7 +90,7 @@ export class ApiService {
       params: this.buildParams(options.params),
       headers: this.buildHeaders(options.headers),
       withCredentials: options.withCredentials ?? true
-    }).pipe(catchError(this.handleError));
+    });
   }
 
   /**
@@ -93,7 +102,7 @@ export class ApiService {
       params: this.buildParams(options.params),
       headers: this.buildHeaders(options.headers),
       withCredentials: options.withCredentials ?? true
-    }).pipe(catchError(this.handleError));
+    });
   }
 
   /**
@@ -105,7 +114,7 @@ export class ApiService {
       params: this.buildParams(options.params),
       headers: this.buildHeaders(options.headers),
       withCredentials: options.withCredentials ?? true
-    }).pipe(catchError(this.handleError));
+    });
   }
 
   /**
@@ -117,7 +126,7 @@ export class ApiService {
       params: this.buildParams(options.params),
       headers: this.buildHeaders(options.headers),
       withCredentials: options.withCredentials ?? true
-    }).pipe(catchError(this.handleError));
+    });
   }
 
   /**
@@ -127,36 +136,11 @@ export class ApiService {
     return this.http.post<T>(`${this.baseUrl}${endpoint}`, formData, {
       headers: this.buildHeaders(options?.headers),
       withCredentials: options?.withCredentials ?? true
-    }).pipe(catchError(this.handleError));
+    });
   }
 
   /**
-   * Error handler
+   * Los errores HTTP se traducen en un único sitio: errorInterceptor.
+   * ApiService no vuelve a mapear el mensaje para evitar duplicar toasts y perder el status.
    */
-  private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Ha ocurrido un error';
-    
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = error.error.message;
-    } else {
-      // Server-side error
-      if (error.error?.detail) {
-        errorMessage = error.error.detail;
-      } else if (error.status === 0) {
-        errorMessage = 'No se puede conectar al servidor';
-      } else if (error.status === 401) {
-        errorMessage = 'No autorizado';
-      } else if (error.status === 403) {
-        errorMessage = 'Acceso denegado';
-      } else if (error.status === 404) {
-        errorMessage = 'Recurso no encontrado';
-      } else if (error.status >= 500) {
-        errorMessage = 'Error interno del servidor';
-      }
-    }
-    
-    console.error('API Error:', error);
-    return throwError(() => new Error(errorMessage));
-  }
 }

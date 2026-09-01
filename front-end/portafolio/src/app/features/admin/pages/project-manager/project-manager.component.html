@@ -1,23 +1,24 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+<div class="min-h-screen bg-slate-950 p-6">
   <div class="max-w-7xl mx-auto">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
       <div>
-        <h1 class="text-3xl font-bold text-white mb-2">Gestión de Proyectos</h1>
-        <p class="text-gray-400">Administra todos los proyectos del portafolio</p>
+        <p class="eyebrow">Administración</p>
+        <h1 class="text-3xl font-bold text-textPrimary mb-2">Gestión de Proyectos</h1>
+        <p class="text-textSecondary">Administra todos los proyectos del portafolio</p>
       </div>
       <div class="flex gap-3">
-        <a routerLink="/admin/dashboard" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition">
-          ← Volver
+        <a routerLink="/admin/dashboard" class="btn-outline inline-flex items-center gap-2">
+          <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
+          Volver
         </a>
-        <a routerLink="/projects/new" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium">
-          + Nuevo Proyecto
+        <a routerLink="/projects/new" class="btn-primary inline-flex items-center gap-2">
+          <app-icon name="plus" cssClass="w-4 h-4"></app-icon>
+          Nuevo Proyecto
         </a>
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-4 mb-6">
+    <div class="card mb-6">
       <div class="flex flex-wrap gap-4 items-center">
         <div class="flex-1 min-w-[200px]">
           <input
@@ -25,13 +26,13 @@
             [(ngModel)]="searchTerm"
             (input)="onSearch()"
             placeholder="Buscar por título..."
-            class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+            class="input w-full"
           />
         </div>
         <select
           [(ngModel)]="filterStatus"
           (change)="loadProjects()"
-          class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+          class="input"
         >
           <option value="">Todos los estados</option>
           <option value="draft">Borrador</option>
@@ -41,58 +42,56 @@
       </div>
     </div>
 
-    <!-- Stats Summary -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-4 text-center">
-        <p class="text-3xl font-bold text-white">{{ totalProjects }}</p>
-        <p class="text-gray-400 text-sm">Total Proyectos</p>
+      <div class="card text-center">
+        <p class="text-3xl font-bold text-textPrimary">{{ totalProjects }}</p>
+        <p class="text-textSecondary text-sm">Total Proyectos</p>
       </div>
-      <div class="bg-green-500/10 backdrop-blur-lg rounded-xl border border-green-500/30 p-4 text-center">
-        <p class="text-3xl font-bold text-green-400">{{ publishedCount }}</p>
-        <p class="text-gray-400 text-sm">Publicados</p>
+      <div class="card text-center border-success/30">
+        <p class="text-3xl font-bold text-success">{{ publishedCount }}</p>
+        <p class="text-textSecondary text-sm">Publicados</p>
       </div>
-      <div class="bg-yellow-500/10 backdrop-blur-lg rounded-xl border border-yellow-500/30 p-4 text-center">
-        <p class="text-3xl font-bold text-yellow-400">{{ draftCount }}</p>
-        <p class="text-gray-400 text-sm">Borradores</p>
+      <div class="card text-center border-warning/30">
+        <p class="text-3xl font-bold text-warning">{{ draftCount }}</p>
+        <p class="text-textSecondary text-sm">Borradores</p>
       </div>
-      <div class="bg-purple-500/10 backdrop-blur-lg rounded-xl border border-purple-500/30 p-4 text-center">
-        <p class="text-3xl font-bold text-purple-400">{{ featuredCount }}</p>
-        <p class="text-gray-400 text-sm">Destacados</p>
+      <div class="card text-center border-primary/30">
+        <p class="text-3xl font-bold text-primary">{{ featuredCount }}</p>
+        <p class="text-textSecondary text-sm">Destacados</p>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="flex justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+    <div *ngIf="loading" class="flex justify-center py-12" role="status">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <span class="sr-only">Cargando proyectos</span>
     </div>
 
-    <!-- Projects Table -->
-    <div *ngIf="!loading" class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden">
+    <div *ngIf="!loading" class="card overflow-hidden p-0">
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-white/10">
+          <thead class="bg-surface">
             <tr>
-              <th class="text-left px-6 py-4 text-white font-semibold">Título</th>
-              <th class="text-left px-4 py-4 text-white font-semibold">Tecnologías</th>
-              <th class="text-center px-4 py-4 text-white font-semibold">Estado</th>
-              <th class="text-center px-4 py-4 text-white font-semibold">Destacado</th>
-              <th class="text-center px-4 py-4 text-white font-semibold">Acciones</th>
+              <th class="text-left px-6 py-4 text-textPrimary font-semibold">Título</th>
+              <th class="text-left px-4 py-4 text-textPrimary font-semibold">Tecnologías</th>
+              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Estado</th>
+              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Destacado</th>
+              <th class="text-center px-4 py-4 text-textPrimary font-semibold">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let project of filteredProjects" class="border-t border-white/10 hover:bg-white/5 transition">
+            <tr *ngFor="let project of filteredProjects" class="border-t border-slate-800 hover:bg-slate-800/40 transition">
               <td class="px-6 py-4">
                 <div>
-                  <p class="text-white font-medium">{{ project.title }}</p>
-                  <p class="text-gray-400 text-sm line-clamp-1">{{ project.short_description }}</p>
+                  <p class="text-textPrimary font-medium">{{ project.title }}</p>
+                  <p class="text-textSecondary text-sm line-clamp-1">{{ project.short_description }}</p>
                 </div>
               </td>
               <td class="px-4 py-4">
                 <div class="flex flex-wrap gap-1">
-                  <span *ngFor="let tech of project.technologies.slice(0, 3)" class="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">
+                  <span *ngFor="let tech of project.technologies.slice(0, 3)" class="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
                     {{ tech }}
                   </span>
-                  <span *ngIf="project.technologies.length > 3" class="text-gray-500 text-xs">
+                  <span *ngIf="project.technologies.length > 3" class="text-textSecondary text-xs">
                     +{{ project.technologies.length - 3 }}
                   </span>
                 </div>
@@ -104,56 +103,58 @@
               </td>
               <td class="px-4 py-4 text-center">
                 <button
+                  type="button"
                   (click)="toggleFeatured(project)"
-                  [class]="project.featured ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-500 hover:text-gray-400'"
+                  class="p-2"
+                  [class]="project.featured ? 'text-warning' : 'text-textSecondary'"
                   [title]="project.featured ? 'Quitar de destacados' : 'Destacar'"
                 >
-                  <span *ngIf="project.featured">⭐</span>
-                  <span *ngIf="!project.featured">☆</span>
+                  <app-icon name="star" cssClass="w-5 h-5"></app-icon>
                 </button>
               </td>
               <td class="px-4 py-4">
-                <div class="flex justify-center gap-2">
-                  <a [routerLink]="['/projects', project.id]" class="p-2 text-blue-400 hover:text-blue-300" title="Ver">
-                    👁️
+                <div class="flex justify-center gap-1">
+                  <a [routerLink]="['/projects', project.id]" class="p-2 text-primary hover:text-primaryHover" title="Ver">
+                    <app-icon name="eye" cssClass="w-4 h-4"></app-icon>
                   </a>
-                  <a [routerLink]="['/projects', project.id, 'edit']" class="p-2 text-purple-400 hover:text-purple-300" title="Editar">
-                    ✏️
+                  <a [routerLink]="['/projects', project.id, 'edit']" class="p-2 text-primary hover:text-primaryHover" title="Editar">
+                    <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
                   </a>
                   <button
                     *ngIf="project.status === 'draft'"
+                    type="button"
                     (click)="publishProject(project)"
-                    class="p-2 text-green-400 hover:text-green-300"
+                    class="p-2 text-success hover:text-emerald-300"
                     title="Publicar"
                   >
-                    🚀
+                    <app-icon name="rocket-launch" cssClass="w-4 h-4"></app-icon>
                   </button>
                   <button
                     *ngIf="project.status === 'published'"
+                    type="button"
                     (click)="archiveProject(project)"
-                    class="p-2 text-orange-400 hover:text-orange-300"
+                    class="p-2 text-warning hover:text-amber-300"
                     title="Archivar"
                   >
-                    📦
+                    <app-icon name="archive-box" cssClass="w-4 h-4"></app-icon>
                   </button>
                   <button
+                    type="button"
                     (click)="confirmDelete(project)"
-                    class="p-2 text-red-400 hover:text-red-300"
+                    class="p-2 text-danger hover:text-red-300"
                     title="Eliminar"
                   >
-                    🗑️
+                    <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
                   </button>
                 </div>
               </td>
             </tr>
             <tr *ngIf="filteredProjects.length === 0">
-              <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+              <td colspan="5" class="px-6 py-12 text-center text-textSecondary">
                 <div class="flex flex-col items-center gap-4">
-                  <span class="text-4xl">📁</span>
+                  <app-icon name="folder" cssClass="w-10 h-10"></app-icon>
                   <p>No hay proyectos creados aún</p>
-                  <a routerLink="/projects/new" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-                    Crear primer proyecto
-                  </a>
+                  <a routerLink="/projects/new" class="btn-primary">Crear primer proyecto</a>
                 </div>
               </td>
             </tr>
@@ -164,28 +165,10 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div *ngIf="showDeleteModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-  <div class="bg-slate-800 rounded-xl border border-white/10 p-6 max-w-md w-full">
-    <h3 class="text-xl font-bold text-white mb-4">⚠️ Confirmar eliminación</h3>
-    <p class="text-gray-300 mb-2">
-      ¿Estás seguro de que deseas eliminar el proyecto <strong class="text-white">{{ projectToDelete?.title }}</strong>?
-    </p>
-    <p class="text-red-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
-
-    <div class="flex gap-3 justify-end">
-      <button
-        (click)="cancelDelete()"
-        class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition"
-      >
-        Cancelar
-      </button>
-      <button
-        (click)="executeDelete()"
-        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-      >
-        Eliminar
-      </button>
-    </div>
-  </div>
-</div>
+<app-confirm-dialog
+  [open]="showDeleteModal"
+  title="Eliminar proyecto"
+  [message]="'¿Eliminar el proyecto ' + (projectToDelete?.title || '') + '?'"
+  (confirmed)="executeDelete()"
+  (cancelled)="cancelDelete()">
+</app-confirm-dialog>
