@@ -155,7 +155,7 @@ async def add_url_attachment(
         created_at=datetime.utcnow(),
     )
     
-    saved = attachment_service.attachment_repo.save(attachment)
+    saved = attachment_service.attachment_repository.save(attachment)
     return saved
 
 
@@ -173,7 +173,7 @@ async def download_attachment(
 
     Público si el CTF padre está PUBLISHED. Draft u huérfano → 404 salvo admin.
     """
-    attachment = attachment_service.attachment_repo.get_by_id(attachment_id)
+    attachment = attachment_service.attachment_repository.get_by_id(attachment_id)
     
     if not attachment:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Attachment not found")
