@@ -26,16 +26,18 @@
         <a *ngIf="authService.isAdmin" routerLink="/admin/profile" routerLinkActive="text-primary"
           class="nav-link">Perfil</a>
         <a routerLink="/" fragment="contact" class="nav-link">Contacto</a>
-        <ng-container *ngIf="authService.isAuthenticated; else loginLink">
-          <button type="button" (click)="logout()"
-            class="nav-link text-red-400 hover:text-red-300 transition-colors inline-flex items-center gap-1 min-h-[44px]">
-            <app-icon name="arrow-right-on-rectangle" cssClass="h-4 w-4"></app-icon>
-            Salir
-          </button>
+        <ng-container *ngIf="showAuthLinks">
+          <ng-container *ngIf="authService.isAuthenticated; else loginLink">
+            <button type="button" (click)="logout()"
+              class="nav-link text-red-400 hover:text-red-300 transition-colors inline-flex items-center gap-1 min-h-[44px]">
+              <app-icon name="arrow-right-on-rectangle" cssClass="h-4 w-4"></app-icon>
+              Salir
+            </button>
+          </ng-container>
+          <ng-template #loginLink>
+            <a routerLink="/auth/login" class="nav-link text-primary font-semibold">Entrar</a>
+          </ng-template>
         </ng-container>
-        <ng-template #loginLink>
-          <a routerLink="/auth/login" class="nav-link text-primary font-semibold">Entrar</a>
-        </ng-template>
       </div>
 
       <div class="hidden lg:block shrink-0">
@@ -71,7 +73,7 @@
           class="nav-link-mobile">Perfil</a>
         <a routerLink="/" fragment="contact" (click)="closeMenu()" class="nav-link-mobile">Contacto</a>
 
-        <div class="pt-2 mt-2 border-t border-slate-800">
+        <div *ngIf="showAuthLinks" class="pt-2 mt-2 border-t border-slate-800">
           <button *ngIf="authService.isAuthenticated" type="button" (click)="logout()"
             class="nav-link-mobile text-red-400 flex items-center justify-center gap-2 w-full">
             <app-icon name="arrow-right-on-rectangle" cssClass="h-5 w-5"></app-icon>

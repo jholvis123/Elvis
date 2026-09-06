@@ -94,7 +94,7 @@
             class="input">
             <option value="all">Todas las categorías</option>
             <option *ngFor="let cat of categories" [value]="cat.value">
-              {{ cat.icon }} {{ cat.label }}
+              {{ cat.label }}
             </option>
           </select>
         </div>
@@ -154,16 +154,21 @@
         </app-ctf-card>
       </div>
 
-      <!-- No Results -->
+      <!-- No Results / API unavailable -->
       <ng-template #noResults>
         <div class="no-results">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-textSecondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p class="text-textSecondary">No se encontraron retos con los filtros seleccionados</p>
-          <button (click)="clearFilters()" class="btn-primary mt-4">
-            Limpiar filtros
-          </button>
+          <p *ngIf="apiUnavailable; else noFilterResults" class="text-textSecondary">
+            API no disponible. No se pueden cargar los retos CTF.
+          </p>
+          <ng-template #noFilterResults>
+            <p class="text-textSecondary">No se encontraron retos con los filtros seleccionados</p>
+            <button (click)="clearFilters()" class="btn-primary mt-4">
+              Limpiar filtros
+            </button>
+          </ng-template>
         </div>
       </ng-template>
     </div>

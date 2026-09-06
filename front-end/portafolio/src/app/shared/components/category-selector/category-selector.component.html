@@ -16,7 +16,7 @@
       [disabled]="disabled"
       (click)="selectCategory(cat.value)">
       
-      <span class="category-selector__icon">{{ cat.icon }}</span>
+      <span *ngIf="cat.icon" class="category-selector__icon">{{ cat.icon }}</span>
       <span class="category-selector__name">{{ cat.label }}</span>
       <span class="category-selector__description">{{ cat.description }}</span>
       
@@ -42,7 +42,7 @@
       [class.category-selector__chip--selected]="isSelected(cat.value)"
       [disabled]="disabled"
       (click)="selectCategory(cat.value)">
-      <span>{{ cat.icon }}</span>
+      <span *ngIf="cat.icon">{{ cat.icon }}</span>
       <span>{{ cat.label }}</span>
     </button>
   </div>
