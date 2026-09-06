@@ -20,15 +20,35 @@ from ...domain.services.storage_service import StorageService
 from ...domain.services.file_validator import FileValidator, FileValidationError
 from ...domain.repositories.attachment_repo import AttachmentRepository
 from ...application.use_cases.upload_attachment import UploadAttachmentUseCase
+from ...domain.entities.ctf import CTFStatus
+from ...domain.repositories.ctf_repo import CTFRepository
 from ..dependencies import (
-    get_attachment_service, 
-    get_current_admin, 
+    get_attachment_service,
+    get_current_admin,
+    get_current_user_optional,
     get_storage_service,
-    get_attachment_repository
+    get_attachment_repository,
+    get_ctf_repository,
 )
 
 
 router = APIRouter(prefix="/attachments", tags=["Attachments"])
+
+
+def _ensure_attachment_downloadable(attachment: Attachment, ctf_repo: CTFRepository, current_user: Optional[User]) -> None:
+    """404 unless parent CTF is PUBLISHED, or requester is admin. Orphans → 404 unless admin."""
+    is_admin = current_user is not None and current_user.is_admin
+    if attachment.ctf_id is None:
+        if is_admin:
+            return
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Attachment not found")
+    ctf = ctf_repo.get_by_id(attachment.ctf_id)
+    if ctf is not None and ctf.status == CTFStatus.PUBLISHED:
+        return
+    if is_admin:
+        return
+    raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Attachment not found")
+
 
 # Instancia del validador de archivos
 file_validator = FileValidator()
@@ -135,7 +155,7 @@ async def add_url_attachment(
         created_at=datetime.utcnow(),
     )
     
-    saved = attachment_service.attachment_repo.save(attachment)
+    saved = attachment_service.attachment_repository.save(attachment)
     return saved
 
 
@@ -146,12 +166,19 @@ async def add_url_attachment(
 async def download_attachment(
     attachment_id: UUID,
     attachment_service: AttachmentService = Depends(get_attachment_service),
+    ctf_repo: CTFRepository = Depends(get_ctf_repository),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> FileResponse:
-    """Descarga un archivo adjunto por su ID."""
-    attachment = attachment_service.attachment_repo.get_by_id(attachment_id)
+    """Descarga un archivo adjunto por su ID.
+
+    Público si el CTF padre está PUBLISHED. Draft u huérfano → 404 salvo admin.
+    """
+    attachment = attachment_service.attachment_repository.get_by_id(attachment_id)
     
     if not attachment:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Attachment not found")
+
+    _ensure_attachment_downloadable(attachment, ctf_repo, current_user)
     
     if attachment.type != AttachmentType.FILE:
         # Si es URL, redirigir? O devolver 400?
