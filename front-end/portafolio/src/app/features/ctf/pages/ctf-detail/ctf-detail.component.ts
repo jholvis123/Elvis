@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import { CtfService } from '@core/services/ctf.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ApiAvailabilityService } from '@core/services/api-availability.service';
 import { CTFChallenge, CTF_CATEGORIES, CTF_DIFFICULTIES, CTFAttachment, AttachmentType } from '@core/models/ctf.model';
 
 @Component({
@@ -19,6 +20,7 @@ export class CtfDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly ctfService = inject(CtfService);
   public readonly authService = inject(AuthService); // Public para usar en template
+  public readonly apiAvailability = inject(ApiAvailabilityService);
 
   challenge: CTFChallenge | null = null;
   isSolved = false;
@@ -58,6 +60,7 @@ export class CtfDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading challenge:', err);
+        this.apiAvailability.noteRequestFailure(err);
         this.isLoading = false;
         // Navegar atrás o mostrar error
         this.router.navigate(['/ctf']);
@@ -66,6 +69,11 @@ export class CtfDetailComponent implements OnInit {
   }
 
   // ... getters unchanged ...
+
+  /** Login/register solo si la API está disponible (Pages sin API: ocultar). */
+  get showAuthPrompt(): boolean {
+    return this.apiAvailability.isApiAvailable() && !this.authService.isAuthenticated;
+  }
 
   get categoryInfo() {
     if (!this.challenge) return null;

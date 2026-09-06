@@ -4,15 +4,23 @@
       <p class="eyebrow">Contacto</p>
       <h2 id="contact-heading" class="section-heading">Construyamos algo seguro</h2>
       <p class="muted-text">Cuéntame sobre tu reto y te responderé con una propuesta concreta.</p>
-      
-      <div class="space-y-4 text-sm text-textSecondary">
-        <app-contact-link 
+
+      <div *ngIf="contactInfo.length; else noContactLinks" class="space-y-4 text-sm text-textSecondary">
+        <app-contact-link
           *ngFor="let contact of contactInfo"
           [contact]="contact">
         </app-contact-link>
       </div>
+      <ng-template #noContactLinks>
+        <p *ngIf="apiUnavailable" class="text-sm text-textSecondary border border-slate-800 rounded-lg p-4 bg-surface/50">
+          Datos de contacto no disponibles: API no configurada o sin conexión.
+        </p>
+      </ng-template>
     </div>
 
-    <app-contact-form [projectTypes]="projectTypes"></app-contact-form>
+    <app-contact-form
+      [projectTypes]="projectTypes"
+      [apiUnavailable]="apiUnavailable">
+    </app-contact-form>
   </div>
 </section>

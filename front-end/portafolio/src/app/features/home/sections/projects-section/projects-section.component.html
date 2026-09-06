@@ -6,7 +6,7 @@
         <h2 id="projects-heading" class="section-heading">Casos destacados</h2>
       </div>
       <a href="#contact" class="text-primary hover:text-primaryHover transition-all duration-300 text-sm flex items-center gap-1 group">
-        Solicitar demo 
+        Solicitar demo
         <span class="group-hover:translate-x-1 transition-transform" aria-hidden="true">→</span>
       </a>
     </div>
@@ -22,18 +22,31 @@
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div *ngIf="!loading && projects.length === 0" class="text-center py-12 reveal">
-      <div class="text-6xl mb-4">🚀</div>
-      <h3 class="text-xl font-semibold text-textPrimary mb-2">Próximamente</h3>
+    <!-- API unavailable -->
+    <div *ngIf="!loading && apiUnavailable" class="text-center py-12 reveal">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-textSecondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      </svg>
+      <h3 class="text-xl font-semibold text-textPrimary mb-2">API no disponible</h3>
       <p class="text-textSecondary">
-        Los proyectos destacados aparecerán aquí una vez publicados.
+        No se pueden cargar los proyectos porque la API no está configurada o no responde.
+      </p>
+    </div>
+
+    <!-- Empty State (API ok, sin datos) -->
+    <div *ngIf="!loading && !apiUnavailable && projects.length === 0" class="text-center py-12 reveal">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-textSecondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+      <h3 class="text-xl font-semibold text-textPrimary mb-2">Sin proyectos</h3>
+      <p class="text-textSecondary">
+        No hay proyectos publicados por el momento.
       </p>
     </div>
 
     <!-- Projects Grid -->
-    <div *ngIf="!loading && projects.length > 0" class="grid md:grid-cols-3 gap-6" role="list" aria-label="Lista de proyectos">
-      <app-project-card 
+    <div *ngIf="!loading && !apiUnavailable && projects.length > 0" class="grid md:grid-cols-3 gap-6" role="list" aria-label="Lista de proyectos">
+      <app-project-card
         *ngFor="let project of projects; let i = index"
         [project]="project"
         [index]="i">

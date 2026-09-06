@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { WriteupsService, Writeup } from '../../services/writeups.service';
+import { ApiAvailabilityService } from '@core/services/api-availability.service';
 
 @Component({
     selector: 'app-writeup-list',
@@ -11,9 +12,13 @@ import { WriteupsService, Writeup } from '../../services/writeups.service';
     styleUrls: ['./writeup-list.component.scss']
 })
 export class WriteupListComponent implements OnInit {
+    private readonly writeupsService = inject(WriteupsService);
+    private readonly apiAvailability = inject(ApiAvailabilityService);
+
     writeups: Writeup[] = [];
     loading = false;
     error = '';
+    apiUnavailable = false;
 
     currentPage = 1;
     pageSize = 12;
@@ -22,9 +27,14 @@ export class WriteupListComponent implements OnInit {
 
     searchQuery = '';
 
-    constructor(private writeupsService: WriteupsService) { }
-
     ngOnInit(): void {
+        this.apiUnavailable = !this.apiAvailability.isApiAvailable();
+        if (!this.apiAvailability.isApiConfigured()) {
+            this.apiUnavailable = true;
+            this.writeups = [];
+            this.error = 'API no configurada. Los writeups no están disponibles.';
+            return;
+        }
         this.loadWriteups();
     }
 
@@ -44,9 +54,16 @@ export class WriteupListComponent implements OnInit {
                 this.total = response.total;
                 this.totalPages = response.pages;
                 this.loading = false;
+                this.apiAvailability.markNetworkOk();
+                this.apiUnavailable = false;
             },
             error: (err) => {
-                this.error = 'Error al cargar los writeups';
+                this.apiAvailability.noteRequestFailure(err);
+                this.apiUnavailable = !this.apiAvailability.isApiAvailable();
+                this.writeups = [];
+                this.error = this.apiUnavailable
+                    ? 'API no disponible. No se pueden cargar los writeups.'
+                    : 'Error al cargar los writeups';
                 this.loading = false;
             }
         });

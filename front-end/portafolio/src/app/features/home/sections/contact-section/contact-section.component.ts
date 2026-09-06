@@ -15,4 +15,5 @@ import { ContactFormComponent } from '@shared/components/contact-form/contact-fo
 export class ContactSectionComponent {
   @Input() contactInfo: ContactInfo[] = [];
   @Input() projectTypes: { value: string; label: string }[] = [];
+  @Input() apiUnavailable = false;
 }

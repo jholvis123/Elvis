@@ -37,9 +37,9 @@
             
             <div class="header-content">
                 <div class="header-meta">
-                    <span *ngIf="writeup.status === 'draft'" class="badge badge-warning">📝 Borrador</span>
+                    <span *ngIf="writeup.status === 'draft'" class="badge badge-warning">Borrador</span>
                     <a *ngIf="writeup.ctf_id" [routerLink]="['/ctf', writeup.ctf_id]" class="badge badge-ctf">
-                        🎯 Ver CTF
+                        Ver CTF
                     </a>
                 </div>
                 
