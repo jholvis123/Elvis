@@ -51,7 +51,7 @@ class TokenDTO(BaseModel):
     
     access_token: str
     refresh_token: Optional[str] = None
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 — OAuth token_type value
     expires_in: int  # Segundos hasta expiración
 
 

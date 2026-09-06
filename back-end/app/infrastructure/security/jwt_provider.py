@@ -138,7 +138,7 @@ class JWTProvider:
         """
         token_data = self.verify_token(token)
         
-        if token_data and token_data.token_type == "access":
+        if token_data and token_data.token_type == "access":  # noqa: S105 — JWT typ claim
             return token_data
         
         return None
@@ -155,7 +155,7 @@ class JWTProvider:
         """
         token_data = self.verify_token(token)
         
-        if token_data and token_data.token_type == "refresh":
+        if token_data and token_data.token_type == "refresh":  # noqa: S105 — JWT typ claim
             return token_data
         
         return None
