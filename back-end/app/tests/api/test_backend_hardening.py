@@ -13,12 +13,12 @@ def _register_and_login(client: TestClient, email: str = "round3@example.com"):
         json={
             "email": email,
             "username": email.split("@")[0][:20],
-            "password": "securepassword123",
+            "password": "Test1234!",
         },
     )
     return client.post(
         "/api/v1/auth/login",
-        json={"email": email, "password": "securepassword123"},
+        json={"email": email, "password": "Test1234!"},
     )
 
 

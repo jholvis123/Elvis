@@ -65,7 +65,13 @@ def client(db: Session):
             pass
     
     app.dependency_overrides[get_db] = override_get_db
-    
+
+    # Reset slowapi in-memory counters so register 5/hour does not flake across tests
+    from ..core.security_middleware import limiter
+    storage = getattr(limiter, "_storage", None)
+    if storage is not None and hasattr(storage, "reset"):
+        storage.reset()
+
     with TestClient(app) as c:
         yield c
     

@@ -57,8 +57,8 @@ class TestCTFEntity:
         assert ctf.status == CTFStatus.PUBLISHED
         assert ctf.is_published is True
     
-    def test_add_tag(self):
-        """Test: añadir tags a un CTF."""
+    def test_add_skill(self):
+        """Test: añadir skills a un CTF (antes tags/add_tag)."""
         ctf = CTF(
             title="Test CTF",
             level=CTFLevel.EASY,
@@ -66,13 +66,13 @@ class TestCTFEntity:
             platform="HackTheBox",
         )
         
-        ctf.add_tag("sql-injection")
-        ctf.add_tag("xss")
-        ctf.add_tag("sql-injection")  # Duplicado
+        ctf.add_skill("sql-injection")
+        ctf.add_skill("xss")
+        ctf.add_skill("sql-injection")  # Duplicado
         
-        assert len(ctf.tags) == 2
-        assert "sql-injection" in ctf.tags
-        assert "xss" in ctf.tags
+        assert len(ctf.skills) == 2
+        assert "sql-injection" in ctf.skills
+        assert "xss" in ctf.skills
 
 
 class TestUserEntity:
