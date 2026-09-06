@@ -1,0 +1,89 @@
+# Deploy Angular 16 front-end (portafolio) to GitHub Pages
+# Site: https://jholvis123.github.io/Elvis/
+#
+# REQUIRED once (repo Settings -> Pages):
+#   Source = "GitHub Actions"  (NOT "Deploy from a branch")
+#
+# Optional: set repository variable API_URL
+#   Settings -> Secrets and variables -> Actions -> Variables
+#   e.g. API_URL=https://your-backend.example.com/api/v1
+# If unset, builds keep the placeholder https://YOUR-API-HOST/api/v1
+
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Angular (github-pages)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front-end/portafolio
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: front-end/portafolio/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+      - name: Inject API_URL for GitHub Pages
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          PLACEHOLDER='https://YOUR-API-HOST/api/v1'
+          TARGET="${API_URL:-$PLACEHOLDER}"
+          if [ -z "${API_URL}" ]; then
+            echo "::warning::vars.API_URL is not set. Using placeholder ${PLACEHOLDER}. Set Settings -> Secrets and variables -> Actions -> Variables -> API_URL (e.g. https://your-api.example.com/api/v1) and re-run."
+          else
+            echo "Using vars.API_URL for environment.github-pages.ts"
+          fi
+          ESCAPED=$(printf '%s\n' "$TARGET" | sed -e 's/[&|\\]/\\&/g')
+          sed -i "s|${PLACEHOLDER}|${ESCAPED}|g" src/environments/environment.github-pages.ts
+          grep -n "apiUrl" src/environments/environment.github-pages.ts
+
+      - name: Build (configuration=github-pages, base-href=/Elvis/)
+        run: |
+          npx ng build --configuration=github-pages --base-href=/Elvis/
+
+      - name: SPA fallback (copy index.html to 404.html)
+        run: |
+          cp dist/portafolio/index.html dist/portafolio/404.html
+          ls -la dist/portafolio/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: front-end/portafolio/dist/portafolio
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
