@@ -41,20 +41,25 @@ jobs:
 
       - name: 🔍 Ruff - Linter Rápido
         run: |
-          ruff check app/ --output-format=github || true
+          ruff check app/ --output-format=github
 
+      # TASK backlog: soft until format/type debt cleared; ruff+pytest are hard
       - name: 🎨 Black - Verificar Formato
-        run: |
-          black --check --diff app/ || true
-
-      - name: 📋 isort - Verificar Orden de Imports
-        run: |
-          isort --check-only --diff app/ || true
-
-      - name: 🔎 MyPy - Verificación de Tipos
-        run: |
-          mypy app/ --ignore-missing-imports || true
         continue-on-error: true
+        run: |
+          black --check --diff app/
+
+      # TASK backlog: soft until format/type debt cleared; ruff+pytest are hard
+      - name: 📋 isort - Verificar Orden de Imports
+        continue-on-error: true
+        run: |
+          isort --check-only --diff app/
+
+      # TASK backlog: soft until format/type debt cleared; ruff+pytest are hard
+      - name: 🔎 MyPy - Verificación de Tipos
+        continue-on-error: true
+        run: |
+          mypy app/ --ignore-missing-imports
 
   backend-test:
     name: 🧪 Pruebas Backend
@@ -102,7 +107,7 @@ jobs:
           DATABASE_URL: mysql+pymysql://testuser:testpassword@localhost:3306/test_db
           SECRET_KEY: clave-secreta-solo-para-pruebas-ci
         run: |
-          pytest app/tests/ -v --cov=app --cov-report=xml --cov-report=term-missing || true
+          pytest app/tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
 
       - name: 📊 Subir Cobertura
         uses: codecov/codecov-action@v4
@@ -140,10 +145,11 @@ jobs:
       - name: 🔍 ESLint - Análisis de Código
         run: npx ng lint
 
+      # TASK backlog: soft until prettier format debt cleared; ng lint is hard
       - name: 🎨 Prettier - Verificar Formato
-        run: |
-          npx prettier --check "src/**/*.{ts,html,scss}" || true
         continue-on-error: true
+        run: |
+          npx prettier --check "src/**/*.{ts,html,scss}"
 
   frontend-build:
     name: 🏗️ Compilar Frontend
@@ -199,10 +205,11 @@ jobs:
       - name: 📦 Instalar dependencias
         run: npm ci
 
+      # TASK backlog: soft until karma suite stabilized; ng lint + pytest + ruff are hard
       - name: 🧪 Ejecutar Pruebas Unitarias
-        run: |
-          npm test -- --no-watch --no-progress --browsers=ChromeHeadless --code-coverage || true
         continue-on-error: true
+        run: |
+          npm test -- --no-watch --no-progress --browsers=ChromeHeadless --code-coverage
 
   # ============================================
   # 🐳 COMPILACIÓN DOCKER
@@ -256,8 +263,20 @@ jobs:
           echo "| Trabajo | Estado |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🐍 Lint Backend | ${{ needs.backend-lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Pruebas Backend | ${{ needs.backend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Backend | ${{ needs.backend-test.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🅰️ Lint Frontend | ${{ needs.frontend-lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🏗️ Compilación Frontend | ${{ needs.frontend-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Pruebas Frontend | ${{ needs.frontend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Frontend (soft) | ${{ needs.frontend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🐳 Compilación Docker | ${{ needs.docker-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+
+
+      - name: ❌ Fallar si algún hard-fail falló
+        if: |
+          needs.backend-lint.result != 'success' ||
+          needs.backend-test.result != 'success' ||
+          needs.frontend-lint.result != 'success' ||
+          needs.frontend-build.result != 'success' ||
+          needs.docker-build.result != 'success'
+        run: |
+          echo "Uno o más trabajos hard-fail de CI fallaron (frontend-test/karma es soft)."
+          exit 1
