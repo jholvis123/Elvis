@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { CtfService } from '@core/services/ctf.service';
+import { CtfService, FlagSubmitResult } from '@core/services/ctf.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CTFChallenge, CTF_CATEGORIES, CTF_DIFFICULTIES, CTFAttachment, AttachmentType } from '@core/models/ctf.model';
 
@@ -27,7 +27,7 @@ export class CtfDetailComponent implements OnInit {
   // Flag submission
   flagInput = '';
   isSubmitting = false;
-  submitResult: { success: boolean; message: string } | null = null;
+  submitResult: FlagSubmitResult | null = null;
 
   // Hints
   revealedHints: Set<number> = new Set();
