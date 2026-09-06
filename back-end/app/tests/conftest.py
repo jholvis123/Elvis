@@ -73,15 +73,19 @@ def client(db: Session):
 
 
 def _auth_headers(db: Session, *, email: str, username: str, is_admin: bool) -> dict:
-    from ..core.security import get_password_hash
+    # Password corta (<=72 bytes). Hash con bcrypt directo: passlib 1.7.4 +
+    # bcrypt>=4.1 dispara ValueError en su detect_wrap_bug incluso con passwords cortas.
+    import bcrypt
     from ..infrastructure.security.jwt_provider import JWTProvider
 
     uid = str(uuid4())
+    password = "Test1!"
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("ascii")
     user = UserModel(
         id=uid,
         email=email,
         username=username,
-        hashed_password=get_password_hash("securepassword123"),
+        hashed_password=hashed,
         is_active=True,
         is_admin=is_admin,
     )
