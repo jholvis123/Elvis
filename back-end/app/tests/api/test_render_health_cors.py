@@ -2,7 +2,7 @@
 
 from fastapi.testclient import TestClient
 
-from ...core.config import Settings, settings
+from ...core.config import Settings
 
 
 class TestHealthAndCorsRender:
@@ -21,7 +21,8 @@ class TestHealthAndCorsRender:
         assert body["db"] == "ok"
 
     def test_default_cors_includes_pages_origin(self):
-        assert "https://jholvis123.github.io" in settings.CORS_ORIGINS
+        default = Settings.model_fields["CORS_ORIGINS"].default
+        assert "https://jholvis123.github.io" in default
 
     def test_normalize_render_postgres_url(self):
         assert (
