@@ -41,20 +41,19 @@ jobs:
 
       - name: 🔍 Ruff - Linter Rápido
         run: |
-          ruff check app/ --output-format=github || true
+          ruff check app/ --output-format=github
 
       - name: 🎨 Black - Verificar Formato
         run: |
-          black --check --diff app/ || true
+          black --check --diff app/
 
       - name: 📋 isort - Verificar Orden de Imports
         run: |
-          isort --check-only --diff app/ || true
+          isort --check-only --diff app/
 
       - name: 🔎 MyPy - Verificación de Tipos
         run: |
-          mypy app/ --ignore-missing-imports || true
-        continue-on-error: true
+          mypy app/ --ignore-missing-imports
 
   backend-test:
     name: 🧪 Pruebas Backend
@@ -102,7 +101,7 @@ jobs:
           DATABASE_URL: mysql+pymysql://testuser:testpassword@localhost:3306/test_db
           SECRET_KEY: clave-secreta-solo-para-pruebas-ci
         run: |
-          pytest app/tests/ -v --cov=app --cov-report=xml --cov-report=term-missing || true
+          pytest app/tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
 
       - name: 📊 Subir Cobertura
         uses: codecov/codecov-action@v4
@@ -139,13 +138,11 @@ jobs:
 
       - name: 🔍 ESLint - Análisis de Código
         run: |
-          npx ng lint || true
-        continue-on-error: true
+          npx ng lint
 
       - name: 🎨 Prettier - Verificar Formato
         run: |
-          npx prettier --check "src/**/*.{ts,html,scss}" || true
-        continue-on-error: true
+          npx prettier --check "src/**/*.{ts,html,scss}"
 
   frontend-build:
     name: 🏗️ Compilar Frontend
@@ -203,8 +200,7 @@ jobs:
 
       - name: 🧪 Ejecutar Pruebas Unitarias
         run: |
-          npm test -- --no-watch --no-progress --browsers=ChromeHeadless --code-coverage || true
-        continue-on-error: true
+          npm test -- --no-watch --no-progress --browsers=ChromeHeadless --code-coverage
 
   # ============================================
   # 🐳 COMPILACIÓN DOCKER
@@ -258,8 +254,21 @@ jobs:
           echo "| Trabajo | Estado |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🐍 Lint Backend | ${{ needs.backend-lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Pruebas Backend | ${{ needs.backend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Backend | ${{ needs.backend-test.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🅰️ Lint Frontend | ${{ needs.frontend-lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🏗️ Compilación Frontend | ${{ needs.frontend-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Pruebas Frontend | ${{ needs.frontend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Frontend | ${{ needs.frontend-test.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🐳 Compilación Docker | ${{ needs.docker-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+
+
+      - name: ❌ Fallar si algún trabajo falló
+        if: |
+          needs.backend-lint.result != 'success' ||
+          needs.backend-test.result != 'success' ||
+          needs.frontend-lint.result != 'success' ||
+          needs.frontend-build.result != 'success' ||
+          needs.frontend-test.result != 'success' ||
+          needs.docker-build.result != 'success'
+        run: |
+          echo "Uno o más trabajos de CI fallaron. Revisar el resumen arriba."
+          exit 1
