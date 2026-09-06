@@ -29,7 +29,7 @@ class TestAuthEndpoints:
             json={
                 "email": "test@example.com",
                 "username": "testuser",
-                "password": "securepassword123",
+                "password": "Test1234!",
             },
         )
         
@@ -46,7 +46,7 @@ class TestAuthEndpoints:
             json={
                 "email": "test@example.com",
                 "username": "testuser1",
-                "password": "securepassword123",
+                "password": "Test1234!",
             },
         )
         
@@ -56,7 +56,7 @@ class TestAuthEndpoints:
             json={
                 "email": "test@example.com",
                 "username": "testuser2",
-                "password": "securepassword123",
+                "password": "Test1234!",
             },
         )
         
@@ -70,7 +70,7 @@ class TestAuthEndpoints:
             json={
                 "email": "test@example.com",
                 "username": "testuser",
-                "password": "securepassword123",
+                "password": "Test1234!",
             },
         )
         
@@ -79,7 +79,7 @@ class TestAuthEndpoints:
             "/api/v1/auth/login",
             json={
                 "email": "test@example.com",
-                "password": "securepassword123",
+                "password": "Test1234!",
             },
         )
         

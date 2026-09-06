@@ -2,28 +2,30 @@
 Utilidades de seguridad: hashing de contraseñas.
 """
 
-from passlib.context import CryptContext
+import bcrypt
 
-# Contexto para hashing de contraseñas
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def _password_bytes(password: str) -> bytes:
+    """bcrypt limita a 72 bytes; truncar en límite UTF-8 seguro."""
+    raw = password.encode("utf-8")
+    if len(raw) <= 72:
+        return raw
+    return raw[:72]
 
 
 def get_password_hash(password: str) -> str:
     """Genera un hash seguro de la contraseña."""
-    # bcrypt tiene límite de 72 bytes
-    # Asegurarse de truncar correctamente en límites de caracteres UTF-8
-    if len(password.encode('utf-8')) > 72:
-        # Truncar byte a byte hasta 72
-        truncated = password.encode('utf-8')[:72]
-        # Decodificar ignorando bytes incompletos al final
-        password = truncated.decode('utf-8', errors='ignore')
-    return pwd_context.hash(password)
+    # bcrypt directo: evita ValueError de passlib 1.7.4 detect_wrap_bug
+    # con bcrypt>=4.1 incluso para passwords cortas.
+    return bcrypt.hashpw(_password_bytes(password), bcrypt.gensalt()).decode("ascii")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica que la contraseña coincida con el hash."""
-    # Aplicar mismo truncamiento para verificación
-    if len(plain_password.encode('utf-8')) > 72:
-        truncated = plain_password.encode('utf-8')[:72]
-        plain_password = truncated.decode('utf-8', errors='ignore')
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(
+            _password_bytes(plain_password),
+            hashed_password.encode("ascii"),
+        )
+    except (ValueError, TypeError):
+        return False

@@ -61,6 +61,9 @@ class TestUnhandledException:
             methods=["GET"],
             name="__test_unhandled_boom",
         )
+        transport = client._transport
+        previous = transport.raise_server_exceptions
+        transport.raise_server_exceptions = False
         try:
             response = client.get("/__test_unhandled_boom")
             assert response.status_code == 500
@@ -70,6 +73,7 @@ class TestUnhandledException:
             assert "Traceback" not in text
             assert "RuntimeError" not in text
         finally:
+            transport.raise_server_exceptions = previous
             app.router.routes = [
                 route
                 for route in app.router.routes

@@ -21,9 +21,9 @@ class CookieService:
     - SameSite (protección CSRF)
     """
     
-    ACCESS_TOKEN_COOKIE = "access_token"
-    REFRESH_TOKEN_COOKIE = "refresh_token"
-    CSRF_TOKEN_COOKIE = "csrf_token"
+    ACCESS_TOKEN_COOKIE = "access_token"  # noqa: S105 — cookie name, not a secret
+    REFRESH_TOKEN_COOKIE = "refresh_token"  # noqa: S105 — cookie name, not a secret
+    CSRF_TOKEN_COOKIE = "csrf_token"  # noqa: S105 — cookie name, not a secret
     
     def __init__(self):
         self.secure = settings.COOKIE_SECURE
