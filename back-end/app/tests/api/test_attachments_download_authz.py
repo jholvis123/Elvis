@@ -4,6 +4,7 @@ Authz de GET /attachments/{id}/download: published público; draft/huérfano 404
 
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -11,6 +12,9 @@ from sqlalchemy.orm import Session
 
 from ...infrastructure.persistence.models.attachment_model import AttachmentModel
 from ...infrastructure.persistence.models.ctf_model import CTFModel
+
+PAYLOAD = "payload-for-download" + chr(10)
+PAYLOAD_BYTES = b"payload-for-download" + bytes([10])
 
 
 def _insert_ctf(db: Session, *, status: str) -> str:
@@ -37,13 +41,12 @@ def _insert_file_attachment(
     db: Session,
     tmp_path: Path,
     *,
-    ctf_id: str | None,
+    ctf_id: Optional[str],
     name: str = "lab.txt",
 ) -> str:
     aid = str(uuid4())
     file_path = tmp_path / f"{aid}-{name}"
-    file_path.write_text("payload-for-download
-", encoding="utf-8")
+    file_path.write_text(PAYLOAD, encoding="utf-8")
     db.add(
         AttachmentModel(
             id=aid,
@@ -91,8 +94,7 @@ class TestAttachmentDownloadAuthz:
         aid = _insert_file_attachment(db, tmp_path, ctf_id=ctf_id)
         r = client.get(f"/api/v1/attachments/{aid}/download")
         assert r.status_code == 200
-        assert r.content == b"payload-for-download
-"
+        assert r.content == PAYLOAD_BYTES
 
     def test_admin_draft_200(
         self, client: TestClient, db: Session, tmp_path: Path, admin_headers: dict
@@ -108,3 +110,4 @@ class TestAttachmentDownloadAuthz:
         aid = _insert_file_attachment(db, tmp_path, ctf_id=None)
         r = client.get(f"/api/v1/attachments/{aid}/download", headers=admin_headers)
         assert r.status_code == 200
+
