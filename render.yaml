@@ -1,0 +1,34 @@
+# Render blueprint — NO real secrets. Set values in the Render dashboard.
+# Docs: back-end/DEPLOYMENT_RENDER.md
+databases:
+  - name: elvis-db
+    plan: free
+
+services:
+  - type: web
+    name: elvis-api
+    runtime: python
+    plan: free
+    rootDir: back-end
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10.14"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: elvis-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: '["https://jholvis123.github.io"]'
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: "lax"
+      - key: ALLOW_PUBLIC_REGISTER
+        value: "false"
+      - key: DEBUG
+        value: "false"

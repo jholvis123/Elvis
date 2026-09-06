@@ -38,8 +38,8 @@ pytest-cov==6.0.0
 # Development
 python-dotenv==1.0.1
 
-# Optional: PostgreSQL (for production)
-# psycopg2-binary==2.9.9
+# PostgreSQL driver (Render production; MySQL local still uses pymysql)
+psycopg2-binary==2.9.9
 
 # Optional: Redis (for caching)
 # redis==5.0.1

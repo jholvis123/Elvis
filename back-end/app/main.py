@@ -168,9 +168,8 @@ async def root():
     return payload
 
 
-@app.get("/health", tags=["Health"])
-async def health_check(db: Session = Depends(get_db)):
-    """Health check: ping de base de datos (SELECT 1)."""
+async def _health_payload(db: Session):
+    """Shared health body: DB ping via SELECT 1."""
     try:
         db.execute(text("SELECT 1"))
         return {"status": "healthy", "db": "ok"}
@@ -179,6 +178,18 @@ async def health_check(db: Session = Depends(get_db)):
             status_code=503,
             content={"status": "unhealthy", "db": "error"},
         )
+
+
+@app.get("/health", tags=["Health"])
+async def health_check(db: Session = Depends(get_db)):
+    """Health check (root): ping de base de datos."""
+    return await _health_payload(db)
+
+
+@app.get(f"{settings.API_V1_PREFIX}/health", tags=["Health"])
+async def health_check_v1(db: Session = Depends(get_db)):
+    """Health check under API prefix (Render / FE probes)."""
+    return await _health_payload(db)
 
 
 if __name__ == "__main__":
