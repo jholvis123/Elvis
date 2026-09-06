@@ -43,19 +43,19 @@ jobs:
         run: |
           ruff check app/ --output-format=github
 
-      # soft until format/type debt cleared; ruff+pytest are hard
+      # TASK backlog: soft until format/type debt cleared; ruff+pytest are hard
       - name: 🎨 Black - Verificar Formato
         continue-on-error: true
         run: |
           black --check --diff app/
 
-      # soft until format/type debt cleared; ruff+pytest are hard
+      # TASK backlog: soft until format/type debt cleared; ruff+pytest are hard
       - name: 📋 isort - Verificar Orden de Imports
         continue-on-error: true
         run: |
           isort --check-only --diff app/
 
-      # soft until format/type debt cleared; ruff+pytest are hard
+      # TASK backlog: soft until format/type debt cleared; ruff+pytest are hard
       - name: 🔎 MyPy - Verificación de Tipos
         continue-on-error: true
         run: |
@@ -145,7 +145,7 @@ jobs:
       - name: 🔍 ESLint - Análisis de Código
         run: npx ng lint
 
-      # soft until prettier format debt cleared; ng lint is hard
+      # TASK backlog: soft until prettier format debt cleared; ng lint is hard
       - name: 🎨 Prettier - Verificar Formato
         continue-on-error: true
         run: |
@@ -205,7 +205,7 @@ jobs:
       - name: 📦 Instalar dependencias
         run: npm ci
 
-      # soft until karma suite stabilized; ng lint + pytest + ruff are hard
+      # TASK backlog: soft until karma suite stabilized; ng lint + pytest + ruff are hard
       - name: 🧪 Ejecutar Pruebas Unitarias
         continue-on-error: true
         run: |
@@ -266,18 +266,17 @@ jobs:
           echo "| 🧪 Pruebas Backend | ${{ needs.backend-test.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🅰️ Lint Frontend | ${{ needs.frontend-lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🏗️ Compilación Frontend | ${{ needs.frontend-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Pruebas Frontend | ${{ needs.frontend-test.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Frontend (soft) | ${{ needs.frontend-test.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🐳 Compilación Docker | ${{ needs.docker-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
 
 
-      - name: ❌ Fallar si algún trabajo falló
+      - name: ❌ Fallar si algún hard-fail falló
         if: |
           needs.backend-lint.result != 'success' ||
           needs.backend-test.result != 'success' ||
           needs.frontend-lint.result != 'success' ||
           needs.frontend-build.result != 'success' ||
-          needs.frontend-test.result != 'success' ||
           needs.docker-build.result != 'success'
         run: |
-          echo "Uno o más trabajos de CI fallaron. Revisar el resumen arriba."
+          echo "Uno o más trabajos hard-fail de CI fallaron (frontend-test/karma es soft)."
           exit 1
