@@ -1,0 +1,33 @@
+# Backend lint hygiene: keep useful bug/security checks; silence known CI noise
+# (~900 UP/B008/I001 style findings). Aligns with CI `ruff check app/`.
+target-version = "py310"
+line-length = 88
+
+[lint]
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "B",   # flake8-bugbear
+  "BLE", # blind except
+  "S",   # bandit
+]
+ignore = [
+  "B008",  # FastAPI Depends()/Query() in function defaults
+  "E501",  # line length — black owns formatting when enabled
+  "E712",  # SQLAlchemy `== True` / `== False` comparisons
+  "E741",  # ambiguous variable names in existing code
+  "E402",  # import not at top (lazy imports in entities)
+  "F401",  # unused imports — noisy; avoid mass rewrite
+  "F841",  # unused locals — follow-up cleanup
+  "BLE001",# blind except — follow-up hardening
+  "S101",  # assert in tests
+  "S104",  # 0.0.0.0 bind in uvicorn entrypoints
+  "S105",  # password literals in tests/examples
+  "S106",
+  "S311",  # non-crypto randomness
+  "S324",  # md5 for rate-limit key material (not password hashing)
+  "B904",  # raise without `from` — noisy across codebase
+]
+
+# Known style/upgrade noise intentionally NOT selected (UP045, UP006, UP035, I001, DTZ*):
+# prefer ignore-via-select over mass Optional→X|None / List→list rewrites.

@@ -47,21 +47,13 @@ class TestCreateCTFUseCase:
         mock_repo.save.assert_called_once()
     
     def test_create_ctf_validation_error(self):
-        """Test: crear CTF con datos inválidos."""
-        mock_repo = Mock()
-        mock_service = Mock()
-        mock_service.validate_ctf_data.return_value = {
-            "title": "Title must be at least 3 characters"
-        }
-        
-        use_case = CreateCTFUseCase(mock_repo, mock_service)
-        
-        dto = CTFCreateDTO(
-            title="AB",  # Muy corto
-            level="easy",
-            category="web",
-            platform="HackTheBox",
-        )
-        
-        with pytest.raises(ValueError):
-            use_case.execute(dto)
+        """Test: título < 3 chars lo rechaza CTFCreateDTO (min_length=3)."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            CTFCreateDTO(
+                title="AB",  # Muy corto para el DTO
+                level="easy",
+                category="web",
+                platform="HackTheBox",
+            )

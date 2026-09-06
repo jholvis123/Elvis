@@ -39,7 +39,7 @@ class WriteupSqlRepository(WriteupRepository):
             db_writeup = WriteupModel(
                 id=writeup_id,
                 title=writeup.title,
-                ctf_id=str(writeup.ctf_id),
+                ctf_id=str(writeup.ctf_id) if writeup.ctf_id else None,
                 content=writeup.content,
                 summary=writeup.summary,
                 tools_used=json.dumps(writeup.tools_used),
@@ -167,13 +167,27 @@ class WriteupSqlRepository(WriteupRepository):
             return True
         return False
     
+
+    @staticmethod
+    def _optional_uuid(value):
+        if value is None:
+            return None
+        text = str(value).strip()
+        if not text or text.lower() in {"none", "null"}:
+            return None
+        try:
+            from uuid import UUID as _UUID
+            return _UUID(text)
+        except (ValueError, TypeError, AttributeError):
+            return None
+
     def _to_entity(self, model: WriteupModel) -> Writeup:
         """Convierte un modelo a entidad de dominio."""
         from uuid import UUID as UUIDType
         return Writeup(
             id=UUIDType(model.id),
             title=model.title,
-            ctf_id=UUIDType(model.ctf_id),
+            ctf_id=self._optional_uuid(model.ctf_id),
             content=model.content,
             summary=model.summary,
             tools_used=json.loads(model.tools_used) if model.tools_used else [],
@@ -181,7 +195,7 @@ class WriteupSqlRepository(WriteupRepository):
             attachments=json.loads(model.attachments) if model.attachments else [],
             status=WriteupStatus(model.status),
             views=model.views,
-            author_id=UUIDType(model.author_id) if model.author_id else None,
+            author_id=self._optional_uuid(model.author_id),
             created_at=model.created_at,
             updated_at=model.updated_at,
             published_at=model.published_at,
