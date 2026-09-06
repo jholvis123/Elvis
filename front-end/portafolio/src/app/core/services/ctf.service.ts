@@ -48,15 +48,20 @@ interface CTFListResponse {
 }
 
 interface FlagSubmitResponse {
-  is_correct: boolean;
+  success?: boolean;
+  is_correct?: boolean;
+  isCorrect?: boolean;
   message: string;
+  points?: number | null;
+  already_solved?: boolean;
   attempts_remaining?: number;
 }
 
-// Respuesta normalizada para el frontend
 export interface FlagSubmitResult {
   success: boolean;
   message: string;
+  points?: number | null;
+  already_solved?: boolean;
 }
 
 // DTO para actualización de CTF
@@ -132,8 +137,10 @@ export class CtfService {
   submitFlagToApi(challengeId: string, flag: string): Observable<FlagSubmitResult> {
     return this.api.post<FlagSubmitResponse>(`/ctfs/${challengeId}/submit`, { flag }).pipe(
       map(response => ({
-        success: response.is_correct,
-        message: response.message
+        success: !!(response.success ?? response.is_correct ?? response.isCorrect),
+        message: response.message,
+        points: response.points ?? null,
+        already_solved: !!response.already_solved
       })),
       tap(result => {
         if (result.success) {

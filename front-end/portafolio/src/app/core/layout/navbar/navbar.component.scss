@@ -1,7 +1,7 @@
 .nav-link {
-  @apply text-textSecondary hover:text-primary transition-colors duration-300 text-sm font-medium;
+  @apply text-textSecondary hover:text-primary transition-colors duration-300 text-sm font-medium whitespace-nowrap;
 }
 
 .nav-link-mobile {
-  @apply text-textSecondary hover:text-primary transition-colors duration-300 py-2 text-base;
+  @apply text-textSecondary hover:text-primary hover:bg-slate-800/60 transition-colors duration-300 py-3 px-2 text-base min-h-[44px] flex items-center rounded-lg;
 }

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -12,11 +12,21 @@ import { IconComponent } from '../../../shared/icons/icon.component';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnDestroy {
   public readonly authService = inject(AuthService);
   public readonly apiAvailability = inject(ApiAvailabilityService);
   private readonly router = inject(Router);
   isMenuOpen = false;
+  avatarSrc = '/assets/imagen.jpg';
+  private readonly avatarFallback =
+    'https://ui-avatars.com/api/?name=Elvis&background=0D8ABC&color=fff';
+
+
+  onAvatarError(): void {
+    if (this.avatarSrc !== this.avatarFallback) {
+      this.avatarSrc = this.avatarFallback;
+    }
+  }
 
   /** Mostrar login/salir solo si la API está disponible. */
   get showAuthLinks(): boolean {
@@ -38,9 +48,33 @@ export class NavbarComponent {
 
   toggleMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;
+    this.syncBodyScroll();
   }
 
   closeMenu(): void {
     this.isMenuOpen = false;
+    this.syncBodyScroll();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.isMenuOpen) {
+      this.closeMenu();
+    }
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (this.isMenuOpen && window.innerWidth >= 1024) {
+      this.closeMenu();
+    }
+  }
+
+  ngOnDestroy(): void {
+    document.body.style.overflow = '';
+  }
+
+  private syncBodyScroll(): void {
+    document.body.style.overflow = this.isMenuOpen ? 'hidden' : '';
   }
 }

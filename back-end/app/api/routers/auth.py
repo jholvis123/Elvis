@@ -44,6 +44,12 @@ async def register(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     """Registra un nuevo usuario."""
+    if not settings.ALLOW_PUBLIC_REGISTER:
+        # Personal portfolio: public signup closed by default (use create_admin.py).
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Public registration is disabled",
+        )
     # Validar datos
     errors = auth_service.validate_registration(data.email, data.username)
     if errors:

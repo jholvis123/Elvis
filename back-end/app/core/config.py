@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     
     # CSRF Protection
     CSRF_SECRET_KEY: Optional[str] = None  # Will default to SECRET_KEY if not set
+
+    # Public self-registration (personal portfolio: keep false in production)
+    # Admin bootstrap remains create_admin.py — this only gates POST /auth/register
+    ALLOW_PUBLIC_REGISTER: bool = False
     
     # Storage
     STORAGE_TYPE: str = "local"  # local, s3

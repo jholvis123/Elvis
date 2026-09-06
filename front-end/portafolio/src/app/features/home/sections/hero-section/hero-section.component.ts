@@ -6,6 +6,7 @@ import { Highlight } from '@core/models';
 import { TechBadgeComponent } from '@shared/components';
 import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
 import { CodeBlockComponent } from '@shared/components/code-block/code-block.component';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
   selector: 'app-hero-section',
@@ -15,7 +16,8 @@ import { CodeBlockComponent } from '@shared/components/code-block/code-block.com
     RouterLink,
     TechBadgeComponent,
     StatCardComponent,
-    CodeBlockComponent
+    CodeBlockComponent,
+    IconComponent
   ],
   templateUrl: './hero-section.component.html',
   styleUrls: ['./hero-section.component.scss']

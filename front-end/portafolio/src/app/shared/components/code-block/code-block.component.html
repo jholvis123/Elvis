@@ -4,7 +4,7 @@
   <div class="absolute -right-6 bottom-4 w-44 h-44 rounded-full bg-cyan-500/10 blur-3xl" aria-hidden="true"></div>
 
   <div
-    class="relative bg-surface border border-slate-800 rounded-2xl p-6 shadow-xl hover:border-primary/30 transition-all duration-500">
+    class="relative bg-surface border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl hover:border-primary/30 transition-all duration-500 min-w-0 overflow-hidden">
     <!-- Window controls -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2" aria-hidden="true">
@@ -16,7 +16,7 @@
     </div>
 
     <!-- Code content -->
-    <div class="space-y-3 text-sm font-mono" aria-label="Código decorativo">
+    <div class="space-y-3 text-xs sm:text-sm font-mono overflow-x-auto max-w-full" aria-label="Código decorativo">
       <div class="flex gap-2">
         <span class="text-slate-500">1</span>
         <span class="text-primary">const</span>

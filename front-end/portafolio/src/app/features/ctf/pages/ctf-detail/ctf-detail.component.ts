@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { CtfService } from '@core/services/ctf.service';
+import { CtfService, FlagSubmitResult } from '@core/services/ctf.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ApiAvailabilityService } from '@core/services/api-availability.service';
 import { CTFChallenge, CTF_CATEGORIES, CTF_DIFFICULTIES, CTFAttachment, AttachmentType } from '@core/models/ctf.model';
@@ -29,7 +29,7 @@ export class CtfDetailComponent implements OnInit {
   // Flag submission
   flagInput = '';
   isSubmitting = false;
-  submitResult: { success: boolean; message: string } | null = null;
+  submitResult: FlagSubmitResult | null = null;
 
   // Hints
   revealedHints: Set<number> = new Set();
@@ -100,14 +100,6 @@ export class CtfDetailComponent implements OnInit {
     if (!this.challenge || !this.flagInput.trim() || this.isSubmitting) return;
 
     // Verificar si el usuario está autenticado
-    if (!this.authService.isAuthenticated) {
-      this.submitResult = {
-        success: false,
-        message: '🔒 Debes iniciar sesión para enviar flags'
-      };
-      return;
-    }
-
     this.isSubmitting = true;
     this.submitResult = null;
 
@@ -119,7 +111,6 @@ export class CtfDetailComponent implements OnInit {
           this.isSolved = true;
           this.flagInput = '';
 
-          // ✅ Recargar el challenge actual para actualizar su estado
           this.loadChallengeFromApi(this.challenge!.id);
         }
         this.isSubmitting = false;
