@@ -1,20 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { Project, Technology, Highlight } from '../models';
+import { catchError } from 'rxjs/operators';
+import { Technology, Highlight, PortfolioProfile } from '../models';
 import { ApiService } from './api.service';
 
-interface PortfolioProfileResponse {
-  name: string;
-  title: string;
-  bio?: string;
-  avatar_url?: string;
-  roles: string[];
-  stack_items: string[];
-  about_points: string[];
-  highlights: { label: string; value: string; icon?: string }[];
-  social_links: Record<string, string>;
-}
+export type { PortfolioProfile };
 
 @Injectable({
   providedIn: 'root'
@@ -62,8 +52,37 @@ export class PortfolioService {
   /**
    * Obtiene el perfil completo desde la API
    */
-  getProfile(): Observable<PortfolioProfileResponse> {
-    return this.api.get<PortfolioProfileResponse>('/portfolio/profile');
+  getProfile(): Observable<PortfolioProfile> {
+    return this.api.get<PortfolioProfile>('/portfolio/profile');
+  }
+
+  /**
+   * Reemplazo completo del perfil (admin). PUT, no PATCH.
+   * CSRF lo añade el interceptor. social_links es un dict; twitter opcional se persiste si va en el PUT.
+   */
+  updateProfile(profile: PortfolioProfile): Observable<PortfolioProfile> {
+    const social = profile.social_links || { email: '' };
+    const body: PortfolioProfile = {
+      name: profile.name,
+      title: profile.title,
+      bio: profile.bio ?? null,
+      avatar_url: profile.avatar_url ?? null,
+      roles: profile.roles ?? [],
+      stack_items: profile.stack_items ?? [],
+      about_points: profile.about_points ?? [],
+      highlights: (profile.highlights ?? []).map((h) => ({
+        label: h.label,
+        value: h.value,
+        icon: h.icon || undefined
+      })),
+      social_links: {
+        email: social.email || '',
+        github: social.github || '',
+        linkedin: social.linkedin || '',
+        twitter: social.twitter || '',
+      }
+    };
+    return this.api.put<PortfolioProfile>('/portfolio/profile', body, { withCredentials: true });
   }
 
   /**
@@ -113,23 +132,6 @@ export class PortfolioService {
 
   getAboutPoints(): string[] {
     return [...this.fallbackAboutPoints];
-  }
-
-  // DEPRECADO: Los proyectos ahora se cargan desde ProjectsService
-  // Estos métodos se mantienen vacíos por compatibilidad
-  getProjects(): Project[] {
-    console.warn('PortfolioService.getProjects() está deprecado. Usar ProjectsService.getFeaturedProjects()');
-    return [];
-  }
-
-  getProjectById(id: string): Project | undefined {
-    console.warn('PortfolioService.getProjectById() está deprecado. Usar ProjectsService.getProjectById()');
-    return undefined;
-  }
-
-  getProjectsByCategory(category: Project['category']): Project[] {
-    console.warn('PortfolioService.getProjectsByCategory() está deprecado.');
-    return [];
   }
 
   getRoles(): string[] {

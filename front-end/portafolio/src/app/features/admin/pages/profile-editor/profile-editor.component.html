@@ -1,0 +1,195 @@
+<div class="admin-page">
+  <div class="max-w-4xl mx-auto">
+    <div class="admin-toolbar">
+      <div>
+        <p class="eyebrow">Administración</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-textPrimary mb-2">Perfil del portafolio</h1>
+        <p class="text-textSecondary">Edita el contenido público: nombre, bio, roles, stack y redes.</p>
+      </div>
+      <div class="admin-toolbar__actions">
+        <a routerLink="/admin/dashboard" class="btn-outline inline-flex items-center gap-2">
+          <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
+          Volver
+        </a>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="flex justify-center py-16" role="status" aria-live="polite">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <span class="sr-only">Cargando perfil</span>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="card text-center py-10 space-y-3">
+      <app-icon name="exclamation-triangle" cssClass="w-10 h-10 text-warning mx-auto"></app-icon>
+      <p class="text-textSecondary">{{ errorMessage }}</p>
+      <button type="button" class="btn-outline min-h-[44px]" (click)="loadProfile()">Reintentar</button>
+    </div>
+
+    <form *ngIf="!loading && loaded && !errorMessage" [formGroup]="form" (ngSubmit)="requestSave()" class="space-y-6" novalidate>
+      <div *ngIf="saveError" class="card border-warning/40 py-4 px-5" role="alert">
+        <div class="flex gap-3 items-start">
+          <app-icon name="exclamation-triangle" cssClass="w-5 h-5 text-warning shrink-0 mt-0.5"></app-icon>
+          <p class="text-textSecondary">{{ saveError }}</p>
+        </div>
+      </div>
+
+      <section class="card space-y-4">
+        <h2 class="text-lg font-semibold text-textPrimary">Identidad</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="profile-name" class="block text-sm text-textSecondary mb-2">Nombre *</label>
+            <input id="profile-name" type="text" formControlName="name" class="input min-h-[44px]" autocomplete="name" />
+            <p *ngIf="form.get('name')?.touched && form.get('name')?.invalid" class="text-red-400 text-xs mt-1">
+              El nombre es obligatorio (mínimo 2 caracteres).
+            </p>
+          </div>
+          <div>
+            <label for="profile-title" class="block text-sm text-textSecondary mb-2">Título *</label>
+            <input id="profile-title" type="text" formControlName="title" class="input min-h-[44px]" />
+            <p *ngIf="form.get('title')?.touched && form.get('title')?.invalid" class="text-red-400 text-xs mt-1">
+              El título es obligatorio (mínimo 2 caracteres).
+            </p>
+          </div>
+        </div>
+        <div>
+          <label for="profile-bio" class="block text-sm text-textSecondary mb-2">Bio</label>
+          <textarea id="profile-bio" formControlName="bio" rows="4" class="input" placeholder="Resumen profesional"></textarea>
+        </div>
+        <div>
+          <label for="profile-avatar" class="block text-sm text-textSecondary mb-2">URL del avatar</label>
+          <input id="profile-avatar" type="url" formControlName="avatar_url" class="input min-h-[44px]" placeholder="https://…" />
+        </div>
+      </section>
+
+      <section class="card space-y-4">
+        <h2 class="text-lg font-semibold text-textPrimary">Roles, stack y sobre mí</h2>
+        <app-dynamic-list
+          formControlName="roles"
+          label="Roles"
+          placeholder="Nuevo rol…"
+          emptyMessage="Sin roles. El hero usa esta lista para la animación."
+          addButtonText="Agregar"
+          [maxItems]="12"
+          [minLength]="2"
+          variant="tags">
+        </app-dynamic-list>
+        <app-dynamic-list
+          formControlName="stack_items"
+          label="Stack"
+          placeholder="Tecnología…"
+          emptyMessage="Sin tecnologías en el stack."
+          addButtonText="Agregar"
+          [maxItems]="24"
+          [minLength]="1"
+          variant="tags">
+        </app-dynamic-list>
+        <app-dynamic-list
+          formControlName="about_points"
+          label="Puntos «Sobre mí»"
+          placeholder="Nuevo punto…"
+          emptyMessage="Sin puntos en la sección Sobre mí."
+          addButtonText="Agregar"
+          [maxItems]="12"
+          [minLength]="4"
+          [maxLength]="240"
+          [showIndex]="true">
+        </app-dynamic-list>
+      </section>
+
+      <section class="card space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 class="text-lg font-semibold text-textPrimary">Destacados</h2>
+          <button type="button" class="btn-outline inline-flex items-center gap-2" (click)="addHighlight()">
+            <app-icon name="plus" cssClass="w-4 h-4"></app-icon>
+            Agregar destacado
+          </button>
+        </div>
+        <p *ngIf="highlights.length === 0" class="text-textSecondary text-sm">
+          No hay destacados. Se mostrarán en el hero cuando existan.
+        </p>
+        <div formArrayName="highlights" class="space-y-4">
+          <div
+            *ngFor="let group of highlights.controls; let i = index"
+            [formGroupName]="i"
+            class="rounded-xl border border-slate-800 p-4 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-sm text-textSecondary mb-2" [attr.for]="'hl-label-' + i">Etiqueta</label>
+                <input [id]="'hl-label-' + i" type="text" formControlName="label" class="input min-h-[44px]" />
+              </div>
+              <div>
+                <label class="block text-sm text-textSecondary mb-2" [attr.for]="'hl-value-' + i">Valor</label>
+                <input [id]="'hl-value-' + i" type="text" formControlName="value" class="input min-h-[44px]" />
+              </div>
+              <div>
+                <label class="block text-sm text-textSecondary mb-2" [attr.for]="'hl-icon-' + i">Icono</label>
+                <div class="flex items-center gap-2">
+                  <app-icon
+                    [name]="previewIcon(group)"
+                    cssClass="w-5 h-5 text-primary shrink-0">
+                  </app-icon>
+                  <select [id]="'hl-icon-' + i" formControlName="icon" class="input min-h-[44px]">
+                    <option *ngFor="let icon of highlightIcons" [value]="icon">{{ icon }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="admin-action text-red-400 hover:text-red-300" (click)="removeHighlight(i)">
+              <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
+              <span class="sr-only">Quitar destacado</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card space-y-4">
+        <h2 class="text-lg font-semibold text-textPrimary">Redes (perfil)</h2>
+        <p class="text-textSecondary text-sm">
+          Email, GitHub, LinkedIn y Twitter van en social_links. Si omites Twitter, el servidor no lo guarda.
+        </p>
+        <div>
+          <label for="profile-email" class="block text-sm text-textSecondary mb-2">Email</label>
+          <input id="profile-email" type="email" formControlName="email" class="input min-h-[44px]" autocomplete="email" />
+          <p *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="text-red-400 text-xs mt-1">
+            Introduce un correo válido.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="profile-github" class="block text-sm text-textSecondary mb-2">GitHub</label>
+            <input id="profile-github" type="url" formControlName="github" class="input min-h-[44px]" placeholder="https://github.com/…" />
+          </div>
+          <div>
+            <label for="profile-linkedin" class="block text-sm text-textSecondary mb-2">LinkedIn</label>
+            <input id="profile-linkedin" type="url" formControlName="linkedin" class="input min-h-[44px]" placeholder="https://linkedin.com/in/…" />
+          </div>
+          <div>
+            <label for="profile-twitter" class="block text-sm text-textSecondary mb-2">Twitter / X</label>
+            <input id="profile-twitter" type="url" formControlName="twitter" class="input min-h-[44px]" placeholder="https://x.com/…" />
+          </div>
+        </div>
+      </section>
+
+      <div class="flex flex-col-reverse sm:flex-row gap-3 justify-end">
+        <a routerLink="/admin/dashboard" class="btn-outline w-full sm:w-auto">Cancelar</a>
+        <button
+          type="submit"
+          class="btn-primary w-full sm:w-auto"
+          [disabled]="saving">
+          {{ saving ? 'Guardando…' : 'Guardar perfil' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [open]="showConfirm"
+  title="Guardar perfil"
+  message="Se reemplazará el perfil público completo (nombre, bio, roles, stack, destacados y redes)."
+  warning="Esta acción sustituye todos los campos. No es un parche parcial."
+  confirmLabel="Guardar"
+  cancelLabel="Cancelar"
+  (confirmed)="executeSave()"
+  (cancelled)="cancelSave()">
+</app-confirm-dialog>

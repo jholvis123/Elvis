@@ -1,8 +1,8 @@
-<div class="min-h-screen bg-slate-950 p-6">
+<div class="admin-page">
     <div class="max-w-7xl mx-auto">
         <div class="mb-8">
             <p class="eyebrow">Administración</p>
-            <h1 class="text-4xl font-bold text-textPrimary mb-2">Panel de Administración</h1>
+            <h1 class="text-2xl sm:text-4xl font-bold text-textPrimary mb-2">Panel de Administración</h1>
             <p class="text-textSecondary">Gestiona el contenido del portafolio</p>
         </div>
 
@@ -14,7 +14,7 @@
         <div *ngIf="!loading && errorMessage" class="card text-center py-10 space-y-3 mb-8">
             <app-icon name="exclamation-triangle" cssClass="w-10 h-10 text-warning mx-auto"></app-icon>
             <p class="text-textSecondary">{{ errorMessage }}</p>
-            <button type="button" class="btn-outline" (click)="loadStats()">Reintentar</button>
+            <button type="button" class="btn-outline min-h-[44px]" (click)="loadStats()">Reintentar</button>
         </div>
 
         <p *ngIf="!loading && statsDegraded" class="card mb-6 text-textSecondary">
@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <a routerLink="/projects/new" class="card hover:border-primary transition group">
                     <app-icon name="plus" cssClass="w-8 h-8 text-primary mb-3"></app-icon>
                     <h3 class="font-bold text-lg text-textPrimary">Nuevo Proyecto</h3>
@@ -94,22 +94,28 @@
                     <h3 class="font-bold text-lg text-textPrimary">Nuevo CTF</h3>
                     <p class="text-textSecondary text-sm">Crea un nuevo challenge</p>
                 </a>
+
+                <a routerLink="/admin/profile" class="card hover:border-primary transition group">
+                    <app-icon name="user" cssClass="w-8 h-8 text-primary mb-3"></app-icon>
+                    <h3 class="font-bold text-lg text-textPrimary">Editar perfil</h3>
+                    <p class="text-textSecondary text-sm">Nombre, bio, roles, stack y redes</p>
+                </a>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="card">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
                         <h2 class="text-xl font-bold text-textPrimary">Proyectos recientes</h2>
                         <a routerLink="/admin/projects" class="text-primary text-sm hover:text-primaryHover">Ver todos</a>
                     </div>
                     <div class="space-y-3">
                         <div *ngFor="let project of recentProjects"
-                            class="flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-slate-800/80 transition">
-                            <div class="flex-1">
-                                <h4 class="text-textPrimary font-medium">{{ project.title }}</h4>
-                                <p class="text-textSecondary text-sm">{{ project.short_description }}</p>
+                            class="flex items-center justify-between gap-3 p-3 bg-surface rounded-lg hover:bg-slate-800/80 transition min-w-0">
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-textPrimary font-medium truncate">{{ project.title }}</h4>
+                                <p class="text-textSecondary text-sm line-clamp-1">{{ project.short_description }}</p>
                             </div>
-                            <a [routerLink]="['/projects', project.id, 'edit']" class="text-primary hover:text-primaryHover p-2" title="Editar">
+                            <a [routerLink]="['/projects', project.id, 'edit']" class="admin-action text-primary hover:text-primaryHover shrink-0" title="Editar" [attr.aria-label]="'Editar ' + project.title">
                                 <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
                             </a>
                         </div>
@@ -120,18 +126,18 @@
                 </div>
 
                 <div class="card">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
                         <h2 class="text-xl font-bold text-textPrimary">Writeups recientes</h2>
                         <a routerLink="/admin/writeups" class="text-primary text-sm hover:text-primaryHover">Ver todos</a>
                     </div>
                     <div class="space-y-3">
                         <div *ngFor="let writeup of recentWriteups"
-                            class="flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-slate-800/80 transition">
-                            <div class="flex-1">
-                                <h4 class="text-textPrimary font-medium">{{ writeup.title }}</h4>
+                            class="flex items-center justify-between gap-3 p-3 bg-surface rounded-lg hover:bg-slate-800/80 transition min-w-0">
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-textPrimary font-medium truncate">{{ writeup.title }}</h4>
                                 <p class="text-textSecondary text-sm">{{ writeup.views }} vistas</p>
                             </div>
-                            <a [routerLink]="['/writeups', writeup.id, 'edit']" class="text-primary hover:text-primaryHover p-2" title="Editar">
+                            <a [routerLink]="['/writeups', writeup.id, 'edit']" class="admin-action text-primary hover:text-primaryHover shrink-0" title="Editar" [attr.aria-label]="'Editar ' + writeup.title">
                                 <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
                             </a>
                         </div>

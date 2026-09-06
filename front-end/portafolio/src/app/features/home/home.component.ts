@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PortfolioService, ContactService } from '@core/services';
 import { ProjectsService } from '../projects/services/projects.service';
-import { Project, Highlight, ContactInfo } from '@core/models';
+import { ProjectSummary, Highlight, ContactInfo } from '@core/models';
 import { ScrollToTopComponent } from '@shared/components';
 import {
   HeroSectionComponent,
@@ -37,7 +37,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   technologies: string[] = [];
   highlights: Highlight[] = [];
   aboutPoints: string[] = [];
-  projects: Project[] = [];
+  projects: ProjectSummary[] = [];
   contactInfo: ContactInfo[] = [];
   projectTypes: { value: string; label: string }[] = [];
   stackItems: string[] = [];
@@ -113,15 +113,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (projects) => {
-        this.projects = projects.map(p => ({
-          id: p.id,
-          title: p.title,
-          description: p.short_description,
-          tags: p.technologies.slice(0, 3),
-          cta: 'Ver proyecto',
-          year: new Date(p.created_at).getFullYear(),
-          category: 'web'
-        }));
+        this.projects = projects;
         this.loadingProjects = false;
       },
       error: () => {
