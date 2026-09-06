@@ -66,6 +66,11 @@ def client(db: Session):
     
     app.dependency_overrides[get_db] = override_get_db
 
+    # Existing endpoint tests expect register; production default is off.
+    from ..core.config import settings
+    previous_allow_register = settings.ALLOW_PUBLIC_REGISTER
+    settings.ALLOW_PUBLIC_REGISTER = True
+
     # Reset slowapi in-memory counters so register 5/hour does not flake across tests
     from ..core.security_middleware import limiter
     storage = getattr(limiter, "_storage", None)
@@ -74,7 +79,8 @@ def client(db: Session):
 
     with TestClient(app) as c:
         yield c
-    
+
+    settings.ALLOW_PUBLIC_REGISTER = previous_allow_register
     app.dependency_overrides.clear()
 
 
