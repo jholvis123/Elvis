@@ -18,10 +18,12 @@ import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, takeUntil, distinctUntilChanged, catchError } from 'rxjs';
 import { of } from 'rxjs';
 import { WriteupsService, MarkdownRenderResponse, TOCItem } from '../../../features/writeups/services/writeups.service';
+import { IconComponent, IconName } from '@shared/icons/icon.component';
 
 export interface EditorToolbarAction {
     id: string;
-    icon: string;
+    icon?: string;
+    iconName?: IconName;
     label: string;
     shortcut?: string;
     action: () => void;
@@ -35,7 +37,7 @@ export interface ImageUploadEvent {
 @Component({
     selector: 'app-markdown-editor',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, IconComponent],
     templateUrl: './markdown-editor.component.html',
     styleUrls: ['./markdown-editor.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -102,19 +104,19 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
             { id: 'h1', icon: 'H1', label: 'Encabezado 1', action: () => this.insertAtLineStart('# ') },
             { id: 'h2', icon: 'H2', label: 'Encabezado 2', action: () => this.insertAtLineStart('## ') },
             { id: 'h3', icon: 'H3', label: 'Encabezado 3', action: () => this.insertAtLineStart('### ') },
-            { id: 'link', icon: '🔗', label: 'Enlace', shortcut: 'Ctrl+K', action: () => this.insertLink() },
-            { id: 'image', icon: '🖼️', label: 'Imagen', action: () => this.insertImage() },
+            { id: 'link', iconName: 'link', label: 'Enlace', shortcut: 'Ctrl+K', action: () => this.insertLink() },
+            { id: 'image', iconName: 'photo', label: 'Imagen', action: () => this.insertImage() },
             { id: 'code', icon: '<>', label: 'Código inline', action: () => this.wrapSelection('`', '`') },
-            { id: 'codeblock', icon: '📝', label: 'Bloque de código', action: () => this.insertCodeBlock() },
+            { id: 'codeblock', iconName: 'code-bracket', label: 'Bloque de código', action: () => this.insertCodeBlock() },
             { id: 'quote', icon: '❝', label: 'Cita', action: () => this.insertAtLineStart('> ') },
             { id: 'ul', icon: '•', label: 'Lista', action: () => this.insertAtLineStart('- ') },
             { id: 'ol', icon: '1.', label: 'Lista numerada', action: () => this.insertAtLineStart('1. ') },
             { id: 'check', icon: '☑', label: 'Checkbox', action: () => this.insertAtLineStart('- [ ] ') },
             { id: 'table', icon: '⊞', label: 'Tabla', action: () => this.insertTable() },
             { id: 'hr', icon: '—', label: 'Línea horizontal', action: () => this.insertText('\n---\n') },
-            { id: 'info', icon: 'ℹ️', label: 'Callout Info', action: () => this.insertCallout('info') },
-            { id: 'warning', icon: '⚠️', label: 'Callout Warning', action: () => this.insertCallout('warning') },
-            { id: 'tip', icon: '💡', label: 'Callout Tip', action: () => this.insertCallout('tip') },
+            { id: 'info', iconName: 'information-circle', label: 'Callout Info', action: () => this.insertCallout('info') },
+            { id: 'warning', iconName: 'exclamation-triangle', label: 'Callout Warning', action: () => this.insertCallout('warning') },
+            { id: 'tip', iconName: 'light-bulb', label: 'Callout Tip', action: () => this.insertCallout('tip') },
         ];
     }
     

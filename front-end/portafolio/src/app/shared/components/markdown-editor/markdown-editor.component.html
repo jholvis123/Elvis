@@ -9,7 +9,8 @@
                 [title]="action.label + (action.shortcut ? ' (' + action.shortcut + ')' : '')"
                 (click)="action.action()"
             >
-                <span class="toolbar-icon">{{ action.icon }}</span>
+                <app-icon *ngIf="action.iconName" [name]="action.iconName" cssClass="w-4 h-4"></app-icon>
+                <span *ngIf="!action.iconName" class="toolbar-icon">{{ action.icon }}</span>
             </button>
         </div>
         
@@ -21,7 +22,7 @@
                 title="Vista dividida"
                 (click)="setViewMode('split')"
             >
-                <span class="toolbar-icon">📐</span>
+                <app-icon name="puzzle-piece" cssClass="w-4 h-4" ariaLabel="Vista dividida"></app-icon>
             </button>
             <button
                 type="button"
@@ -30,7 +31,7 @@
                 title="Solo editor"
                 (click)="setViewMode('edit')"
             >
-                <span class="toolbar-icon">✏️</span>
+                <app-icon name="pencil-square" cssClass="w-4 h-4" ariaLabel="Solo editor"></app-icon>
             </button>
             <button
                 type="button"
@@ -39,7 +40,7 @@
                 title="Solo preview"
                 (click)="setViewMode('preview')"
             >
-                <span class="toolbar-icon">👁️</span>
+                <app-icon name="eye" cssClass="w-4 h-4" ariaLabel="Solo preview"></app-icon>
             </button>
             <button
                 type="button"
@@ -48,12 +49,12 @@
                 title="Pantalla completa (F11)"
                 (click)="toggleFullscreen()"
             >
-                <span class="toolbar-icon">{{ isFullscreen() ? '🗗' : '🗖' }}</span>
+                <app-icon [name]="isFullscreen() ? 'arrows-pointing-in' : 'arrows-pointing-out'" cssClass="w-4 h-4" ariaLabel="Pantalla completa"></app-icon>
             </button>
         </div>
         
         <div class="toolbar-info">
-            <span class="save-indicator saving" *ngIf="isSaving()">💾 Guardando...</span>
+            <span class="save-indicator saving inline-flex items-center gap-1" *ngIf="isSaving()"><app-icon name="archive-box" cssClass="w-3.5 h-3.5"></app-icon> Guardando...</span>
             <span class="save-indicator unsaved" *ngIf="!isSaving() && hasChanges()">● Sin guardar</span>
             <span class="save-indicator saved" *ngIf="!isSaving() && !hasChanges()">✓ Guardado</span>
             <span class="word-count">{{ wordCount() }} palabras · {{ readTime() }} min</span>
@@ -87,7 +88,7 @@
             ></textarea>
             
             <div class="drop-overlay" *ngIf="isDragging()">
-                <span class="drop-icon">📷</span>
+                <app-icon name="photo" cssClass="w-10 h-10 text-primary drop-icon" ariaLabel="Imagen"></app-icon>
                 <span class="drop-text">Suelta la imagen aquí</span>
             </div>
         </div>
@@ -95,7 +96,7 @@
         <!-- Preview Panel -->
         <div class="preview-panel" *ngIf="viewMode() !== 'edit'" #previewPanel>
             <div class="preview-loading" *ngIf="isRendering()">
-                <span class="loading-spinner">⏳</span>
+                <app-icon name="arrow-down-tray" cssClass="w-5 h-5 animate-pulse"></app-icon>
                 <span>Renderizando...</span>
             </div>
             <div 

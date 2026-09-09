@@ -45,7 +45,7 @@
         class="ctf-card__attachment"
         [ngClass]="getAttachmentClass(attachment.type)"
         [title]="attachment.name">
-        <span class="ctf-card__attachment-icon">{{ getAttachmentIcon(attachment.type) }}</span>
+        <app-icon class="ctf-card__attachment-icon" [name]="getAttachmentIconName(attachment.type)" cssClass="w-4 h-4"></app-icon>
         <span class="ctf-card__attachment-label">{{ getAttachmentLabel(attachment.type) }}</span>
       </span>
     </div>

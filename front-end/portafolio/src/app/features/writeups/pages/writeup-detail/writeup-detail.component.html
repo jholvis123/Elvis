@@ -49,19 +49,19 @@
                 
                 <div class="writeup-stats">
                     <span class="stat">
-                        <span class="stat-icon">📖</span>
+                        <app-icon name="book-open" cssClass="w-4 h-4 text-primary"></app-icon>
                         <span>{{ writeup.read_time }} min</span>
                     </span>
                     <span class="stat">
-                        <span class="stat-icon">✍️</span>
+                        <app-icon name="pencil-square" cssClass="w-4 h-4 text-primary"></app-icon>
                         <span>{{ writeup.word_count || 0 }} palabras</span>
                     </span>
                     <span class="stat">
-                        <span class="stat-icon">👁️</span>
+                        <app-icon name="eye" cssClass="w-4 h-4 text-primary"></app-icon>
                         <span>{{ writeup.views }} vistas</span>
                     </span>
                     <span class="stat">
-                        <span class="stat-icon">📅</span>
+                        <app-icon name="calendar" cssClass="w-4 h-4 text-primary"></app-icon>
                         <span>{{ writeup.created_at | date:'dd MMM yyyy' }}</span>
                     </span>
                 </div>
@@ -69,8 +69,8 @@
             
             <!-- Tools & Techniques Tags -->
             <div class="writeup-tags" *ngIf="writeup.tools_used.length > 0 || writeup.techniques.length > 0">
-                <span class="tag tag-tool" *ngFor="let tool of writeup.tools_used">🛠️ {{ tool }}</span>
-                <span class="tag tag-technique" *ngFor="let tech of writeup.techniques">💡 {{ tech }}</span>
+                <span class="tag tag-tool inline-flex items-center gap-1" *ngFor="let tool of writeup.tools_used"><app-icon name="wrench-screwdriver" cssClass="w-3.5 h-3.5"></app-icon> {{ tool }}</span>
+                <span class="tag tag-technique inline-flex items-center gap-1" *ngFor="let tech of writeup.techniques"><app-icon name="light-bulb" cssClass="w-3.5 h-3.5"></app-icon> {{ tech }}</span>
             </div>
             
             <!-- Languages Used -->
@@ -97,7 +97,7 @@
 
 <!-- Error -->
 <div class="error-container" *ngIf="error && !loading">
-    <span class="error-icon">⚠️</span>
+    <app-icon name="exclamation-triangle" cssClass="w-8 h-8 text-warning error-icon" ariaLabel="Error"></app-icon>
     <p class="error-message">{{ error }}</p>
     <a routerLink="/writeups" class="error-link">Volver a writeups</a>
 </div>

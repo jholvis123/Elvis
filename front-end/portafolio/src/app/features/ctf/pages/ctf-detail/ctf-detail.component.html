@@ -14,7 +14,7 @@
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div class="space-y-2">
           <div class="flex items-center gap-3">
-            <span *ngIf="categoryInfo?.icon" class="text-2xl">{{ categoryInfo?.icon }}</span>
+            <app-icon name="flag" cssClass="w-5 h-5 text-primary"></app-icon>
             <span class="text-sm text-textSecondary uppercase tracking-wide">{{ categoryInfo?.label }}</span>
             <span class="px-3 py-1 text-sm rounded-full border" [ngClass]="difficultyColorClass">
               {{ difficultyInfo?.label }}
@@ -69,12 +69,12 @@
           <div class="space-y-3">
             <div *ngFor="let hint of challenge.hints; let i = index" class="hint-item">
               <div *ngIf="isHintRevealed(i); else hiddenHint" class="hint-revealed">
-                <span class="text-amber-400 mr-2">💡</span>
+                <app-icon name="light-bulb" cssClass="w-4 h-4 text-amber-400 mr-2 inline"></app-icon>
                 {{ hint }}
               </div>
               <ng-template #hiddenHint>
                 <button (click)="revealHint(i)" class="hint-hidden">
-                  <span class="text-amber-400 mr-2">🔒</span>
+                  <app-icon name="lock-closed" cssClass="w-4 h-4 text-amber-400 mr-2 inline"></app-icon>
                   Revelar pista {{ i + 1 }}
                 </button>
               </ng-template>
@@ -85,7 +85,7 @@
         <!-- Resources / Downloads -->
         <section class="card" *ngIf="hasAttachments">
           <h2 class="text-lg font-semibold text-textPrimary mb-4">
-            <span class="mr-2">📦</span>Recursos del reto
+            <span class="inline-flex items-center gap-2"><app-icon name="archive-box" cssClass="w-5 h-5 text-primary"></app-icon> Recursos del reto</span>
           </h2>
           <p class="text-sm text-textSecondary mb-4">
             Descarga los archivos necesarios para resolver este reto.
@@ -94,7 +94,7 @@
             <div *ngFor="let attachment of challenge.attachments" class="resource-item"
               [ngClass]="getAttachmentClass(attachment.type)">
               <div class="resource-info">
-                <span class="resource-icon">{{ getAttachmentIcon(attachment.type) }}</span>
+                <app-icon class="resource-icon" [name]="getAttachmentIconName(attachment.type)" cssClass="w-5 h-5"></app-icon>
                 <div class="resource-details">
                   <span class="resource-name">{{ attachment.name }}</span>
                   <span class="resource-meta" *ngIf="attachment.size">
@@ -104,9 +104,9 @@
               </div>
               <button (click)="onAttachmentClick(attachment)" class="resource-action"
                 [title]="getAttachmentAction(attachment.type)">
-                <span *ngIf="attachment.type === 'file'">⬇️ Descargar</span>
-                <span *ngIf="attachment.type === 'url'">🔗 Abrir</span>
-                <span *ngIf="attachment.type === 'docker'">📋 Copiar</span>
+                <span *ngIf="attachment.type === 'file'" class="inline-flex items-center gap-1"><app-icon name="arrow-down-tray" cssClass="w-4 h-4"></app-icon> Descargar</span>
+                <span *ngIf="attachment.type === 'url'" class="inline-flex items-center gap-1"><app-icon name="link" cssClass="w-4 h-4"></app-icon> Abrir</span>
+                <span *ngIf="attachment.type === 'docker'" class="inline-flex items-center gap-1"><app-icon name="clipboard-document" cssClass="w-4 h-4"></app-icon> Copiar</span>
               </button>
             </div>
           </div>

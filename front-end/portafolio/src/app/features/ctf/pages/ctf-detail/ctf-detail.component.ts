@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { IconComponent } from '@shared/icons/icon.component';
+import { IconComponent, IconName } from '@shared/icons/icon.component';
 
 import { CtfService, FlagSubmitResult } from '@core/services/ctf.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -140,13 +140,13 @@ export class CtfDetailComponent implements OnInit {
     return !!this.challenge?.attachments && this.challenge.attachments.length > 0;
   }
 
-  getAttachmentIcon(type: AttachmentType): string {
-    const icons: Record<AttachmentType, string> = {
-      file: '📎',
-      url: '🔗',
-      docker: '🐳'
+  getAttachmentIconName(type: AttachmentType): IconName {
+    const icons: Record<AttachmentType, IconName> = {
+      file: 'paper-clip',
+      url: 'link',
+      docker: 'cube'
     };
-    return icons[type] || '📎';
+    return icons[type] || 'paper-clip';
   }
 
   getAttachmentAction(type: AttachmentType): string {

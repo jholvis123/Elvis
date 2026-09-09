@@ -89,9 +89,9 @@ export class CategorySelectorComponent implements ControlValueAccessor {
     
     const types = config.requiredTypes.map(t => {
       switch(t) {
-        case 'file': return '📎 Archivos';
-        case 'url': return '🔗 URL';
-        case 'docker': return '🐳 Docker';
+        case 'file': return 'Archivos';
+        case 'url': return 'URL';
+        case 'docker': return 'Docker';
         default: return t;
       }
     });

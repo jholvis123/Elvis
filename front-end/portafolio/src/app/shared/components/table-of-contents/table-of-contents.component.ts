@@ -11,6 +11,7 @@ import {
     ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { IconComponent } from '@shared/icons/icon.component';
 
 export interface TOCItem {
     id: string;
@@ -29,7 +30,7 @@ const TOC_STORAGE_KEY = 'writeup-toc-open';
 @Component({
     selector: 'app-table-of-contents',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, IconComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <!-- Desktop TOC Sidebar -->
@@ -41,7 +42,7 @@ const TOC_STORAGE_KEY = 'writeup-toc-open';
             <!-- Header -->
             <div class="toc-header">
                 <div class="toc-title">
-                    <span class="toc-icon">📑</span>
+                    <app-icon name="list-bullet" cssClass="w-4 h-4 toc-icon"></app-icon>
                     <span class="toc-label">Contenido</span>
                 </div>
                 <button 
@@ -49,14 +50,14 @@ const TOC_STORAGE_KEY = 'writeup-toc-open';
                     (click)="toggleDesktop()"
                     [attr.aria-label]="isOpen() ? 'Cerrar índice' : 'Abrir índice'"
                 >
-                    <span class="toggle-icon">{{ isOpen() ? '◀' : '▶' }}</span>
+                    <span class="toggle-icon" aria-hidden="true">{{ isOpen() ? '‹' : '›' }}</span>
                 </button>
                 <button 
                     class="toc-toggle mobile-close"
                     (click)="closeMobile()"
                     aria-label="Cerrar índice"
                 >
-                    ✕
+                    <app-icon name="x-mark" cssClass="w-4 h-4"></app-icon>
                 </button>
             </div>
             
@@ -84,15 +85,15 @@ const TOC_STORAGE_KEY = 'writeup-toc-open';
                 <!-- Stats Section -->
                 <div class="toc-stats" *ngIf="stats">
                     <div class="stat-item">
-                        <span class="stat-icon">📖</span>
+                        <app-icon name="book-open" cssClass="w-4 h-4"></app-icon>
                         <span class="stat-value">{{ stats.readTime }} min lectura</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-icon">✍️</span>
+                        <app-icon name="pencil-square" cssClass="w-4 h-4"></app-icon>
                         <span class="stat-value">{{ stats.wordCount | number }} palabras</span>
                     </div>
                     <div class="stat-item" *ngIf="stats.languagesUsed.length > 0">
-                        <span class="stat-icon">💻</span>
+                        <app-icon name="code-bracket" cssClass="w-4 h-4"></app-icon>
                         <span class="stat-value">{{ stats.languagesUsed.length }} lenguajes</span>
                     </div>
                 </div>
@@ -100,7 +101,7 @@ const TOC_STORAGE_KEY = 'writeup-toc-open';
             
             <!-- Collapsed indicator -->
             <div class="collapsed-indicator" *ngIf="!isOpen() && !mobileOpen()">
-                <span class="indicator-icon">📑</span>
+                <app-icon name="list-bullet" cssClass="w-5 h-5"></app-icon>
                 <span class="indicator-count">{{ items.length }}</span>
             </div>
         </aside>
@@ -119,7 +120,7 @@ const TOC_STORAGE_KEY = 'writeup-toc-open';
             *ngIf="items.length > 0"
             aria-label="Abrir índice de contenido"
         >
-            <span class="fab-icon">📑</span>
+            <app-icon name="list-bullet" cssClass="w-6 h-6"></app-icon>
             <span class="fab-badge" *ngIf="items.length > 0">{{ items.length }}</span>
         </button>
     `,
