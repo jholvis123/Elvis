@@ -134,11 +134,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private applyPortfolioFallback(): void {
+    // Identidad tipada (roles/stack) sí; métricas inventadas no.
     this.roles = this.portfolioService.getRoles();
     this.stackItems = this.portfolioService.getStackItems();
     this.technologies = this.portfolioService.getTechnologies().map(t => t.name);
     this.aboutPoints = this.portfolioService.getAboutPoints();
-    this.highlights = this.portfolioService.getHighlights();
+    this.highlights = [];
   }
 
   private setupIntersectionObserver(): void {

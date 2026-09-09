@@ -139,14 +139,19 @@
   <section class="challenges-section">
     <div class="max-w-6xl mx-auto px-6 py-8">
       <!-- Results count -->
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-6" *ngIf="!isLoading">
         <p class="text-sm text-textSecondary">
           Mostrando <span class="text-textPrimary font-medium">{{ challenges.length }}</span> retos
         </p>
       </div>
 
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="challenges-grid" aria-busy="true">
+        <app-skeleton-loader *ngFor="let i of [1,2,3,4,5,6]" type="card"></app-skeleton-loader>
+      </div>
+
       <!-- Grid -->
-      <div class="challenges-grid" *ngIf="challenges.length > 0; else noResults">
+      <div class="challenges-grid" *ngIf="!isLoading && challenges.length > 0">
         <app-ctf-card 
           *ngFor="let challenge of challenges"
           [challenge]="challenge"
@@ -154,18 +159,17 @@
         </app-ctf-card>
       </div>
 
-      <!-- No Results -->
-      <ng-template #noResults>
-        <div class="no-results">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-textSecondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p class="text-textSecondary">No se encontraron retos con los filtros seleccionados</p>
-          <button (click)="clearFilters()" class="btn-primary mt-4">
-            Limpiar filtros
-          </button>
-        </div>
-      </ng-template>
+      <!-- Empty / no filter results -->
+      <div *ngIf="!isLoading && challenges.length === 0" class="no-results card max-w-lg mx-auto text-center py-12">
+        <app-icon name="puzzle-piece" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
+        <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin retos publicados</h2>
+        <p class="text-textSecondary mb-4">
+          No hay retos disponibles con los filtros actuales, o la API aún no expone challenges.
+        </p>
+        <button type="button" (click)="clearFilters()" class="btn-primary mt-2">
+          Limpiar filtros
+        </button>
+      </div>
     </div>
   </section>
 </div>

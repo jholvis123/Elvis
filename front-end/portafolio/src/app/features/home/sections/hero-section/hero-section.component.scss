@@ -7,3 +7,14 @@
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-cursor {
+    animation: none;
+    opacity: 1;
+  }
+
+  .animate-pulse {
+    animation: none !important;
+  }
+}

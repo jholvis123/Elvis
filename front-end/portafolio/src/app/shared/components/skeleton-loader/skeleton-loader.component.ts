@@ -74,6 +74,17 @@ import { CommonModule } from '@angular/common';
       height: 2.5rem;
       width: 8rem;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton-shimmer {
+        animation: none;
+        display: none;
+      }
+      .skeleton-loader {
+        background: rgba(255, 255, 255, 0.08);
+        background-size: auto;
+      }
+    }
   `]
 })
 export class SkeletonLoaderComponent {

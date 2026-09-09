@@ -117,7 +117,7 @@ export class PortfolioService {
    */
   getHighlightsFromApi(): Observable<Highlight[]> {
     return this.api.get<Highlight[]>('/portfolio/highlights').pipe(
-      catchError(() => of(this.fallbackHighlights))
+      catchError(() => of([]))
     );
   }
 
@@ -127,7 +127,8 @@ export class PortfolioService {
   }
 
   getHighlights(): Highlight[] {
-    return [...this.fallbackHighlights];
+    // No inventar métricas; solo API / perfil admin.
+    return [];
   }
 
   getAboutPoints(): string[] {

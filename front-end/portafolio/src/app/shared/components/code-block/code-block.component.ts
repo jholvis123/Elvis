@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,14 +8,17 @@ import { CommonModule } from '@angular/common';
   templateUrl: './code-block.component.html',
   styleUrls: ['./code-block.component.scss']
 })
-export class CodeBlockComponent implements OnInit {
+export class CodeBlockComponent implements OnInit, OnDestroy {
   displayedRole = '';
   displayedStack = '';
   displayedStatus = '';
   displayedQuote = '';
 
   private currentTyping: string | null = null;
+  private destroyed = false;
+  private prefersReducedMotion = false;
 
+  /** Perfil tipado con propósito: quién soy / stack / disponibilidad — no lluvia Matrix. */
   private profiles = [
     {
       role: "'Fullstack & Security'",
@@ -32,7 +35,7 @@ export class CodeBlockComponent implements OnInit {
     {
       role: "'CTF Player'",
       stack: "['Pwn','Crypto','Reverse']",
-      status: "'Hacking...'",
+      status: "'Practicando'",
       quote: "No es solo encontrar el flag, es entender el porqué del fallo."
     }
   ];
@@ -40,35 +43,55 @@ export class CodeBlockComponent implements OnInit {
   private currentProfileIndex = 0;
 
   ngOnInit(): void {
-    this.runInfiniteLoop();
+    this.prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (this.prefersReducedMotion) {
+      const profile = this.profiles[0];
+      this.displayedRole = profile.role;
+      this.displayedStack = profile.stack;
+      this.displayedStatus = profile.status;
+      this.displayedQuote = profile.quote;
+      return;
+    }
+
+    void this.runInfiniteLoop();
   }
 
-  async runInfiniteLoop() {
-    while (true) {
+  ngOnDestroy(): void {
+    this.destroyed = true;
+  }
+
+  async runInfiniteLoop(): Promise<void> {
+    while (!this.destroyed) {
       const profile = this.profiles[this.currentProfileIndex];
 
-      // Type effect sequence
       await this.typeEffect('displayedRole', profile.role, 40);
+      if (this.destroyed) return;
       await this.typeEffect('displayedStack', profile.stack, 40);
+      if (this.destroyed) return;
       await this.typeEffect('displayedStatus', profile.status, 40);
+      if (this.destroyed) return;
       await this.typeEffect('displayedQuote', profile.quote, 20);
+      if (this.destroyed) return;
 
-      // Pause at the end
       await new Promise(resolve => setTimeout(resolve, 3000));
+      if (this.destroyed) return;
 
-      // Clear effect
       await this.clearEffect();
+      if (this.destroyed) return;
 
-      // Next profile
       this.currentProfileIndex = (this.currentProfileIndex + 1) % this.profiles.length;
     }
   }
 
-  private async clearEffect() {
+  private async clearEffect(): Promise<void> {
     const props: Array<'displayedRole' | 'displayedStack' | 'displayedStatus' | 'displayedQuote'> =
       ['displayedQuote', 'displayedStatus', 'displayedStack', 'displayedRole'];
 
     for (const prop of props) {
+      if (this.destroyed) return;
       this.currentTyping = prop;
       while (this[prop].length > 0) {
         this[prop] = this[prop].slice(0, -1);
@@ -79,11 +102,20 @@ export class CodeBlockComponent implements OnInit {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
-  private typeEffect(property: 'displayedRole' | 'displayedStack' | 'displayedStatus' | 'displayedQuote', text: string, speed: number): Promise<void> {
+  private typeEffect(
+    property: 'displayedRole' | 'displayedStack' | 'displayedStatus' | 'displayedQuote',
+    text: string,
+    speed: number
+  ): Promise<void> {
     this.currentTyping = property;
     return new Promise((resolve) => {
       let i = 0;
       const interval = setInterval(() => {
+        if (this.destroyed) {
+          clearInterval(interval);
+          resolve();
+          return;
+        }
         this[property] += text.charAt(i);
         i++;
         if (i === text.length) {

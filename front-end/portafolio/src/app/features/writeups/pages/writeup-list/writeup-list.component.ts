@@ -2,11 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { WriteupsService, Writeup } from '../../services/writeups.service';
+import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
+import { ErrorMessageComponent } from '@shared/components/error-message/error-message.component';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
     selector: 'app-writeup-list',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [
+        CommonModule,
+        RouterLink,
+        SkeletonLoaderComponent,
+        ErrorMessageComponent,
+        IconComponent
+    ],
     templateUrl: './writeup-list.component.html',
     styleUrls: ['./writeup-list.component.scss']
 })
@@ -40,13 +49,14 @@ export class WriteupListComponent implements OnInit {
 
         this.writeupsService.getWriteups(params).subscribe({
             next: (response) => {
-                this.writeups = response.items;
+                this.writeups = response.items ?? [];
                 this.total = response.total;
                 this.totalPages = response.pages;
                 this.loading = false;
             },
-            error: (err) => {
-                this.error = 'Error al cargar los writeups';
+            error: () => {
+                this.writeups = [];
+                this.error = 'No se pudieron cargar los writeups. Intenta de nuevo más tarde.';
                 this.loading = false;
             }
         });
