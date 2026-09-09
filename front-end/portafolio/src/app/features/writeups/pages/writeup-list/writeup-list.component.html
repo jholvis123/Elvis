@@ -1,88 +1,86 @@
 <div class="container mx-auto px-4 py-12">
-    <!-- Header -->
-    <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-white mb-4">Writeups CTF</h1>
-        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
-            Soluciones detalladas de challenges CTF con técnicas y herramientas explicadas
-        </p>
-    </div>
+  <div class="text-center mb-12">
+    <p class="eyebrow">Laboratorio</p>
+    <h1 class="text-4xl font-bold text-textPrimary mb-4">Writeups CTF</h1>
+    <p class="text-textSecondary text-lg max-w-2xl mx-auto">
+      Soluciones detalladas de challenges CTF con técnicas y herramientas explicadas
+    </p>
+  </div>
 
-    <!-- Search -->
-    <div class="max-w-2xl mx-auto mb-10">
-        <input type="text" #searchInput (keyup.enter)="search(searchInput.value)" placeholder="Buscar writeups..."
-            class="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" />
-    </div>
+  <div class="max-w-2xl mx-auto mb-10">
+    <label for="writeup-search" class="sr-only">Buscar writeups</label>
+    <input id="writeup-search" type="text" #searchInput (keyup.enter)="search(searchInput.value)"
+      placeholder="Buscar writeups..."
+      class="input" />
+  </div>
 
-    <!-- Loading -->
-    <div *ngIf="loading" class="flex justify-center py-20">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-    </div>
+  <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-busy="true">
+    <app-skeleton-loader *ngFor="let i of [1,2,3,4,5,6]" type="card"></app-skeleton-loader>
+  </div>
 
-    <!-- Error -->
-    <div *ngIf="error && !loading"
-        class="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center max-w-md mx-auto">
-        <p class="text-red-200">{{ error }}</p>
-    </div>
+  <app-error-message *ngIf="error && !loading" [message]="error" customClass="max-w-md mx-auto"></app-error-message>
 
-    <!-- Writeups Grid -->
-    <div *ngIf="!loading && !error" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div *ngFor="let writeup of writeups"
-            class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-6 hover:border-purple-500/50 transition group">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition flex-1">
-                    {{ writeup.title }}
-                </h3>
-                <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs ml-2">
-                    {{ writeup.views }} vistas
-                </span>
-            </div>
+  <div *ngIf="!loading && !error && writeups.length > 0"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <article *ngFor="let writeup of writeups" class="card group">
+      <div class="flex justify-between items-start mb-4 gap-2">
+        <h3 class="text-xl font-bold text-textPrimary group-hover:text-primary transition flex-1">
+          {{ writeup.title }}
+        </h3>
+        <span class="bg-primary/20 text-primary px-2 py-1 rounded text-xs shrink-0">
+          {{ writeup.views }} vistas
+        </span>
+      </div>
 
-            <p class="text-gray-400 text-sm mb-4 line-clamp-3">
-                {{ writeup.summary }}
-            </p>
+      <p class="text-textSecondary text-sm mb-4 line-clamp-3">
+        {{ writeup.summary }}
+      </p>
 
-            <!-- Tools -->
-            <div class="flex flex-wrap gap-2 mb-4">
-                <span *ngFor="let tool of writeup.tools_used.slice(0, 3)"
-                    class="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">
-                    {{ tool }}
-                </span>
-                <span *ngIf="writeup.tools_used.length > 3" class="text-gray-500 text-xs self-center">
-                    +{{ writeup.tools_used.length - 3 }}
-                </span>
-            </div>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span *ngFor="let tool of writeup.tools_used.slice(0, 3)" class="pill text-xs">
+          {{ tool }}
+        </span>
+        <span *ngIf="writeup.tools_used.length > 3" class="text-textSecondary text-xs self-center">
+          +{{ writeup.tools_used.length - 3 }}
+        </span>
+      </div>
 
-            <!-- Footer -->
-            <div class="flex justify-between items-center text-sm text-gray-400">
-                <span *ngIf="writeup.read_time">{{ writeup.read_time }} min lectura</span>
-                <a [routerLink]="['/writeups', writeup.id]" class="text-purple-400 hover:text-purple-300 font-medium">
-                    Leer writeup →
-                </a>
-            </div>
-        </div>
-    </div>
+      <div class="flex justify-between items-center text-sm text-textSecondary">
+        <span *ngIf="writeup.read_time">{{ writeup.read_time }} min lectura</span>
+        <a [routerLink]="['/writeups', writeup.id]" class="text-primary hover:text-primaryHover font-medium inline-flex items-center gap-1 min-h-[44px]">
+          Leer writeup
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+  </div>
 
-    <!-- Empty State -->
-    <div *ngIf="!loading && !error && writeups.length === 0" class="text-center py-20">
-        <p class="text-gray-400 text-lg">No se encontraron writeups</p>
-    </div>
+  <div *ngIf="!loading && !error && writeups.length === 0" class="text-center py-20 card max-w-lg mx-auto">
+    <app-icon name="document-text" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
+    <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin writeups publicados</h2>
+    <p class="text-textSecondary">
+      No hay writeups disponibles en este momento. Cuando la API publique datos, aparecerán aquí.
+    </p>
+  </div>
 
-    <!-- Pagination -->
-    <div *ngIf="totalPages > 1 && !loading" class="mt-12 flex justify-center gap-2">
-        <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
-            class="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition">
-            ← Anterior
-        </button>
+  <div *ngIf="totalPages > 1 && !loading && !error && writeups.length > 0" class="mt-12 flex justify-center flex-wrap gap-2">
+    <button type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
+      class="px-4 py-2 bg-slate-800 text-textPrimary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition min-h-[44px]">
+      Anterior
+    </button>
 
-        <button *ngFor="let page of pages" (click)="goToPage(page)" [class.bg-purple-600]="page === currentPage"
-            [class.bg-gray-700]="page !== currentPage"
-            class="px-4 py-2 text-white rounded-lg hover:bg-purple-700 transition">
-            {{ page }}
-        </button>
+    <button type="button" *ngFor="let page of pages" (click)="goToPage(page)"
+      [class.bg-primary]="page === currentPage"
+      [class.text-black]="page === currentPage"
+      [class.bg-slate-800]="page !== currentPage"
+      [class.text-textPrimary]="page !== currentPage"
+      class="px-4 py-2 rounded-lg hover:opacity-90 transition min-h-[44px]">
+      {{ page }}
+    </button>
 
-        <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
-            class="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition">
-            Siguiente →
-        </button>
-    </div>
+    <button type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+      class="px-4 py-2 bg-slate-800 text-textPrimary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition min-h-[44px]">
+      Siguiente
+    </button>
+  </div>
 </div>

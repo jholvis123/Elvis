@@ -8,11 +8,13 @@ import { AuthService } from '@core/services/auth.service';
 import { ApiAvailabilityService } from '@core/services/api-availability.service';
 import { CTFChallenge, CTFFilter, CTFStats, CTF_CATEGORIES, CTF_DIFFICULTIES } from '@core/models/ctf.model';
 import { CtfCardComponent } from '@shared/components';
+import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
   selector: 'app-ctf-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CtfCardComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CtfCardComponent, SkeletonLoaderComponent, IconComponent],
   templateUrl: './ctf-list.component.html',
   styleUrls: ['./ctf-list.component.scss']
 })

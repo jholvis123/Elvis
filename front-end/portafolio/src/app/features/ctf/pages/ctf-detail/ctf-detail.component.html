@@ -116,16 +116,16 @@
       <!-- Sidebar -->
       <aside class="space-y-6">
         <!-- Auth Prompt Banner (Solo para no autenticados) -->
-        <section class="card bg-gradient-to-br from-purple-600 to-pink-600 border-0"
+        <section class="card bg-gradient-to-br from-cyan-700 to-slate-900 border border-primary/30"
           *ngIf="showAuthPrompt">
           <div class="text-center">
-            <h3 class="text-white text-xl font-bold mb-2">¿Listo para el desafío?</h3>
-            <p class="text-white/90 mb-6 text-sm">
-              Inicia sesión para enviar flags, ganar puntos y competir con otros hackers
+            <app-icon name="flag" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
+            <h3 class="text-textPrimary text-xl font-bold mb-2">¿Listo para el desafío?</h3>
+            <p class="text-textSecondary mb-6 text-sm">
+              Inicia sesión para enviar flags, ganar puntos y competir en el laboratorio CTF
             </p>
             <div class="flex flex-col gap-3">
-              <a routerLink="/auth/login"
-                class="px-6 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+              <a routerLink="/auth/login" class="btn-primary">
                 Iniciar sesión
               </a>
             </div>

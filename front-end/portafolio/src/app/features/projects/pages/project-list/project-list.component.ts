@@ -2,11 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ProjectsService, Project } from '../../services/projects.service';
+import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
+import { ErrorMessageComponent } from '@shared/components/error-message/error-message.component';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
     selector: 'app-project-list',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [
+        CommonModule,
+        RouterLink,
+        SkeletonLoaderComponent,
+        ErrorMessageComponent,
+        IconComponent
+    ],
     templateUrl: './project-list.component.html',
     styleUrls: ['./project-list.component.scss']
 })
@@ -15,13 +24,11 @@ export class ProjectListComponent implements OnInit {
     loading = false;
     error = '';
 
-    // Paginación
     currentPage = 1;
     pageSize = 9;
     totalPages = 1;
     total = 0;
 
-    // Filtros
     selectedTechnology: string | null = null;
     technologies: { technology: string; count: number }[] = [];
 
@@ -44,13 +51,14 @@ export class ProjectListComponent implements OnInit {
 
         this.projectsService.getProjects(params).subscribe({
             next: (response) => {
-                this.projects = response.items;
+                this.projects = response.items ?? [];
                 this.total = response.total;
                 this.totalPages = response.pages;
                 this.loading = false;
             },
-            error: (err) => {
-                this.error = 'Error al cargar los proyectos';
+            error: () => {
+                this.projects = [];
+                this.error = 'No se pudieron cargar los proyectos. Intenta de nuevo más tarde.';
                 this.loading = false;
             }
         });
@@ -59,10 +67,10 @@ export class ProjectListComponent implements OnInit {
     loadTechnologies(): void {
         this.projectsService.getTechnologies().subscribe({
             next: (techs) => {
-                this.technologies = techs;
+                this.technologies = techs ?? [];
             },
             error: () => {
-                // Silent fail for technologies
+                this.technologies = [];
             }
         });
     }

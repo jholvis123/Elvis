@@ -1,110 +1,109 @@
 <div class="container mx-auto px-4 py-12">
-    <!-- Header -->
-    <div class="mb-12">
-        <h1 class="text-4xl font-bold text-white mb-4">Proyectos</h1>
-        <p class="text-gray-400 text-lg max-w-2xl">
-            Explora mis proyectos de desarrollo web, seguridad y CTF
-        </p>
-    </div>
+  <div class="mb-12">
+    <p class="eyebrow">Portafolio</p>
+    <h1 class="text-4xl font-bold text-textPrimary mb-4">Proyectos</h1>
+    <p class="text-textSecondary text-lg max-w-2xl">
+      Explora mis proyectos de desarrollo web, seguridad y CTF
+    </p>
+  </div>
 
-    <!-- Filters -->
-    <div class="mb-8 flex flex-wrap gap-3">
-        <button (click)="filterByTechnology(null)" [class.bg-purple-600]="selectedTechnology === null"
-            [class.bg-gray-700]="selectedTechnology !== null"
-            class="px-4 py-2 rounded-lg text-white text-sm font-medium hover:bg-purple-700 transition">
-            Todos
-        </button>
-        <button *ngFor="let tech of technologies" (click)="filterByTechnology(tech.technology)"
-            [class.bg-purple-600]="selectedTechnology === tech.technology"
-            [class.bg-gray-700]="selectedTechnology !== tech.technology"
-            class="px-4 py-2 rounded-lg text-white text-sm font-medium hover:bg-purple-700 transition">
-            {{ tech.technology }} ({{ tech.count }})
-        </button>
-    </div>
+  <div class="mb-8 flex flex-wrap gap-3" role="group" aria-label="Filtros por tecnología">
+    <button type="button" (click)="filterByTechnology(null)"
+      [class.bg-primary]="selectedTechnology === null"
+      [class.text-black]="selectedTechnology === null"
+      [class.bg-slate-800]="selectedTechnology !== null"
+      [class.text-textPrimary]="selectedTechnology !== null"
+      class="px-4 py-2 rounded-lg text-sm font-medium hover:border-primary/50 border border-transparent transition min-h-[44px]">
+      Todos
+    </button>
+    <button type="button" *ngFor="let tech of technologies" (click)="filterByTechnology(tech.technology)"
+      [class.bg-primary]="selectedTechnology === tech.technology"
+      [class.text-black]="selectedTechnology === tech.technology"
+      [class.bg-slate-800]="selectedTechnology !== tech.technology"
+      [class.text-textPrimary]="selectedTechnology !== tech.technology"
+      class="px-4 py-2 rounded-lg text-sm font-medium hover:border-primary/50 border border-transparent transition min-h-[44px]">
+      {{ tech.technology }} ({{ tech.count }})
+    </button>
+  </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="flex justify-center items-center py-20">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-    </div>
+  <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-busy="true">
+    <app-skeleton-loader *ngFor="let i of [1,2,3,4,5,6]" type="card"></app-skeleton-loader>
+  </div>
 
-    <!-- Error State -->
-    <div *ngIf="error && !loading" class="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
-        <p class="text-red-200">{{ error }}</p>
-    </div>
+  <app-error-message *ngIf="error && !loading" [message]="error" customClass="max-w-lg mx-auto"></app-error-message>
 
-    <!-- Projects Grid -->
-    <div *ngIf="!loading && !error" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div *ngFor="let project of projects"
-            class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden hover:border-purple-500/50 transition group">
-            <!-- Image -->
-            <div class="relative h-48 overflow-hidden bg-gradient-to-br from-purple-900 to-slate-900">
-                <img *ngIf="project.image_url" [src]="project.image_url" [alt]="project.title"
-                    class="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
-                <div *ngIf="project.featured"
-                    class="absolute top-4 right-4 bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
-                    Destacado
-                </div>
-            </div>
-
-            <!-- Content -->
-            <div class="p-6">
-                <h3 class="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition">
-                    {{ project.title }}
-                </h3>
-                <p class="text-gray-400 mb-4 text-sm line-clamp-2">
-                    {{ project.short_description }}
-                </p>
-
-                <!-- Technologies -->
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <span *ngFor="let tech of project.technologies.slice(0, 3)"
-                        class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">
-                        {{ tech }}
-                    </span>
-                    <span *ngIf="project.technologies.length > 3" class="text-gray-500 text-xs self-center">
-                        +{{ project.technologies.length - 3 }} más
-                    </span>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex gap-3">
-                    <a [routerLink]="['/projects', project.id]"
-                        class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-center py-2 rounded-lg text-sm font-medium transition">
-                        Ver Detalles
-                    </a>
-                    <a *ngIf="project.github_url" [href]="project.github_url" target="_blank"
-                        class="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-lg transition" title="GitHub">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.22-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
+  <div *ngIf="!loading && !error && projects.length > 0"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <article *ngFor="let project of projects"
+      class="card overflow-hidden p-0 group">
+      <div class="relative h-48 overflow-hidden bg-gradient-to-br from-slate-900 via-cyan-950/40 to-slate-900">
+        <img *ngIf="project.image_url" [src]="project.image_url" [alt]="project.title"
+          class="w-full h-full object-cover group-hover:scale-105 transition duration-300 motion-reduce:transition-none" />
+        <div *ngIf="project.featured"
+          class="absolute top-4 right-4 bg-warning text-black px-3 py-1 rounded-full text-xs font-bold">
+          Destacado
         </div>
-    </div>
+      </div>
 
-    <!-- Empty State -->
-    <div *ngIf="!loading && !error && projects.length === 0" class="text-center py-20">
-        <p class="text-gray-400 text-lg">No se encontraron proyectos</p>
-    </div>
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-textPrimary mb-2 group-hover:text-primary transition">
+          {{ project.title }}
+        </h3>
+        <p class="text-textSecondary mb-4 text-sm line-clamp-2">
+          {{ project.short_description }}
+        </p>
 
-    <!-- Pagination -->
-    <div *ngIf="totalPages > 1 && !loading" class="mt-12 flex justify-center gap-2">
-        <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
-            class="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition">
-            ← Anterior
-        </button>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span *ngFor="let tech of project.technologies.slice(0, 3)"
+            class="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
+            {{ tech }}
+          </span>
+          <span *ngIf="project.technologies.length > 3" class="text-textSecondary text-xs self-center">
+            +{{ project.technologies.length - 3 }} más
+          </span>
+        </div>
 
-        <button *ngFor="let page of pages" (click)="goToPage(page)" [class.bg-purple-600]="page === currentPage"
-            [class.bg-gray-700]="page !== currentPage"
-            class="px-4 py-2 text-white rounded-lg hover:bg-purple-700 transition">
-            {{ page }}
-        </button>
+        <div class="flex gap-3">
+          <a [routerLink]="['/projects', project.id]"
+            class="flex-1 btn-primary text-center text-sm py-2">
+            Ver Detalles
+          </a>
+          <a *ngIf="project.github_url" [href]="project.github_url" target="_blank" rel="noopener noreferrer"
+            class="bg-slate-800 hover:bg-slate-700 text-textPrimary p-2 rounded-lg transition inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
+            [attr.aria-label]="'GitHub de ' + project.title" title="GitHub">
+            <app-icon name="arrow-top-right-on-square" cssClass="w-5 h-5"></app-icon>
+          </a>
+        </div>
+      </div>
+    </article>
+  </div>
 
-        <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
-            class="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition">
-            Siguiente →
-        </button>
-    </div>
+  <div *ngIf="!loading && !error && projects.length === 0" class="text-center py-20 card max-w-lg mx-auto">
+    <app-icon name="folder" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
+    <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin proyectos publicados</h2>
+    <p class="text-textSecondary">
+      No hay proyectos disponibles en este momento. Cuando la API publique datos, aparecerán aquí.
+    </p>
+  </div>
+
+  <div *ngIf="totalPages > 1 && !loading && !error && projects.length > 0" class="mt-12 flex justify-center flex-wrap gap-2">
+    <button type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
+      class="px-4 py-2 bg-slate-800 text-textPrimary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition min-h-[44px]">
+      Anterior
+    </button>
+
+    <button type="button" *ngFor="let page of pages" (click)="goToPage(page)"
+      [class.bg-primary]="page === currentPage"
+      [class.text-black]="page === currentPage"
+      [class.bg-slate-800]="page !== currentPage"
+      [class.text-textPrimary]="page !== currentPage"
+      class="px-4 py-2 rounded-lg hover:opacity-90 transition min-h-[44px]">
+      {{ page }}
+    </button>
+
+    <button type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+      class="px-4 py-2 bg-slate-800 text-textPrimary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition min-h-[44px]">
+      Siguiente
+    </button>
+  </div>
 </div>

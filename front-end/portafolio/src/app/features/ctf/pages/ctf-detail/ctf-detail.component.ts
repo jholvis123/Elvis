@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { IconComponent } from '@shared/icons/icon.component';
 
 import { CtfService, FlagSubmitResult } from '@core/services/ctf.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -11,7 +12,7 @@ import { CTFChallenge, CTF_CATEGORIES, CTF_DIFFICULTIES, CTFAttachment, Attachme
 @Component({
   selector: 'app-ctf-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, IconComponent],
   templateUrl: './ctf-detail.component.html',
   styleUrls: ['./ctf-detail.component.scss']
 })

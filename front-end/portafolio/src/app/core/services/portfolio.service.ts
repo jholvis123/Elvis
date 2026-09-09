@@ -137,6 +137,7 @@ export class PortfolioService {
   }
 
   getHighlights(): Highlight[] {
+    // No inventar métricas; solo API / perfil admin.
     return [];
   }
 

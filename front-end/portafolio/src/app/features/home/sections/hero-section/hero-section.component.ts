@@ -28,6 +28,8 @@ export class HeroSectionComponent implements OnInit, OnDestroy, OnChanges {
   @Input() roles: string[] = [];
 
   currentRole = '';
+  prefersReducedMotion = false;
+
   private roleIndex = 0;
   private charIndex = 0;
   private isDeleting = false;
@@ -36,6 +38,9 @@ export class HeroSectionComponent implements OnInit, OnDestroy, OnChanges {
   private typingStarted = false;
 
   ngOnInit(): void {
+    this.prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.tryStartTyping();
   }
 
@@ -51,10 +56,15 @@ export class HeroSectionComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private tryStartTyping(): void {
-    if (this.roles.length > 0 && !this.typingStarted) {
-      this.typingStarted = true;
-      this.startTyping();
+    if (!this.roles.length || this.typingStarted) {
+      return;
     }
+    this.typingStarted = true;
+    if (this.prefersReducedMotion) {
+      this.currentRole = this.roles[0];
+      return;
+    }
+    this.startTyping();
   }
 
   private resetTyping(): void {

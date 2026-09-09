@@ -1,5 +1,5 @@
 <section id="hero" class="relative overflow-hidden bg-slate-950" aria-label="Sección principal">
-  <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-cyan-500/10 via-transparent to-primary/5 blur-3xl"></div>
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-cyan-500/10 via-transparent to-primary/5 blur-3xl" aria-hidden="true"></div>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12 md:pb-24 relative z-10">
     <div class="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
       <div class="space-y-6 animate-fade-in-up min-w-0">
@@ -10,40 +10,43 @@
         </div>
 
         <div class="space-y-3">
-          <p class="text-sm uppercase tracking-[0.25rem] text-textSecondary">Desarrollo · Ciberseguridad · CTF</p>
+          <p class="eyebrow">Quién soy</p>
           <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-textPrimary leading-tight">
             Yhon Elvis Siñani Pocoata
           </h1>
-          <p class="text-lg sm:text-xl text-primary min-h-8 flex items-center">
+          <p class="text-lg sm:text-xl text-primary min-h-8 flex items-center" aria-live="polite">
             <span class="typing-text">{{ currentRole }}</span>
-            <span class="typing-cursor" aria-hidden="true">|</span>
+            <span class="typing-cursor" *ngIf="!prefersReducedMotion" aria-hidden="true">|</span>
           </p>
           <p class="text-base sm:text-lg text-textSecondary max-w-xl">
             Ingeniero de Sistemas con conocimientos en ciberseguridad. Construyo productos digitales seguros,
             escalables y centrados en la experiencia.
           </p>
+          <p class="text-sm text-textSecondary/80 max-w-xl">
+            Evidencia: proyectos, writeups y retos CTF publicados cuando la API los expone.
+          </p>
         </div>
 
         <div class="flex flex-col sm:flex-row flex-wrap gap-3" role="group" aria-label="Acciones principales">
-          <a href="#projects" class="btn-primary" aria-label="Ver mis proyectos">
+          <a href="#projects" class="btn-primary" aria-label="Ver proyectos">
             <span class="flex items-center justify-center gap-2">
               <app-icon name="folder" cssClass="w-5 h-5"></app-icon>
               Ver proyectos
             </span>
           </a>
-          <a routerLink="/ctf" class="btn-outline" aria-label="Ir al laboratorio CTF">
+          <a routerLink="/ctf" class="btn-outline" aria-label="Explorar CTF">
             <span class="flex items-center justify-center gap-2">
               <app-icon name="puzzle-piece" cssClass="w-5 h-5"></app-icon>
-              CTF Lab
+              Explorar CTF
             </span>
           </a>
-          <a href="#contact" class="border border-slate-700 text-textSecondary px-6 py-2 rounded hover:border-primary hover:text-primary transition-all duration-300 inline-flex items-center justify-center gap-2 min-h-[44px]" aria-label="Contactarme">
+          <a href="#contact" class="border border-slate-700 text-textSecondary px-6 py-2 rounded hover:border-primary hover:text-primary transition-all duration-300 inline-flex items-center justify-center gap-2 min-h-[44px]" aria-label="Ir a contacto">
             <app-icon name="envelope" cssClass="w-5 h-5"></app-icon>
-            Contactar
+            Contacto
           </a>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-md" role="list" aria-label="Estadísticas destacadas">
+        <div *ngIf="highlights.length" class="grid grid-cols-3 gap-2 sm:gap-4 max-w-md" role="list" aria-label="Evidencia destacada">
           <app-stat-card
             *ngFor="let item of highlights; let i = index"
             [value]="item.value"
@@ -52,7 +55,7 @@
           </app-stat-card>
         </div>
 
-        <div class="flex flex-wrap gap-2 text-sm" role="list" aria-label="Tecnologías">
+        <div *ngIf="technologies.length" class="flex flex-wrap gap-2 text-sm" role="list" aria-label="Tecnologías">
           <app-tech-badge
             *ngFor="let tech of technologies"
             [name]="tech">
@@ -60,7 +63,7 @@
         </div>
       </div>
 
-      <div class="hidden md:block">
+      <div class="hidden md:block" aria-label="Panel de perfil tipado">
         <app-code-block></app-code-block>
       </div>
     </div>

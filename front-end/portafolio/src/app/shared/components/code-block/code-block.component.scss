@@ -1,23 +1,34 @@
-/* Estilos específicos de code-block: cursor animado */
+/* Cursor del panel de perfil tipado */
 .cursor {
-    display: inline-block;
-    width: 2px;
-    height: 1em;
-    background-color: #a855f7;
-    /* Color primary */
-    margin-left: 2px;
-    animation: blink 0.8s infinite;
-    vertical-align: middle;
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background-color: #22d3ee;
+  margin-left: 2px;
+  animation: blink 0.8s infinite;
+  vertical-align: middle;
 }
 
 @keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
 
-    0%,
-    100% {
-        opacity: 1;
-    }
+  50% {
+    opacity: 0;
+  }
+}
 
-    50% {
-        opacity: 0;
-    }
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+    opacity: 1;
+  }
+
+  .animate-slide-right,
+  .animate-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+  }
 }

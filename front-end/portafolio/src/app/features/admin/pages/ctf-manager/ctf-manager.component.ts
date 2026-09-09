@@ -140,13 +140,13 @@ export class CtfManagerComponent implements OnInit {
     getCategoryClass(category: string): string {
         const classes: Record<string, string> = {
             'web': 'bg-blue-500/20 text-blue-300',
-            'crypto': 'bg-purple-500/20 text-purple-300',
+            'crypto': 'bg-primary/20 text-primary',
             'forensics': 'bg-green-500/20 text-green-300',
             'pwn': 'bg-red-500/20 text-red-300',
             'reverse': 'bg-orange-500/20 text-orange-300',
             'misc': 'bg-gray-500/20 text-gray-300',
             'osint': 'bg-cyan-500/20 text-cyan-300',
-            'stego': 'bg-pink-500/20 text-pink-300'
+            'stego': 'bg-teal-500/20 text-teal-300'
         };
         return classes[category] || 'bg-gray-500/20 text-gray-300';
     }
