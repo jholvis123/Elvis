@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, HostListener, ElementRef, inject, Destroy
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { PortfolioService, ContactService } from '@core/services';
+import { PortfolioService, ContactService, ApiAvailabilityService } from '@core/services';
 import { ProjectsService } from '../projects/services/projects.service';
 import { ProjectSummary, Highlight, ContactInfo } from '@core/models';
 import { ScrollToTopComponent } from '@shared/components';
@@ -31,6 +31,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly portfolioService = inject(PortfolioService);
   private readonly contactService = inject(ContactService);
   private readonly projectsService = inject(ProjectsService);
+  private readonly apiAvailability = inject(ApiAvailabilityService);
   private readonly elementRef = inject(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -45,16 +46,34 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   showScrollTop = false;
   loadingProjects = true;
+  apiUnavailable = false;
 
   private observer!: IntersectionObserver;
 
   ngOnInit(): void {
-    this.applyPortfolioFallback();
-    this.projectTypes = this.contactService.getProjectTypesSync();
-    this.loadProfile();
-    this.loadContact();
-    this.loadProjects();
-    this.loadProjectTypes();
+    this.apiUnavailable = !this.apiAvailability.isApiAvailable();
+    this.apiAvailability.apiUnavailable$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(unavailable => {
+        this.apiUnavailable = unavailable;
+        if (unavailable) {
+          this.clearPortfolioData();
+          this.projects = [];
+          this.loadingProjects = false;
+        }
+      });
+
+    // Tipos de proyecto solo si hay API; no inventar formulario usable sin backend
+    if (this.apiAvailability.isApiConfigured()) {
+      this.projectTypes = this.contactService.getProjectTypesSync();
+      this.loadProfile();
+      this.loadContact();
+      this.loadProjects();
+      this.loadProjectTypes();
+    } else {
+      this.loadingProjects = false;
+      this.clearPortfolioData();
+    }
     this.setupIntersectionObserver();
   }
 
@@ -78,6 +97,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (profile) => {
+        this.apiAvailability.markNetworkOk();
         if (profile.roles?.length) this.roles = profile.roles;
         if (profile.stack_items?.length) {
           this.stackItems = profile.stack_items;
@@ -89,8 +109,9 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.contactInfo = this.contactService.mapSocialLinks(profile.social_links);
         }
       },
-      error: () => {
-        this.applyPortfolioFallback();
+      error: (err) => {
+        this.apiAvailability.noteRequestFailure(err);
+        this.clearPortfolioData();
       }
     });
   }
@@ -103,6 +124,10 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (info.length) {
           this.contactInfo = info;
         }
+      },
+      error: (err) => {
+        this.apiAvailability.noteRequestFailure(err);
+        this.contactInfo = [];
       }
     });
   }
@@ -113,10 +138,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (projects) => {
+        this.apiAvailability.markNetworkOk();
         this.projects = projects;
         this.loadingProjects = false;
       },
-      error: () => {
+      error: (err) => {
+        this.apiAvailability.noteRequestFailure(err);
         this.projects = [];
         this.loadingProjects = false;
       }
@@ -129,16 +156,17 @@ export class HomeComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (types) => {
         if (types.length > 0) this.projectTypes = types;
-      }
+      },
+      error: (err) => this.apiAvailability.noteRequestFailure(err)
     });
   }
 
-  private applyPortfolioFallback(): void {
-    // Identidad tipada (roles/stack) sí; métricas inventadas no.
-    this.roles = this.portfolioService.getRoles();
-    this.stackItems = this.portfolioService.getStackItems();
-    this.technologies = this.portfolioService.getTechnologies().map(t => t.name);
-    this.aboutPoints = this.portfolioService.getAboutPoints();
+  /** Vaciar datos de portafolio — no usar stats inventados. */
+  private clearPortfolioData(): void {
+    this.roles = [];
+    this.stackItems = [];
+    this.technologies = [];
+    this.aboutPoints = [];
     this.highlights = [];
   }
 

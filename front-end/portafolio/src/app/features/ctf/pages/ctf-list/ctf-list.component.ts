@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 
 import { CtfService } from '@core/services/ctf.service';
 import { AuthService } from '@core/services/auth.service';
+import { ApiAvailabilityService } from '@core/services/api-availability.service';
 import { CTFChallenge, CTFFilter, CTFStats, CTF_CATEGORIES, CTF_DIFFICULTIES } from '@core/models/ctf.model';
 import { CtfCardComponent } from '@shared/components';
 import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
@@ -20,10 +21,12 @@ import { IconComponent } from '@shared/icons/icon.component';
 export class CtfListComponent implements OnInit {
   private readonly ctfService = inject(CtfService);
   private readonly authService = inject(AuthService);
+  private readonly apiAvailability = inject(ApiAvailabilityService);
 
   challenges: CTFChallenge[] = [];
   stats: CTFStats = { totalChallenges: 0, solvedChallenges: 0, totalPoints: 0, earnedPoints: 0 };
   isLoading = true;
+  apiUnavailable = false;
 
   // Filtros
   filter: CTFFilter = {
@@ -43,7 +46,13 @@ export class CtfListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Solo llamar a la carga inicial desde API
+    this.apiUnavailable = !this.apiAvailability.isApiAvailable();
+    if (!this.apiAvailability.isApiConfigured()) {
+      this.isLoading = false;
+      this.challenges = [];
+      this.apiUnavailable = true;
+      return;
+    }
     this.loadDataFromApi();
   }
 
@@ -62,6 +71,8 @@ export class CtfListComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading challenges:', err);
+        this.apiAvailability.noteRequestFailure(err);
+        this.apiUnavailable = !this.apiAvailability.isApiAvailable();
         this.challenges = []; // No mock data
         this.isLoading = false;
       }
@@ -72,7 +83,11 @@ export class CtfListComponent implements OnInit {
       next: (stats) => {
         this.stats = stats;
       },
-      error: (err) => console.error('Error loading stats:', err)
+      error: (err) => {
+        console.error('Error loading stats:', err);
+        this.apiAvailability.noteRequestFailure(err);
+        this.apiUnavailable = !this.apiAvailability.isApiAvailable();
+      }
     });
   }
 

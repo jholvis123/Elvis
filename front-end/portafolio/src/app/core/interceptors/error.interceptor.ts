@@ -5,6 +5,7 @@ import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
 import { ApiError } from '../services/api.service';
+import { ApiAvailabilityService } from '../services/api-availability.service';
 
 function humanMessage(error: HttpErrorResponse, url: string): string {
     if (error.status === 0) {
@@ -65,10 +66,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
     const authService = inject(AuthService);
     const notificationService = inject(NotificationService);
+    const apiAvailability = inject(ApiAvailabilityService);
 
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
-            if (error.status === 0 && error.error instanceof ProgressEvent) {
+            if (error.status === 0) {
+                apiAvailability.markNetworkFailed();
                 return throwError(() => new ApiError('No se puede conectar al servidor', 0));
             }
 

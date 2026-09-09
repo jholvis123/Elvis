@@ -14,4 +14,5 @@ import { IconComponent } from '@shared/icons/icon.component';
 export class ProjectsSectionComponent {
   @Input() projects: ProjectSummary[] = [];
   @Input() loading = false;
+  @Input() apiUnavailable = false;
 }

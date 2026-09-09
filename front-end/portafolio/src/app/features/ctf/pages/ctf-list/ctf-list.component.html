@@ -94,7 +94,7 @@
             class="input">
             <option value="all">Todas las categorías</option>
             <option *ngFor="let cat of categories" [value]="cat.value">
-              {{ cat.icon }} {{ cat.label }}
+              {{ cat.label }}
             </option>
           </select>
         </div>
@@ -159,16 +159,24 @@
         </app-ctf-card>
       </div>
 
-      <!-- Empty / no filter results -->
+      <!-- Empty / API unavailable / no filter results -->
       <div *ngIf="!isLoading && challenges.length === 0" class="no-results card max-w-lg mx-auto text-center py-12">
         <app-icon name="puzzle-piece" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
-        <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin retos publicados</h2>
-        <p class="text-textSecondary mb-4">
-          No hay retos disponibles con los filtros actuales, o la API aún no expone challenges.
-        </p>
-        <button type="button" (click)="clearFilters()" class="btn-primary mt-2">
-          Limpiar filtros
-        </button>
+        <ng-container *ngIf="apiUnavailable; else noFilterResults">
+          <h2 class="text-xl font-semibold text-textPrimary mb-2">API no disponible</h2>
+          <p class="text-textSecondary mb-4">
+            No se pueden cargar los retos CTF en este momento.
+          </p>
+        </ng-container>
+        <ng-template #noFilterResults>
+          <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin retos publicados</h2>
+          <p class="text-textSecondary mb-4">
+            No se encontraron retos con los filtros seleccionados.
+          </p>
+          <button type="button" (click)="clearFilters()" class="btn-primary mt-2">
+            Limpiar filtros
+          </button>
+        </ng-template>
       </div>
     </div>
   </section>

@@ -16,13 +16,15 @@
 <!-- Projects Section -->
 <app-projects-section
   [projects]="projects"
-  [loading]="loadingProjects">
+  [loading]="loadingProjects"
+  [apiUnavailable]="apiUnavailable">
 </app-projects-section>
 
 <!-- Contact Section -->
 <app-contact-section
   [contactInfo]="contactInfo"
-  [projectTypes]="projectTypes">
+  [projectTypes]="projectTypes"
+  [apiUnavailable]="apiUnavailable">
 </app-contact-section>
 
 <!-- Scroll to Top Button -->

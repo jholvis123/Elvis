@@ -1,106 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
-import { NotificationService } from '../../../../core/services/notification.service';
 
+/**
+ * Public register is disabled (backend #42 / CICLO A Pages honest).
+ * Route kept so deep links do not 404; UI explains and points to login.
+ */
 @Component({
     selector: 'app-register',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, RouterLink],
+    imports: [CommonModule, RouterLink],
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent implements OnInit {
-    registerForm!: FormGroup;
-    loading = false;
-    errorMessage = '';
-    successMessage = '';
+    private readonly authService = inject(AuthService);
+    private readonly router = inject(Router);
 
-    constructor(
-        private fb: FormBuilder,
-        private authService: AuthService,
-        private router: Router,
-        private notificationService: NotificationService
-    ) { }
+    /** Always false — public register off. */
+    readonly registrationEnabled = false;
 
     ngOnInit(): void {
-        // Si ya está autenticado, redirigir
         if (this.authService.isAuthenticated) {
             this.router.navigate(['/']);
         }
-
-        this.registerForm = this.fb.group({
-            username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
-            email: ['', [Validators.required, Validators.email]],
-            password: ['', [Validators.required, Validators.minLength(6)]],
-            confirmPassword: ['', [Validators.required]]
-        }, {
-            validators: this.passwordMatchValidator
-        });
-    }
-
-    get username() {
-        return this.registerForm.get('username');
-    }
-
-    get email() {
-        return this.registerForm.get('email');
-    }
-
-    get password() {
-        return this.registerForm.get('password');
-    }
-
-    get confirmPassword() {
-        return this.registerForm.get('confirmPassword');
-    }
-
-    passwordMatchValidator(form: FormGroup) {
-        const password = form.get('password');
-        const confirmPassword = form.get('confirmPassword');
-
-        if (password && confirmPassword && password.value !== confirmPassword.value) {
-            confirmPassword.setErrors({ passwordMismatch: true });
-            return { passwordMismatch: true };
-        }
-
-        return null;
-    }
-
-    onSubmit(): void {
-        if (this.registerForm.invalid) {
-            this.markFormGroupTouched(this.registerForm);
-            return;
-        }
-
-        this.loading = true;
-        this.errorMessage = '';
-        this.successMessage = '';
-
-        const { username, email, password } = this.registerForm.value;
-
-        this.authService.register({ username, email, password }).subscribe({
-            next: () => {
-                this.notificationService.success('Cuenta creada. Sesión iniciada.');
-                this.successMessage = 'Registro exitoso. Redirigiendo...';
-                this.router.navigate(['/']);
-            },
-            error: (error) => {
-                this.loading = false;
-                this.errorMessage = error.message || 'Error al registrarse. Intenta nuevamente.';
-            },
-            complete: () => {
-                this.loading = false;
-            }
-        });
-    }
-
-    private markFormGroupTouched(formGroup: FormGroup): void {
-        Object.keys(formGroup.controls).forEach(key => {
-            const control = formGroup.get(key);
-            control?.markAsTouched();
-        });
     }
 }

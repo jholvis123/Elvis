@@ -21,15 +21,26 @@
       </div>
     </div>
 
-    <div *ngIf="!loading && projects.length === 0" class="text-center py-12 reveal">
+    <!-- API unavailable -->
+    <div *ngIf="!loading && apiUnavailable" class="text-center py-12 reveal">
       <app-icon name="rocket-launch" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
-      <h3 class="text-xl font-semibold text-textPrimary mb-2">Próximamente</h3>
+      <h3 class="text-xl font-semibold text-textPrimary mb-2">API no disponible</h3>
       <p class="text-textSecondary">
-        Los proyectos destacados aparecerán aquí una vez publicados.
+        No se pueden cargar los proyectos porque la API no está configurada o no responde.
       </p>
     </div>
 
-    <div *ngIf="!loading && projects.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Lista de proyectos">
+    <!-- Empty State (API ok, sin datos) -->
+    <div *ngIf="!loading && !apiUnavailable && projects.length === 0" class="text-center py-12 reveal">
+      <app-icon name="rocket-launch" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
+      <h3 class="text-xl font-semibold text-textPrimary mb-2">Sin proyectos</h3>
+      <p class="text-textSecondary">
+        No hay proyectos publicados por el momento.
+      </p>
+    </div>
+
+    <!-- Projects Grid -->
+    <div *ngIf="!loading && !apiUnavailable && projects.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Lista de proyectos">
       <app-project-card
         *ngFor="let project of projects; let i = index"
         [project]="project"

@@ -1,4 +1,5 @@
 export * from './api.service';
+export * from './api-availability.service';
 export * from './auth.service';
 export * from './portfolio.service';
 export * from './contact.service';

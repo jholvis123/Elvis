@@ -2,6 +2,7 @@ import { Component, HostListener, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ApiAvailabilityService } from '../../../core/services/api-availability.service';
 import { IconComponent } from '../../../shared/icons/icon.component';
 
 @Component({
@@ -13,6 +14,7 @@ import { IconComponent } from '../../../shared/icons/icon.component';
 })
 export class NavbarComponent implements OnDestroy {
   public readonly authService = inject(AuthService);
+  public readonly apiAvailability = inject(ApiAvailabilityService);
   private readonly router = inject(Router);
   isMenuOpen = false;
   avatarSrc = '/assets/imagen.jpg';
@@ -24,6 +26,11 @@ export class NavbarComponent implements OnDestroy {
     if (this.avatarSrc !== this.avatarFallback) {
       this.avatarSrc = this.avatarFallback;
     }
+  }
+
+  /** Mostrar login/salir solo si la API está disponible. */
+  get showAuthLinks(): boolean {
+    return this.apiAvailability.isApiAvailable();
   }
 
   logout(): void {

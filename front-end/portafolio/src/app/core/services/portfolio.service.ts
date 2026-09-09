@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Technology, Highlight, PortfolioProfile } from '../models';
 import { ApiService } from './api.service';
+import { ApiAvailabilityService } from './api-availability.service';
 
 export type { PortfolioProfile };
 
@@ -10,50 +11,31 @@ export type { PortfolioProfile };
   providedIn: 'root'
 })
 export class PortfolioService {
-
-  constructor(private api: ApiService) {}
-
-  // Datos de respaldo (fallback)
-  private readonly fallbackTechnologies: Technology[] = [
-    { name: 'Angular', category: 'frontend' },
-    { name: '.NET', category: 'backend' },
-    { name: 'Node.js', category: 'backend' },
-    { name: 'Ciberseguridad', category: 'security' },
-    { name: 'Pentesting', category: 'security' },
-    { name: 'CTF', category: 'security' }
-  ];
-
-  private readonly fallbackHighlights: Highlight[] = [
-    { label: 'Años de experiencia', value: '05+' },
-    { label: 'Proyectos entregados', value: '25+' },
-    { label: 'CTF resueltos', value: '60+' }
-  ];
-
-  private readonly fallbackAboutPoints: string[] = [
-    'Construyo aplicaciones seguras y mantenibles con foco en rendimiento.',
-    'Integro prácticas de ciberseguridad desde el diseño hasta el despliegue.',
-    'Disfruto escribir y compartir writeups y laboratorios prácticos.'
-  ];
-
-  // NOTA: Los proyectos se cargan dinámicamente desde la API
-  // No existen datos hardcodeados para proyectos
-
-  private readonly fallbackRoles: string[] = [
-    'Desarrollador Fullstack',
-    'Especialista en Ciberseguridad',
-    'CTF Player',
-    'DevSecOps Engineer'
-  ];
-
-  private readonly fallbackStackItems: string[] = [
-    'Angular', 'Tailwind', '.NET', 'Node.js', 'Azure', 'DevSecOps'
-  ];
+  private readonly api = inject(ApiService);
+  private readonly apiAvailability = inject(ApiAvailabilityService);
 
   /**
-   * Obtiene el perfil completo desde la API
+   * Obtiene el perfil completo desde la API.
+   * Sin API: perfil vacío (UX honesta, sin datos inventados).
    */
   getProfile(): Observable<PortfolioProfile> {
-    return this.api.get<PortfolioProfile>('/portfolio/profile');
+    if (!this.apiAvailability.isApiConfigured()) {
+      return of({
+        name: '',
+        title: '',
+        roles: [],
+        stack_items: [],
+        about_points: [],
+        highlights: [],
+        social_links: {}
+      });
+    }
+    return this.api.get<PortfolioProfile>('/portfolio/profile').pipe(
+      catchError(err => {
+        this.apiAvailability.noteRequestFailure(err);
+        throw err;
+      })
+    );
   }
 
   /**
@@ -86,44 +68,72 @@ export class PortfolioService {
   }
 
   /**
-   * Obtiene los roles desde la API
+   * Obtiene los roles desde la API.
+   * Sin API: lista vacía (no inventar roles).
    */
   getRolesFromApi(): Observable<string[]> {
+    if (!this.apiAvailability.isApiConfigured()) {
+      return of([]);
+    }
     return this.api.get<string[]>('/portfolio/roles').pipe(
-      catchError(() => of(this.fallbackRoles))
+      catchError(err => {
+        this.apiAvailability.noteRequestFailure(err);
+        return of([]);
+      })
     );
   }
 
   /**
-   * Obtiene el stack desde la API
+   * Obtiene el stack desde la API.
+   * Sin API: lista vacía (no inventar stack).
    */
   getStackFromApi(): Observable<string[]> {
+    if (!this.apiAvailability.isApiConfigured()) {
+      return of([]);
+    }
     return this.api.get<string[]>('/portfolio/stack').pipe(
-      catchError(() => of(this.fallbackStackItems))
+      catchError(err => {
+        this.apiAvailability.noteRequestFailure(err);
+        return of([]);
+      })
     );
   }
 
   /**
-   * Obtiene los about points desde la API
+   * Obtiene los about points desde la API.
+   * Sin API: lista vacía.
    */
   getAboutPointsFromApi(): Observable<string[]> {
+    if (!this.apiAvailability.isApiConfigured()) {
+      return of([]);
+    }
     return this.api.get<string[]>('/portfolio/about').pipe(
-      catchError(() => of(this.fallbackAboutPoints))
+      catchError(err => {
+        this.apiAvailability.noteRequestFailure(err);
+        return of([]);
+      })
     );
   }
 
   /**
-   * Obtiene los highlights desde la API
+   * Obtiene los highlights desde la API.
+   * Sin API: no mostrar stats inventados (05+ / 25+ / 60+).
    */
   getHighlightsFromApi(): Observable<Highlight[]> {
+    if (!this.apiAvailability.isApiConfigured()) {
+      return of([]);
+    }
     return this.api.get<Highlight[]>('/portfolio/highlights').pipe(
-      catchError(() => of([]))
+      catchError(err => {
+        this.apiAvailability.noteRequestFailure(err);
+        return of([]);
+      })
     );
   }
 
-  // Métodos síncronos para compatibilidad
+  // Métodos síncronos: vacíos cuando no hay datos de API (honest UX)
   getTechnologies(): Technology[] {
-    return [...this.fallbackTechnologies];
+    return [];
   }
 
   getHighlights(): Highlight[] {
@@ -132,14 +142,14 @@ export class PortfolioService {
   }
 
   getAboutPoints(): string[] {
-    return [...this.fallbackAboutPoints];
+    return [];
   }
 
   getRoles(): string[] {
-    return [...this.fallbackRoles];
+    return [];
   }
 
   getStackItems(): string[] {
-    return [...this.fallbackStackItems];
+    return [];
   }
 }
