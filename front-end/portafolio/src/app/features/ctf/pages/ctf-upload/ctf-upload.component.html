@@ -166,7 +166,7 @@
       <section class="card">
         <app-dynamic-list [label]="'Skills requeridas'" [placeholder]="'Ej: SQL Injection, XSS, Python...'"
           [emptyMessage]="'Agrega las habilidades necesarias para resolver el reto'" [addButtonText]="'Agregar'"
-          [maxItems]="10" [minLength]="2" [variant]="'tags'" [itemIcon]="'•'" (itemsChange)="onSkillsChange($event)">
+          [maxItems]="10" [minLength]="2" [variant]="'tags'" (itemsChange)="onSkillsChange($event)">
         </app-dynamic-list>
       </section>
 
@@ -175,7 +175,7 @@
         <app-dynamic-list [label]="'Pistas (opcional)'"
           [placeholder]="'Escribe una pista útil para los participantes...'" [emptyMessage]="'No hay pistas (opcional)'"
           [addButtonText]="'Agregar pista'" [maxItems]="5" [minLength]="10" [variant]="'default'" [showIndex]="true"
-          [itemIcon]="'•'" (itemsChange)="onHintsChange($event)">
+          (itemsChange)="onHintsChange($event)">
         </app-dynamic-list>
       </section>
 

@@ -14,7 +14,7 @@
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div class="space-y-2">
           <div class="flex items-center gap-3">
-            <app-icon name="flag" cssClass="w-5 h-5 text-primary"></app-icon>
+            <app-icon *ngIf="categoryInfo?.icon as catIcon" [name]="catIcon" cssClass="w-5 h-5 text-primary"></app-icon>
             <span class="text-sm text-textSecondary uppercase tracking-wide">{{ categoryInfo?.label }}</span>
             <span class="px-3 py-1 text-sm rounded-full border" [ngClass]="difficultyColorClass">
               {{ difficultyInfo?.label }}
@@ -171,7 +171,7 @@
 
           <ng-template #solvedMessage>
             <div class="text-center py-4">
-              <span class="text-4xl mb-4 block">🎉</span>
+              <app-icon name="trophy" cssClass="w-12 h-12 text-primary mx-auto mb-4" ariaLabel="Reto completado"></app-icon>
               <p class="text-primary font-semibold">+{{ challenge.points }} puntos</p>
               <p class="text-sm text-textSecondary mt-2">Has completado este reto</p>
             </div>

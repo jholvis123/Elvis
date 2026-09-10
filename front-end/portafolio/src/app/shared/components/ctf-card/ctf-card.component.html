@@ -5,7 +5,7 @@
   <!-- Header -->
   <div class="ctf-card__header">
     <div class="flex items-center gap-2">
-      <span class="text-lg" aria-hidden="true">{{ categoryInfo?.icon }}</span>
+      <app-icon *ngIf="categoryInfo?.icon as catIcon" [name]="catIcon" cssClass="w-5 h-5 text-primary"></app-icon>
       <span class="text-xs text-textSecondary uppercase tracking-wide">{{ categoryInfo?.label }}</span>
     </div>
     <div class="flex items-center gap-2">
