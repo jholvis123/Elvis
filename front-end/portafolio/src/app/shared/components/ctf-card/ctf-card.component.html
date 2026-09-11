@@ -16,11 +16,7 @@
         {{ difficultyInfo?.label }}
       </span>
       <!-- Solved Badge -->
-      <span 
-        *ngIf="isSolved" 
-        class="px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary border border-primary/30">
-        ✓ Resuelto
-      </span>
+      <span *ngIf="isSolved" class="px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary border border-primary/30 inline-flex items-center gap-1"><app-icon name="check-circle" cssClass="w-3.5 h-3.5" ariaLabel=""></app-icon> Resuelto</span>
     </div>
   </div>
 

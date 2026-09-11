@@ -55,8 +55,8 @@
         
         <div class="toolbar-info">
             <span class="save-indicator saving inline-flex items-center gap-1" *ngIf="isSaving()"><app-icon name="archive-box" cssClass="w-3.5 h-3.5"></app-icon> Guardando...</span>
-            <span class="save-indicator unsaved" *ngIf="!isSaving() && hasChanges()">● Sin guardar</span>
-            <span class="save-indicator saved" *ngIf="!isSaving() && !hasChanges()">✓ Guardado</span>
+            <span class="save-indicator unsaved" *ngIf="!isSaving() && hasChanges()">Sin guardar</span>
+            <span class="save-indicator saved inline-flex items-center gap-1" *ngIf="!isSaving() && !hasChanges()"><app-icon name="check-circle" cssClass="w-3.5 h-3.5"></app-icon> Guardado</span>
             <span class="word-count">{{ wordCount() }} palabras · {{ readTime() }} min</span>
         </div>
     </div>

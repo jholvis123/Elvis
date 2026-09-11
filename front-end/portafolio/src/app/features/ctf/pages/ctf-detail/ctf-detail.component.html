@@ -20,8 +20,8 @@
               {{ difficultyInfo?.label }}
             </span>
             <span *ngIf="isSolved"
-              class="px-3 py-1 text-sm rounded-full bg-primary/20 text-primary border border-primary/30">
-              ✓ Resuelto
+              class="px-3 py-1 text-sm rounded-full bg-primary/20 text-primary border border-primary/30 inline-flex items-center gap-1">
+              <app-icon name="check-circle" cssClass="w-3.5 h-3.5" ariaLabel=""></app-icon> Resuelto
             </span>
           </div>
           <h1 class="text-3xl md:text-4xl font-bold text-textPrimary">{{ challenge.title }}</h1>
