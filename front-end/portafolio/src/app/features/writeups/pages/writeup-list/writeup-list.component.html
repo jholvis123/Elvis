@@ -49,7 +49,7 @@
         <span *ngIf="writeup.read_time">{{ writeup.read_time }} min lectura</span>
         <a [routerLink]="['/writeups', writeup.id]" class="text-primary hover:text-primaryHover font-medium inline-flex items-center gap-1 min-h-[44px]">
           Leer writeup
-          <span aria-hidden="true">→</span>
+          <app-icon name="arrow-right" cssClass="w-4 h-4" ariaLabel=""></app-icon>
         </a>
       </div>
     </article>
