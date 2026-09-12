@@ -12,16 +12,17 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { 
-  CTFCategory, 
+import {
+  CTFCategory,
   CTF_CATEGORIES,
   CATEGORY_ATTACHMENT_CONFIG
 } from '@core/models/ctf.model';
+import { IconComponent, IconName } from '@shared/icons/icon.component';
 
 interface CategoryOption {
   value: CTFCategory;
   label: string;
-  icon: string;
+  icon: IconName;
   description: string;
   attachmentInfo: string;
 }
@@ -29,7 +30,7 @@ interface CategoryOption {
 @Component({
   selector: 'app-category-selector',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IconComponent],
   templateUrl: './category-selector.component.html',
   styleUrls: ['./category-selector.component.scss'],
   providers: [
@@ -89,9 +90,9 @@ export class CategorySelectorComponent implements ControlValueAccessor {
     
     const types = config.requiredTypes.map(t => {
       switch(t) {
-        case 'file': return '📎 Archivos';
-        case 'url': return '🔗 URL';
-        case 'docker': return '🐳 Docker';
+        case 'file': return 'Archivos';
+        case 'url': return 'URL';
+        case 'docker': return 'Docker';
         default: return t;
       }
     });

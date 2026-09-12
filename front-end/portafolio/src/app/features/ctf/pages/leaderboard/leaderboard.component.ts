@@ -9,11 +9,12 @@ import {
   SolvedCTF 
 } from '../../../../core/services/ctf.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, IconComponent],
   templateUrl: './leaderboard.component.html',
   styleUrls: ['./leaderboard.component.scss']
 })

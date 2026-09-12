@@ -11,16 +11,17 @@ import {
   forwardRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
-  ControlValueAccessor, 
+import {
+  ControlValueAccessor,
   NG_VALUE_ACCESSOR,
   FormsModule
 } from '@angular/forms';
+import { IconComponent, IconName } from '@shared/icons/icon.component';
 
 @Component({
   selector: 'app-dynamic-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './dynamic-list.component.html',
   styleUrls: ['./dynamic-list.component.scss'],
   providers: [
@@ -40,7 +41,7 @@ export class DynamicListComponent implements ControlValueAccessor {
   @Input() maxItems: number = 10;
   @Input() minLength: number = 2;
   @Input() maxLength: number = 100;
-  @Input() itemIcon: string = '•';
+  @Input() itemIcon: IconName = 'list-bullet';
   @Input() showIndex: boolean = false;
   @Input() disabled: boolean = false;
   @Input() required: boolean = false;
