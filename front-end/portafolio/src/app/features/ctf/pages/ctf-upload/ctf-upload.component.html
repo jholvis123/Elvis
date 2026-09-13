@@ -6,9 +6,7 @@
       <nav class="mb-4">
         <a routerLink="/ctf"
           class="text-textSecondary hover:text-primary transition-colors text-sm inline-flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
+          <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
           Volver a retos
         </a>
       </nav>
@@ -194,11 +192,7 @@
       <!-- Error Message -->
       <div *ngIf="submitError"
         class="p-4 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <app-icon name="exclamation-triangle" cssClass="w-5 h-5 flex-shrink-0"></app-icon>
         {{ submitError }}
       </div>
 
