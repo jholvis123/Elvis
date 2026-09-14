@@ -4,11 +4,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProjectsService, Project } from '../../services/projects.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
     selector: 'app-project-detail',
     standalone: true,
-    imports: [CommonModule, RouterLink, ConfirmDialogComponent],
+    imports: [CommonModule, RouterLink, ConfirmDialogComponent, IconComponent],
     templateUrl: './project-detail.component.html',
     styleUrls: ['./project-detail.component.scss']
 })
