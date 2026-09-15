@@ -2,6 +2,17 @@
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="grid md:grid-cols-2 gap-10 items-start">
       <div class="space-y-4 reveal-left">
+        <div class="about-avatar">
+          <img
+            *ngIf="avatarUrl && !avatarBroken"
+            [src]="avatarUrl"
+            alt="Avatar"
+            class="about-avatar__img"
+            (error)="onAvatarError()" />
+          <div *ngIf="!avatarUrl || avatarBroken" class="about-avatar__placeholder" aria-label="Sin avatar">
+            <app-icon name="user" cssClass="w-10 h-10 text-primary"></app-icon>
+          </div>
+        </div>
         <p class="eyebrow">Sobre mí</p>
         <h2 id="about-heading" class="section-heading">Desarrollo con mentalidad de seguridad</h2>
         <p class="muted-text">

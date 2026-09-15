@@ -31,6 +31,99 @@
       </div>
 
       <section class="card space-y-4">
+        <h2 class="text-lg font-semibold text-textPrimary">Avatar / logo</h2>
+        <div class="avatar-editor">
+          <div class="avatar-editor__preview" aria-hidden="false">
+            <img
+              *ngIf="avatarPreviewUrl && !previewBroken"
+              [src]="avatarPreviewUrl"
+              alt="Vista previa del avatar"
+              class="avatar-editor__img"
+              (error)="onPreviewError()" />
+            <div *ngIf="!avatarPreviewUrl || previewBroken" class="avatar-editor__placeholder">
+              <app-icon name="user" cssClass="w-10 h-10 text-primary"></app-icon>
+            </div>
+          </div>
+
+          <div class="avatar-editor__controls">
+            <div
+              class="avatar-dropzone"
+              [class.avatar-dropzone--active]="avatarDragging"
+              [class.avatar-dropzone--busy]="avatarUploading || avatarRemoving"
+              (dragover)="onAvatarDragOver($event)"
+              (dragleave)="onAvatarDragLeave($event)"
+              (drop)="onAvatarDrop($event)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="openAvatarPicker()"
+              (keydown.space)="$event.preventDefault(); openAvatarPicker()"
+              (click)="openAvatarPicker()"
+              [attr.aria-disabled]="avatarUploading || avatarRemoving"
+              aria-label="Zona para subir avatar">
+              <app-icon name="cloud-arrow-up" cssClass="w-6 h-6 text-primary shrink-0"></app-icon>
+              <div>
+                <p class="text-sm text-textPrimary font-medium">
+                  {{ avatarUploading ? 'Subiendo…' : 'Arrastra una imagen o haz clic para seleccionar' }}
+                </p>
+                <p class="text-xs text-textSecondary mt-1">JPG, PNG o WebP · máximo 2 MB</p>
+              </div>
+            </div>
+
+            <input
+              #avatarInput
+              type="file"
+              class="sr-only"
+              [accept]="avatarAccept"
+              (change)="onAvatarSelected($event)"
+              [disabled]="avatarUploading || avatarRemoving" />
+
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="btn-outline min-h-[44px] inline-flex items-center gap-2"
+                (click)="openAvatarPicker()"
+                [disabled]="avatarUploading || avatarRemoving">
+                <app-icon name="photo" cssClass="w-4 h-4"></app-icon>
+                Subir imagen
+              </button>
+              <button
+                type="button"
+                class="btn-outline min-h-[44px] inline-flex items-center gap-2 text-red-400 hover:text-red-300"
+                (click)="removeAvatar()"
+                [disabled]="avatarUploading || avatarRemoving || !form.get('avatar_url')?.value">
+                <app-icon name="trash" cssClass="w-4 h-4"></app-icon>
+                {{ avatarRemoving ? 'Eliminando…' : 'Quitar avatar' }}
+              </button>
+            </div>
+
+            <div *ngIf="avatarError" class="avatar-editor__error" role="alert">
+              <app-icon name="exclamation-triangle" cssClass="w-4 h-4 text-warning shrink-0"></app-icon>
+              <span>{{ avatarError }}</span>
+            </div>
+
+            <details class="avatar-advanced">
+              <summary class="text-sm text-textSecondary cursor-pointer select-none">
+                URL manual (avanzado / fallback)
+              </summary>
+              <div class="mt-3">
+                <label for="profile-avatar" class="block text-sm text-textSecondary mb-2">URL del avatar</label>
+                <input
+                  id="profile-avatar"
+                  type="url"
+                  formControlName="avatar_url"
+                  class="input min-h-[44px]"
+                  placeholder="https://… o /api/v1/portfolio/avatar/file/…"
+                  (input)="onManualAvatarUrlChange()" />
+                <p class="text-xs text-textSecondary mt-1">
+                  Preferible subir el archivo. Si pegas una URL externa, usa https://.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="card space-y-4">
         <h2 class="text-lg font-semibold text-textPrimary">Identidad</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -51,10 +144,6 @@
         <div>
           <label for="profile-bio" class="block text-sm text-textSecondary mb-2">Bio</label>
           <textarea id="profile-bio" formControlName="bio" rows="4" class="input" placeholder="Resumen profesional"></textarea>
-        </div>
-        <div>
-          <label for="profile-avatar" class="block text-sm text-textSecondary mb-2">URL del avatar</label>
-          <input id="profile-avatar" type="url" formControlName="avatar_url" class="input min-h-[44px]" placeholder="https://…" />
         </div>
       </section>
 
@@ -172,7 +261,7 @@
         <button
           type="submit"
           class="btn-primary w-full sm:w-auto"
-          [disabled]="saving">
+          [disabled]="saving || avatarUploading || avatarRemoving">
           {{ saving ? 'Guardando…' : 'Guardar perfil' }}
         </button>
       </div>
@@ -184,7 +273,7 @@
   [open]="showConfirm"
   title="Guardar perfil"
   message="Se reemplazará el perfil público completo (nombre, bio, roles, stack, destacados y redes)."
-  warning="Esta acción sustituye todos los campos. No es un parche parcial."
+  warning="Esta acción sustituye todos los campos. No es un parche parcial. El avatar subido por archivo ya está persistido en el servidor."
   confirmLabel="Guardar"
   cancelLabel="Cancelar"
   (confirmed)="executeSave()"

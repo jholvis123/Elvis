@@ -45,6 +45,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   projectTypes: { value: string; label: string }[] = [];
   stackItems: string[] = [];
   roles: string[] = [];
+  avatarUrl: string | null = null;
 
   experienceItems: ExperienceItem[] = [];
   capabilities: CapabilityChip[] = [];
@@ -119,6 +120,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe({
       next: (profile) => {
         this.apiAvailability.markNetworkOk();
+        this.avatarUrl = this.portfolioService.resolveAvatarUrl(profile.avatar_url);
         if (profile.roles?.length) this.roles = profile.roles;
         if (profile.stack_items?.length) {
           this.stackItems = profile.stack_items;
@@ -239,6 +241,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.technologies = [];
     this.aboutPoints = [];
     this.highlights = [];
+    this.avatarUrl = null;
     this.experienceItems = [];
     this.capabilities = [];
   }

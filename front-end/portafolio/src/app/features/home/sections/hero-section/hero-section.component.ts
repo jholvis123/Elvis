@@ -26,9 +26,12 @@ export class HeroSectionComponent implements OnInit, OnDestroy, OnChanges {
   @Input() highlights: Highlight[] = [];
   @Input() technologies: string[] = [];
   @Input() roles: string[] = [];
+  /** Absolute resolved avatar URL (or null). */
+  @Input() avatarUrl: string | null = null;
 
   currentRole = '';
   prefersReducedMotion = false;
+  avatarBroken = false;
 
   private roleIndex = 0;
   private charIndex = 0;
@@ -49,10 +52,17 @@ export class HeroSectionComponent implements OnInit, OnDestroy, OnChanges {
       this.resetTyping();
       this.tryStartTyping();
     }
+    if (changes['avatarUrl']) {
+      this.avatarBroken = false;
+    }
   }
 
   ngOnDestroy(): void {
     this.clearTyping();
+  }
+
+  onAvatarError(): void {
+    this.avatarBroken = true;
   }
 
   private tryStartTyping(): void {

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -12,7 +12,21 @@ import { IconComponent } from '@shared/icons/icon.component';
   templateUrl: './about-section.component.html',
   styleUrls: ['./about-section.component.scss']
 })
-export class AboutSectionComponent {
+export class AboutSectionComponent implements OnChanges {
   @Input() aboutPoints: string[] = [];
   @Input() stackItems: string[] = [];
+  /** Absolute resolved avatar URL (or null). */
+  @Input() avatarUrl: string | null = null;
+
+  avatarBroken = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['avatarUrl']) {
+      this.avatarBroken = false;
+    }
+  }
+
+  onAvatarError(): void {
+    this.avatarBroken = true;
+  }
 }

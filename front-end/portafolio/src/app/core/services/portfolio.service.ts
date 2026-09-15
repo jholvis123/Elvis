@@ -1,10 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {
   Technology,
   Highlight,
   PortfolioProfile,
+  AvatarUploadResponse,
+  AvatarDeleteResponse,
   ExperienceItem,
   ExperienceListResponse,
   ExperienceLinks,
@@ -12,10 +14,17 @@ import {
   CapabilitiesResponse,
   CapabilitySkill
 } from '../models';
-import { ApiService } from './api.service';
+import { ApiService, ApiError } from './api.service';
 import { ApiAvailabilityService } from './api-availability.service';
+import { environment } from '../../../environments/environment';
+import { resolveApiMediaUrl } from '../utils/media-url';
 
-export type { PortfolioProfile };
+/** Client-side avatar upload constraints (aligned with BE). */
+export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+export const AVATAR_ACCEPT_MIME = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const AVATAR_ACCEPT_ATTR = 'image/jpeg,image/png,image/webp';
+
+export type { PortfolioProfile, AvatarUploadResponse, AvatarDeleteResponse };
 
 @Injectable({
   providedIn: 'root'
@@ -75,6 +84,82 @@ export class PortfolioService {
       }
     };
     return this.api.put<PortfolioProfile>('/portfolio/profile', body, { withCredentials: true });
+  }
+
+  /**
+   * Absolute URL for <img src> from profile.avatar_url (may be relative to API host).
+   */
+  resolveAvatarUrl(avatarUrl: string | null | undefined): string | null {
+    return resolveApiMediaUrl(avatarUrl, environment.apiUrl);
+  }
+
+  /**
+   * POST /portfolio/avatar — multipart field `file`.
+   * 201 body: { avatar_url, id, filename, content_type, size } (NOT PortfolioProfileDTO).
+   * avatar_url e.g. /api/v1/portfolio/avatar/file/{uuid}.webp
+   */
+  uploadAvatar(file: File): Observable<AvatarUploadResponse> {
+    const validationError = this.validateAvatarFile(file);
+    if (validationError) {
+      return throwError(() => new ApiError(validationError, 400));
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.upload<AvatarUploadResponse>('/portfolio/avatar', formData, {
+      withCredentials: true
+    });
+  }
+
+  /**
+   * DELETE /portfolio/avatar → { avatar_url: null, message }.
+   * On 404/405, fallback: PUT profile with avatar_url=null
+   * (requires current profile snapshot so other fields are not wiped).
+   */
+  deleteAvatar(currentProfile: PortfolioProfile): Observable<AvatarDeleteResponse> {
+    const cleared: PortfolioProfile = { ...currentProfile, avatar_url: null };
+    const deleted: AvatarDeleteResponse = { avatar_url: null, message: 'Avatar eliminado' };
+    return this.api.delete<AvatarDeleteResponse | null>('/portfolio/avatar', { withCredentials: true }).pipe(
+      map((res) => {
+        if (res && typeof res === 'object' && 'avatar_url' in res) {
+          return {
+            avatar_url: null,
+            message: typeof (res as AvatarDeleteResponse).message === 'string'
+              ? (res as AvatarDeleteResponse).message
+              : deleted.message
+          };
+        }
+        return deleted;
+      }),
+      catchError((err: unknown) => {
+        const status = err instanceof ApiError
+          ? err.status
+          : (err && typeof err === 'object' && 'status' in err
+            ? Number((err as { status?: number }).status)
+            : undefined);
+        if (status === 404 || status === 405) {
+          return this.updateProfile(cleared).pipe(map(() => deleted));
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  validateAvatarFile(file: File | null | undefined): string | null {
+    if (!file) {
+      return 'Selecciona una imagen.';
+    }
+    const mime = (file.type || '').toLowerCase();
+    const okMime =
+      AVATAR_ACCEPT_MIME.includes(mime as (typeof AVATAR_ACCEPT_MIME)[number]) ||
+      // some browsers omit type; allow by extension
+      /\.(jpe?g|png|webp)$/i.test(file.name || '');
+    if (!okMime) {
+      return 'Formato no permitido. Usa JPG, PNG o WebP.';
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      return 'La imagen supera el máximo de 2 MB.';
+    }
+    return null;
   }
 
   /**

@@ -23,3 +23,19 @@ export interface PortfolioProfile {
   highlights: PortfolioHighlight[];
   social_links: PortfolioSocialLinks;
 }
+
+/** Contrato de POST /portfolio/avatar (201). No es PortfolioProfileDTO. */
+export interface AvatarUploadResponse {
+  avatar_url: string;
+  id: string;
+  filename: string;
+  content_type: string;
+  size: number;
+}
+
+/** Contrato de DELETE /portfolio/avatar. */
+export interface AvatarDeleteResponse {
+  avatar_url: null;
+  message?: string;
+}
+
