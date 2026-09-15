@@ -65,10 +65,7 @@
       </div>
     </div>
 
-    <div *ngIf="loading" class="flex justify-center py-12" role="status">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      <span class="sr-only">Cargando proyectos</span>
-    </div>
+    <app-loading-spinner *ngIf="loading" label="Cargando proyectos"></app-loading-spinner>
 
     <div *ngIf="!loading" class="card overflow-hidden p-0">
       <div class="admin-table-wrap">

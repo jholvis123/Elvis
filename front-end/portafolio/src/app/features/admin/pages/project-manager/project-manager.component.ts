@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IconComponent } from '@shared/icons/icon.component';
+import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ProjectsService, Project } from '../../../projects/services/projects.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -10,7 +11,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 @Component({
     selector: 'app-project-manager',
     standalone: true,
-    imports: [CommonModule, RouterLink, FormsModule, IconComponent, ConfirmDialogComponent],
+    imports: [CommonModule, RouterLink, FormsModule, IconComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
     templateUrl: './project-manager.component.html',
     styleUrls: ['./project-manager.component.scss']
 })

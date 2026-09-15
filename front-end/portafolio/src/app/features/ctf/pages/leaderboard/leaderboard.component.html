@@ -35,9 +35,7 @@
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="loading" class="flex justify-center py-12">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
-    </div>
+    <app-loading-spinner *ngIf="loading" size="lg" label="Cargando ranking"></app-loading-spinner>
 
     <!-- Leaderboard Table -->
     <div *ngIf="!loading" class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden">

@@ -9,6 +9,7 @@ import { NotificationService } from '@core/services/notification.service';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { IconComponent } from '@shared/icons/icon.component';
+import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
 import { ApiError } from '@core/services/api.service';
 
 @Component({
@@ -20,7 +21,8 @@ import { ApiError } from '@core/services/api.service';
     FormsModule,
     PaginationComponent,
     ConfirmDialogComponent,
-    IconComponent
+    IconComponent,
+    LoadingSpinnerComponent
   ],
   templateUrl: './contact-inbox.component.html',
   styleUrls: ['./contact-inbox.component.scss']

@@ -90,10 +90,11 @@
 </ng-container>
 
 <!-- Loading -->
-<div class="loading-container" *ngIf="loading">
-    <div class="loading-spinner"></div>
-    <p>Cargando writeup...</p>
-</div>
+<app-loading-spinner
+    *ngIf="loading"
+    label="Cargando writeup…"
+    [showLabel]="true">
+</app-loading-spinner>
 
 <!-- Error -->
 <div class="error-container" *ngIf="error && !loading">
