@@ -130,3 +130,21 @@ class CapabilitiesDTO(BaseModel):
 
     roles: List[str]
     skills: List[CapabilitySkillDTO]
+
+
+class AvatarUploadResponseDTO(BaseModel):
+    """Respuesta de POST /portfolio/avatar (multipart)."""
+
+    avatar_url: str
+    id: str
+    filename: str
+    content_type: str
+    size: int
+
+
+class AvatarDeleteResponseDTO(BaseModel):
+    """Respuesta de DELETE /portfolio/avatar."""
+
+    avatar_url: Optional[str] = None
+    message: str = "Avatar eliminado"
+

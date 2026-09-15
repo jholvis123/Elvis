@@ -56,3 +56,16 @@ Keep using `.env` with `DATABASE_URL=mysql+pymysql://…` as in `.env.example`. 
 ## Portfolio project seed (one-shot)
 
 See `SEED_PORTFOLIO.md` for the exact Render startCommand and env flag.
+
+
+## Ephemeral disk / uploads (avatar & attachments)
+
+Render **free/starter** web services use an **ephemeral filesystem**: files written under `UPLOAD_DIR` (default `uploads/`, including `uploads/avatars/`) **do not survive** deploys, restarts, or scale-to-zero.
+
+Implications for avatar/logo:
+
+- `POST /api/v1/portfolio/avatar` stores the image on local disk and sets `profile.avatar_url` to a public API path (`/api/v1/portfolio/avatar/file/{id}`).
+- After a restart, that file may be gone → `GET .../avatar/file/{id}` returns 404 until re-upload.
+- `PUT /api/v1/portfolio/profile` still accepts an external `https://…` `avatar_url` as a durable fallback (CDN, GitHub raw, object storage).
+
+Mitigations (ops, not in this PR): persistent disk on Render, or S3-compatible storage (`STORAGE_TYPE=s3` when implemented). Prefer HTTPS URLs for production avatars until durable storage is wired.
