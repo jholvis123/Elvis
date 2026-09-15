@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { AuthService, LoginCredentials, RegisterData, AuthTokens, User } from './auth.service';
+import { AuthService, LoginCredentials, RegisterData, AuthStatus, User } from './auth.service';
 import { ApiService } from './api.service';
+import { ApiAvailabilityService } from './api-availability.service';
 
 describe('AuthService', () => {
     let service: AuthService;
     let httpMock: HttpTestingController;
-    let apiService: ApiService;
+    let apiAvailability: jasmine.SpyObj<ApiAvailabilityService>;
 
     const mockUser: User = {
         id: '123',
@@ -17,32 +18,57 @@ describe('AuthService', () => {
         created_at: '2024-01-01T00:00:00Z'
     };
 
-    const mockTokens: AuthTokens = {
+    const mockBearerStatus: AuthStatus = {
+        authenticated: true,
+        user: mockUser,
+        expires_in: 3600,
         access_token: 'mock_access_token',
         refresh_token: 'mock_refresh_token',
-        token_type: 'bearer',
-        expires_in: 3600
+        token_type: 'bearer'
     };
 
-    beforeEach(() => {
+    const mockCookieStatus: AuthStatus = {
+        authenticated: true,
+        user: mockUser,
+        expires_in: 3600,
+        access_token: null,
+        refresh_token: null,
+        token_type: null
+    };
+
+    function setup(crossOrigin: boolean): void {
         localStorage.clear();
+        sessionStorage.clear();
+
+        apiAvailability = jasmine.createSpyObj('ApiAvailabilityService', [
+            'isCrossOriginApi',
+            'isApiConfigured',
+            'isApiAvailable'
+        ]);
+        apiAvailability.isCrossOriginApi.and.returnValue(crossOrigin);
 
         TestBed.configureTestingModule({
             imports: [HttpClientTestingModule],
-            providers: [AuthService, ApiService]
+            providers: [
+                AuthService,
+                ApiService,
+                { provide: ApiAvailabilityService, useValue: apiAvailability }
+            ]
         });
 
         service = TestBed.inject(AuthService);
         httpMock = TestBed.inject(HttpTestingController);
-        apiService = TestBed.inject(ApiService);
-    });
+    }
 
     afterEach(() => {
         httpMock.verify();
         localStorage.clear();
+        sessionStorage.clear();
     });
 
-    describe('Initial State', () => {
+    describe('Initial State (same-origin)', () => {
+        beforeEach(() => setup(false));
+
         it('should be created', () => {
             expect(service).toBeTruthy();
         });
@@ -52,9 +78,15 @@ describe('AuthService', () => {
             expect(service.isAuthenticated).toBeFalse();
             expect(service.isAdmin).toBeFalse();
         });
+
+        it('should not use Bearer auth on same-origin', () => {
+            expect(service.usesBearerAuth()).toBeFalse();
+        });
     });
 
-    describe('Token Management', () => {
+    describe('Token Management (Bearer / cross-origin)', () => {
+        beforeEach(() => setup(true));
+
         it('should return null when no access token is stored', () => {
             expect(service.getAccessToken()).toBeNull();
         });
@@ -63,27 +95,25 @@ describe('AuthService', () => {
             expect(service.getRefreshToken()).toBeNull();
         });
 
-        it('should store and retrieve access token', () => {
-            localStorage.setItem('access_token', 'test_token');
-            expect(service.getAccessToken()).toBe('test_token');
+        it('should use Bearer auth when API is cross-origin', () => {
+            expect(service.usesBearerAuth()).toBeTrue();
         });
     });
 
-    describe('Login', () => {
-        it('should login successfully and store tokens', (done) => {
+    describe('Login (same-origin cookie mode)', () => {
+        beforeEach(() => setup(false));
+
+        it('should login without token_in_body and not store Bearer tokens', (done) => {
             const credentials: LoginCredentials = {
                 email: 'test@example.com',
                 password: 'password123'
             };
 
-            // Setup localStorage mock for getCurrentUser
-            localStorage.setItem('current_user', JSON.stringify(mockUser));
-
             service.login(credentials).subscribe({
                 next: (user) => {
                     expect(user).toEqual(mockUser);
-                    expect(service.getAccessToken()).toBe(mockTokens.access_token);
-                    expect(service.getRefreshToken()).toBe(mockTokens.refresh_token);
+                    expect(service.getAccessToken()).toBeNull();
+                    expect(service.getRefreshToken()).toBeNull();
                     expect(service.isAuthenticated).toBeTrue();
                     done();
                 }
@@ -93,7 +123,58 @@ describe('AuthService', () => {
                 request.url.includes('/auth/login') && request.method === 'POST'
             );
             expect(req.request.body).toEqual(credentials);
-            req.flush(mockTokens);
+            expect(req.request.body.token_in_body).toBeUndefined();
+            req.flush(mockCookieStatus);
+        });
+    });
+
+    describe('Login (Bearer / cross-origin)', () => {
+        beforeEach(() => setup(true));
+
+        it('should login with token_in_body and store tokens in sessionStorage', (done) => {
+            const credentials: LoginCredentials = {
+                email: 'test@example.com',
+                password: 'password123'
+            };
+
+            service.login(credentials).subscribe({
+                next: (user) => {
+                    expect(user).toEqual(mockUser);
+                    expect(service.getAccessToken()).toBe(mockBearerStatus.access_token!);
+                    expect(service.getRefreshToken()).toBe(mockBearerStatus.refresh_token!);
+                    expect(sessionStorage.getItem('access_token')).toBe(mockBearerStatus.access_token!);
+                    expect(localStorage.getItem('access_token')).toBeNull();
+                    expect(service.isAuthenticated).toBeTrue();
+                    done();
+                }
+            });
+
+            const req = httpMock.expectOne(request =>
+                request.url.includes('/auth/login') && request.method === 'POST'
+            );
+            expect(req.request.body).toEqual({ ...credentials, token_in_body: true });
+            req.flush(mockBearerStatus);
+        });
+
+        it('should fail honestly when cross-origin API omits Bearer tokens', (done) => {
+            const credentials: LoginCredentials = {
+                email: 'test@example.com',
+                password: 'password123'
+            };
+
+            service.login(credentials).subscribe({
+                error: (error) => {
+                    expect(error.message).toContain('tokens Bearer');
+                    expect(service.isAuthenticated).toBeFalse();
+                    expect(service.getAccessToken()).toBeNull();
+                    done();
+                }
+            });
+
+            const req = httpMock.expectOne(request =>
+                request.url.includes('/auth/login')
+            );
+            req.flush(mockCookieStatus);
         });
 
         it('should handle login error', (done) => {
@@ -118,7 +199,9 @@ describe('AuthService', () => {
     });
 
     describe('Register', () => {
-        it('should register a new user', (done) => {
+        beforeEach(() => setup(false));
+
+        it('should register a new user then login', (done) => {
             const registerData: RegisterData = {
                 username: 'newuser',
                 email: 'new@example.com',
@@ -128,7 +211,7 @@ describe('AuthService', () => {
             service.register(registerData).subscribe({
                 next: (user) => {
                     expect(user).toBeTruthy();
-                    expect(user.email).toBe(registerData.email);
+                    expect(user.email).toBe(mockUser.email);
                     done();
                 }
             });
@@ -139,38 +222,49 @@ describe('AuthService', () => {
             expect(registerReq.request.body).toEqual(registerData);
             registerReq.flush(mockUser);
 
-            // Expect automatic login after registration
             const loginReq = httpMock.expectOne(request =>
                 request.url.includes('/auth/login')
             );
-            loginReq.flush(mockTokens);
+            loginReq.flush(mockCookieStatus);
         });
     });
 
     describe('Logout', () => {
-        it('should clear tokens and user data', () => {
-            // Setup authenticated state
-            localStorage.setItem('access_token', 'token');
-            localStorage.setItem('refresh_token', 'refresh');
+        beforeEach(() => setup(true));
+
+        it('should clear tokens and user data', (done) => {
+            sessionStorage.setItem('access_token', 'token');
+            sessionStorage.setItem('refresh_token', 'refresh');
             localStorage.setItem('current_user', JSON.stringify(mockUser));
 
-            service.logout();
+            service.logout().subscribe({
+                next: () => {
+                    expect(service.getAccessToken()).toBeNull();
+                    expect(service.getRefreshToken()).toBeNull();
+                    expect(service.currentUser).toBeNull();
+                    expect(service.isAuthenticated).toBeFalse();
+                    done();
+                }
+            });
 
-            expect(service.getAccessToken()).toBeNull();
-            expect(service.getRefreshToken()).toBeNull();
-            expect(service.currentUser).toBeNull();
-            expect(service.isAuthenticated).toBeFalse();
+            const req = httpMock.expectOne(request =>
+                request.url.includes('/auth/logout') && request.method === 'POST'
+            );
+            req.flush({ message: 'Logged out successfully' });
         });
     });
 
-    describe('Refresh Token', () => {
-        it('should refresh access token', (done) => {
-            localStorage.setItem('refresh_token', 'old_refresh_token');
+    describe('Refresh Token (Bearer)', () => {
+        beforeEach(() => setup(true));
+
+        it('should refresh with refresh_token + token_in_body and store new tokens', (done) => {
+            sessionStorage.setItem('refresh_token', 'old_refresh_token');
 
             service.refreshToken().subscribe({
-                next: (tokens) => {
-                    expect(tokens.access_token).toBe('new_access_token');
+                next: (status) => {
+                    expect(status.access_token).toBe('new_access_token');
                     expect(service.getAccessToken()).toBe('new_access_token');
+                    expect(service.getRefreshToken()).toBe('new_refresh_token');
                     done();
                 }
             });
@@ -178,21 +272,30 @@ describe('AuthService', () => {
             const req = httpMock.expectOne(request =>
                 request.url.includes('/auth/refresh') && request.method === 'POST'
             );
-            req.flush({
-                access_token: 'new_access_token',
+            expect(req.request.body).toEqual({
                 refresh_token: 'old_refresh_token',
-                token_type: 'bearer',
-                expires_in: 3600
+                token_in_body: true
+            });
+            req.flush({
+                authenticated: true,
+                user: mockUser,
+                expires_in: 3600,
+                access_token: 'new_access_token',
+                refresh_token: 'new_refresh_token',
+                token_type: 'bearer'
             });
         });
 
-        it('should logout on refresh token failure', (done) => {
-            localStorage.setItem('refresh_token', 'invalid_token');
-            localStorage.setItem('access_token', 'old_token');
+        it('should clear auth on refresh token failure', (done) => {
+            sessionStorage.setItem('refresh_token', 'invalid_token');
+            sessionStorage.setItem('access_token', 'old_token');
+            localStorage.setItem('current_user', JSON.stringify(mockUser));
 
             service.refreshToken().subscribe({
-                next: () => {
+                next: (status) => {
+                    expect(status.authenticated).toBeFalse();
                     expect(service.isAuthenticated).toBeFalse();
+                    expect(service.getAccessToken()).toBeNull();
                     done();
                 }
             });
@@ -205,6 +308,8 @@ describe('AuthService', () => {
     });
 
     describe('Get Current User', () => {
+        beforeEach(() => setup(false));
+
         it('should fetch and store current user', (done) => {
             service.getCurrentUser().subscribe({
                 next: (user) => {
@@ -223,19 +328,28 @@ describe('AuthService', () => {
 
     describe('Admin Check', () => {
         it('should return true for admin user', () => {
+            setup(false);
             const adminUser = { ...mockUser, is_admin: true };
             localStorage.setItem('current_user', JSON.stringify(adminUser));
 
-            // Re-create service to load user from storage
-            service = new AuthService(apiService);
+            const api = TestBed.inject(ApiService);
+            service = new AuthService(api, apiAvailability);
+
+            const req = httpMock.expectOne(r => r.url.includes('/auth/me'));
+            req.flush(adminUser);
 
             expect(service.isAdmin).toBeTrue();
         });
 
         it('should return false for non-admin user', () => {
+            setup(false);
             localStorage.setItem('current_user', JSON.stringify(mockUser));
 
-            service = new AuthService(apiService);
+            const api = TestBed.inject(ApiService);
+            service = new AuthService(api, apiAvailability);
+
+            const req = httpMock.expectOne(r => r.url.includes('/auth/me'));
+            req.flush(mockUser);
 
             expect(service.isAdmin).toBeFalse();
         });
