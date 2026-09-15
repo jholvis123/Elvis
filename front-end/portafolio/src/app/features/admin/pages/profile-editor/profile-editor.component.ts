@@ -17,6 +17,8 @@ import {
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ApiError } from '../../../../core/services/api.service';
 import {
+    AvatarDeleteResponse,
+    AvatarUploadResponse,
     PortfolioHighlight,
     PortfolioProfile,
     PortfolioSocialLinks
@@ -235,14 +237,15 @@ export class ProfileEditorComponent implements OnInit {
         this.portfolioService.uploadAvatar(file).pipe(
             takeUntilDestroyed(this.destroyRef)
         ).subscribe({
-            next: (profile) => {
+            next: (res: AvatarUploadResponse) => {
                 this.avatarUploading = false;
                 this.previewBroken = false;
-                // Upload already persisted avatar_url on BE — refresh form field + snapshot.
-                this.form.patchValue({ avatar_url: profile.avatar_url || '' });
+                // 201 is AvatarUploadResponse, not PortfolioProfile — take avatar_url only.
+                const avatarUrl = res.avatar_url || '';
+                this.form.patchValue({ avatar_url: avatarUrl });
                 this.profileSnapshot = {
                     ...(this.profileSnapshot || this.toPutBody()),
-                    avatar_url: profile.avatar_url ?? null
+                    avatar_url: avatarUrl || null
                 };
                 this.notificationService.success('Avatar actualizado');
             },
@@ -264,14 +267,13 @@ export class ProfileEditorComponent implements OnInit {
         this.portfolioService.deleteAvatar(snapshot).pipe(
             takeUntilDestroyed(this.destroyRef)
         ).subscribe({
-            next: (profile) => {
+            next: (_res: AvatarDeleteResponse) => {
                 this.avatarRemoving = false;
                 this.previewBroken = false;
-                this.form.patchValue({ avatar_url: profile.avatar_url || '' });
+                this.form.patchValue({ avatar_url: '' });
                 this.profileSnapshot = {
                     ...snapshot,
-                    ...profile,
-                    avatar_url: profile.avatar_url ?? null
+                    avatar_url: null
                 };
                 this.notificationService.success('Avatar eliminado');
             },

@@ -5,6 +5,8 @@ import {
   Technology,
   Highlight,
   PortfolioProfile,
+  AvatarUploadResponse,
+  AvatarDeleteResponse,
   ExperienceItem,
   ExperienceListResponse,
   ExperienceLinks,
@@ -22,7 +24,7 @@ export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 export const AVATAR_ACCEPT_MIME = ['image/jpeg', 'image/png', 'image/webp'] as const;
 export const AVATAR_ACCEPT_ATTR = 'image/jpeg,image/png,image/webp';
 
-export type { PortfolioProfile };
+export type { PortfolioProfile, AvatarUploadResponse, AvatarDeleteResponse };
 
 @Injectable({
   providedIn: 'root'
@@ -93,32 +95,40 @@ export class PortfolioService {
 
   /**
    * POST /portfolio/avatar — multipart field `file`.
-   * Response: full PortfolioProfileDTO with updated avatar_url.
+   * 201 body: { avatar_url, id, filename, content_type, size } (NOT PortfolioProfileDTO).
+   * avatar_url e.g. /api/v1/portfolio/avatar/file/{uuid}.webp
    */
-  uploadAvatar(file: File): Observable<PortfolioProfile> {
+  uploadAvatar(file: File): Observable<AvatarUploadResponse> {
     const validationError = this.validateAvatarFile(file);
     if (validationError) {
       return throwError(() => new ApiError(validationError, 400));
     }
     const formData = new FormData();
     formData.append('file', file);
-    return this.api.upload<PortfolioProfile>('/portfolio/avatar', formData, {
+    return this.api.upload<AvatarUploadResponse>('/portfolio/avatar', formData, {
       withCredentials: true
     });
   }
 
   /**
-   * DELETE /portfolio/avatar. On 404/405, fallback: PUT profile with avatar_url=null
+   * DELETE /portfolio/avatar → { avatar_url: null, message }.
+   * On 404/405, fallback: PUT profile with avatar_url=null
    * (requires current profile snapshot so other fields are not wiped).
    */
-  deleteAvatar(currentProfile: PortfolioProfile): Observable<PortfolioProfile> {
+  deleteAvatar(currentProfile: PortfolioProfile): Observable<AvatarDeleteResponse> {
     const cleared: PortfolioProfile = { ...currentProfile, avatar_url: null };
-    return this.api.delete<PortfolioProfile | null>('/portfolio/avatar', { withCredentials: true }).pipe(
+    const deleted: AvatarDeleteResponse = { avatar_url: null, message: 'Avatar eliminado' };
+    return this.api.delete<AvatarDeleteResponse | null>('/portfolio/avatar', { withCredentials: true }).pipe(
       map((res) => {
-        if (res && typeof res === 'object' && ('name' in res || 'avatar_url' in res)) {
-          return res as PortfolioProfile;
+        if (res && typeof res === 'object' && 'avatar_url' in res) {
+          return {
+            avatar_url: null,
+            message: typeof (res as AvatarDeleteResponse).message === 'string'
+              ? (res as AvatarDeleteResponse).message
+              : deleted.message
+          };
         }
-        return cleared;
+        return deleted;
       }),
       catchError((err: unknown) => {
         const status = err instanceof ApiError
@@ -127,7 +137,7 @@ export class PortfolioService {
             ? Number((err as { status?: number }).status)
             : undefined);
         if (status === 404 || status === 405) {
-          return this.updateProfile(cleared);
+          return this.updateProfile(cleared).pipe(map(() => deleted));
         }
         return throwError(() => err);
       })
