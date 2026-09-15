@@ -44,3 +44,16 @@ pytest app/tests/api/test_seed_portfolio.py -v
 - Descripciones tomadas de GitHub description / README públicos.
 - CTFd y fastapi-product se etiquetan como **forks** (parents CTFd/CTFd y henrytaby/fastapi-product).
 - Trabajo-Final-De-Seguridad: árbol público limitado al momento del seed; no se inventa stack.
+
+
+## Experiencia / capabilities (mismo gate)
+
+Con `SEED_PORTFOLIO=1`, el script también siembra `portfolio_experiences`.
+
+Público:
+- `GET /api/v1/portfolio/experience` → `{ "items": [ ... ] }`
+- `GET /api/v1/portfolio/capabilities` → `{ "roles": [...], "skills": [{"name","category"}] }`
+  - `roles` reutiliza el perfil (`/portfolio/roles`)
+  - `skills` es lista con evidencia de repos seed (no inventa .NET/Node/Azure)
+
+Tras migrate: `alembic upgrade head` crea `portfolio_experiences` (rev `b7e4a1c290fd`).

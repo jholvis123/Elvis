@@ -81,3 +81,52 @@ class TechnologiesResponseDTO(BaseModel):
     
     items: List[TechnologyDTO]
     by_category: Dict[str, List[TechnologyDTO]]
+
+
+class ExperienceLinksDTO(BaseModel):
+    """Enlaces opcionales de una entrada de experiencia."""
+
+    github: Optional[str] = None
+    demo: Optional[str] = None
+
+
+class ExperienceItemDTO(BaseModel):
+    """Entrada pública de trayectoria (proyecto / formación / seguridad)."""
+
+    id: str
+    title: str
+    organization: Optional[str] = None
+    kind: str
+    location: Optional[str] = None
+    start_date: str
+    end_date: Optional[str] = None
+    current: bool = False
+    summary: str
+    highlights: List[str] = []
+    technologies: List[str] = []
+    links: ExperienceLinksDTO = ExperienceLinksDTO()
+    order: int = 0
+
+
+class ExperienceListDTO(BaseModel):
+    """Lista ordenada de experiencia."""
+
+    items: List[ExperienceItemDTO]
+
+
+class CapabilitySkillDTO(BaseModel):
+    """Skill con categoría (evidencia de repos reales)."""
+
+    name: str
+    category: str
+
+
+class CapabilitiesDTO(BaseModel):
+    """Roles + skills alineados a evidencia del portafolio.
+
+    Roles: mismos que GET /portfolio/profile y /portfolio/roles.
+    Skills: subset con evidencia en repos públicos seed (no inventa .NET/Node/Azure).
+    """
+
+    roles: List[str]
+    skills: List[CapabilitySkillDTO]
