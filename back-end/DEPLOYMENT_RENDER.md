@@ -52,3 +52,7 @@ Keep using `.env` with `DATABASE_URL=mysql+pymysql://…` as in `.env.example`. 
 - Live Render provisioning / DNS
 - Forcing `SameSite=None`
 - Frontend code changes
+
+## Portfolio project seed (one-shot)
+
+See `SEED_PORTFOLIO.md` for the exact Render startCommand and env flag.
