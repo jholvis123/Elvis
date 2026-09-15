@@ -8,11 +8,12 @@ import { MarkdownViewerComponent } from '../../../../shared/components/markdown-
 import { TableOfContentsComponent, TOCItem as TOCComponentItem, TOCStats } from '../../../../shared/components/table-of-contents/table-of-contents.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { IconComponent } from '@shared/icons/icon.component';
+import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
     selector: 'app-writeup-detail',
     standalone: true,
-    imports: [CommonModule, RouterLink, MarkdownViewerComponent, TableOfContentsComponent, ConfirmDialogComponent, IconComponent],
+    imports: [CommonModule, RouterLink, MarkdownViewerComponent, TableOfContentsComponent, ConfirmDialogComponent, IconComponent, LoadingSpinnerComponent],
     templateUrl: './writeup-detail.component.html',
     styleUrls: ['./writeup-detail.component.scss']
 })

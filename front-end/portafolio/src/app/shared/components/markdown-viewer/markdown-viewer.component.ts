@@ -12,13 +12,14 @@ import {
     ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { IconComponent } from '@shared/icons/icon.component';
 import { Subject, takeUntil, catchError, of } from 'rxjs';
 import { WriteupsService, MarkdownRenderResponse } from '../../../features/writeups/services/writeups.service';
 
 @Component({
     selector: 'app-markdown-viewer',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, IconComponent],
     templateUrl: './markdown-viewer.component.html',
     styleUrls: ['./markdown-viewer.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,

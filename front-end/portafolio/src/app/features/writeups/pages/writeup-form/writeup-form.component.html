@@ -5,7 +5,7 @@
         <div class="form-header">
             <div class="header-content">
                 <h1 class="text-3xl font-bold text-white mb-2">
-                    {{ isEditMode ? '✏️ Editar Writeup' : '📝 Nuevo Writeup' }}
+                    {{ isEditMode ? 'Editar Writeup' : 'Nuevo Writeup' }}
                 </h1>
                 <p class="text-gray-400">{{ isEditMode ? 'Actualiza el writeup' : 'Documenta la solución del CTF con el editor profesional' }}</p>
             </div>
@@ -22,7 +22,7 @@
 
         <!-- Error -->
         <div class="error-banner" *ngIf="error">
-            <span class="error-icon">⚠️</span>
+            <app-icon name="exclamation-triangle" cssClass="w-6 h-6 text-warning" ariaLabel="Error"></app-icon>
             <p>{{ error }}</p>
         </div>
 
@@ -53,7 +53,7 @@
 
                 <!-- Summary -->
                 <div class="form-field">
-                    <label class="field-label">📋 Resumen</label>
+                    <label class="field-label">Resumen</label>
                     <textarea formControlName="summary" rows="3" maxlength="500"
                         class="field-input"
                         placeholder="Breve descripción del writeup..."></textarea>
@@ -63,7 +63,7 @@
                 <!-- Tools -->
                 <div class="form-field">
                     <div class="field-header">
-                        <label class="field-label">🛠️ Herramientas</label>
+                        <label class="field-label">Herramientas</label>
                         <button type="button" (click)="addTool()" class="btn-add">+ Agregar</button>
                     </div>
                     <div formArrayName="tools_used" class="tags-list">
@@ -79,7 +79,7 @@
                 <!-- Techniques -->
                 <div class="form-field">
                     <div class="field-header">
-                        <label class="field-label">💡 Técnicas</label>
+                        <label class="field-label">Técnicas</label>
                         <button type="button" (click)="addTechnique()" class="btn-add">+ Agregar</button>
                     </div>
                     <div formArrayName="techniques" class="tags-list">

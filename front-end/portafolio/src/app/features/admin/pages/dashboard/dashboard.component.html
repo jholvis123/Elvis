@@ -6,10 +6,7 @@
             <p class="text-textSecondary">Gestiona el contenido del portafolio</p>
         </div>
 
-        <div *ngIf="loading" class="flex justify-center py-16" role="status" aria-live="polite">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            <span class="sr-only">Cargando estadísticas</span>
-        </div>
+        <app-loading-spinner *ngIf="loading" label="Cargando estadísticas"></app-loading-spinner>
 
         <div *ngIf="!loading && errorMessage" class="card text-center py-10 space-y-3 mb-8">
             <app-icon name="exclamation-triangle" cssClass="w-10 h-10 text-warning mx-auto"></app-icon>

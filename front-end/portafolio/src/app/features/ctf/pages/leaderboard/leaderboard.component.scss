@@ -1,16 +1,5 @@
 // Leaderboard Component Styles
 
-// Loading spinner animation
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
 // Podium animations
 @keyframes float {
   0%, 100% {

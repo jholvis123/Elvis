@@ -26,6 +26,7 @@ import { FileUploadComponent } from '@shared/components/file-upload/file-upload.
 import { UrlInputComponent } from '@shared/components/url-input/url-input.component';
 import { CategorySelectorComponent } from '@shared/components/category-selector/category-selector.component';
 import { DynamicListComponent } from '@shared/components/dynamic-list/dynamic-list.component';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
   selector: 'app-ctf-upload',
@@ -37,7 +38,7 @@ import { DynamicListComponent } from '@shared/components/dynamic-list/dynamic-li
     FileUploadComponent,
     UrlInputComponent,
     CategorySelectorComponent,
-    DynamicListComponent
+    DynamicListComponent, IconComponent
   ],
   templateUrl: './ctf-upload.component.html',
   styleUrls: ['./ctf-upload.component.scss']

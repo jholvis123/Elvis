@@ -29,10 +29,7 @@
     
     <div class="file-upload__dropzone-content">
       <div class="file-upload__icon">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
+        <app-icon name="cloud-arrow-up" cssClass="w-10 h-10"></app-icon>
       </div>
       
       <p class="file-upload__text">
@@ -57,10 +54,7 @@
   <!-- Errors -->
   <div *ngIf="errors.length > 0" class="file-upload__errors">
     <p *ngFor="let error of errors" class="file-upload__error">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <app-icon name="exclamation-triangle" cssClass="w-4 h-4"></app-icon>
       {{ error }}
     </p>
   </div>
@@ -88,9 +82,7 @@
           [disabled]="disabled || isUploading"
           (click)="removeFile(i); $event.stopPropagation()"
           title="Eliminar archivo">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <app-icon name="x-mark" cssClass="w-5 h-5"></app-icon>
         </button>
       </li>
     </ul>

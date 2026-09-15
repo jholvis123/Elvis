@@ -6,9 +6,7 @@
       <nav class="mb-4">
         <a routerLink="/ctf"
           class="text-textSecondary hover:text-primary transition-colors text-sm inline-flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
+          <app-icon name="chevron-left" cssClass="w-4 h-4"></app-icon>
           Volver a retos
         </a>
       </nav>
@@ -118,7 +116,7 @@
         <!-- Docker Info (if supported) -->
         <div *ngIf="supportsDocker" class="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
           <div class="flex items-start gap-3">
-            <span class="text-2xl">🐳</span>
+            <app-icon name="cube" cssClass="w-7 h-7 text-primary shrink-0" ariaLabel="Docker"></app-icon>
             <div>
               <p class="text-sm text-textPrimary font-medium">Soporte Docker</p>
               <p class="text-xs text-textSecondary mt-1">
@@ -138,7 +136,7 @@
       <!-- Placeholder when no category selected -->
       <section *ngIf="!selectedCategory" class="card">
         <div class="text-center py-8">
-          <span class="text-4xl mb-4 block">📁</span>
+          <app-icon name="folder" cssClass="w-12 h-12 text-textSecondary mx-auto mb-4 block" ariaLabel="Carpeta"></app-icon>
           <p class="text-textSecondary">Selecciona una categoría para ver las opciones de adjuntos</p>
         </div>
       </section>
@@ -166,7 +164,7 @@
       <section class="card">
         <app-dynamic-list [label]="'Skills requeridas'" [placeholder]="'Ej: SQL Injection, XSS, Python...'"
           [emptyMessage]="'Agrega las habilidades necesarias para resolver el reto'" [addButtonText]="'Agregar'"
-          [maxItems]="10" [minLength]="2" [variant]="'tags'" [itemIcon]="'🔧'" (itemsChange)="onSkillsChange($event)">
+          [maxItems]="10" [minLength]="2" [variant]="'tags'" (itemsChange)="onSkillsChange($event)">
         </app-dynamic-list>
       </section>
 
@@ -175,7 +173,7 @@
         <app-dynamic-list [label]="'Pistas (opcional)'"
           [placeholder]="'Escribe una pista útil para los participantes...'" [emptyMessage]="'No hay pistas (opcional)'"
           [addButtonText]="'Agregar pista'" [maxItems]="5" [minLength]="10" [variant]="'default'" [showIndex]="true"
-          [itemIcon]="'💡'" (itemsChange)="onHintsChange($event)">
+          (itemsChange)="onHintsChange($event)">
         </app-dynamic-list>
       </section>
 
@@ -194,11 +192,7 @@
       <!-- Error Message -->
       <div *ngIf="submitError"
         class="p-4 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <app-icon name="exclamation-triangle" cssClass="w-5 h-5 flex-shrink-0"></app-icon>
         {{ submitError }}
       </div>
 

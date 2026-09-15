@@ -19,9 +19,7 @@
             <!-- Leaderboard Button - Visible para todos -->
             <a routerLink="/ctf/leaderboard" 
                class="inline-flex items-center gap-2 px-5 py-3 bg-surface border border-primary/30 text-primary font-semibold rounded-lg hover:bg-primary/10 transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+              <app-icon name="chart-bar" cssClass="w-5 h-5"></app-icon>
               Ver Ranking
             </a>
             
@@ -29,9 +27,7 @@
             <a *ngIf="isAdmin"
                routerLink="/ctf/admin/new" 
                class="inline-flex items-center gap-2 px-5 py-3 bg-primary text-background font-semibold rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
+              <app-icon name="plus" cssClass="w-5 h-5"></app-icon>
               Crear nuevo reto
             </a>
           </div>
@@ -71,9 +67,7 @@
         <div class="filter-group flex-1">
           <label for="search" class="sr-only">Buscar retos</label>
           <div class="relative">
-            <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-textSecondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <app-icon name="magnifying-glass" cssClass="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-textSecondary"></app-icon>
             <input 
               type="text" 
               id="search"
