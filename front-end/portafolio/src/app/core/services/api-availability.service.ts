@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
  * Detects "API unavailable" mode for Pages / Docker honest UX:
  * - placeholder apiUrl (YOUR-API-HOST, empty, obvious stubs)
  * - network unreachable (status 0) when loading public data
+ * - cross-origin API (Pages host ≠ API host) → Bearer auth mode
  */
 @Injectable({
   providedIn: 'root'
@@ -28,6 +29,28 @@ export class ApiAvailabilityService {
       return false;
     }
     return true;
+  }
+
+  /**
+   * True when the API base URL is on a different origin than the page.
+   * Relative apiUrl (e.g. `/api/v1`) is always same-origin (docker/nginx/local proxy).
+   * Used to switch admin auth to Bearer + sessionStorage (cookies/CSRF fail cross-origin).
+   */
+  isCrossOriginApi(): boolean {
+    const url = (environment.apiUrl || '').trim();
+    if (!url || url.startsWith('/')) {
+      return false;
+    }
+    try {
+      const base =
+        typeof window !== 'undefined' ? window.location.href : 'http://localhost/';
+      const apiOrigin = new URL(url, base).origin;
+      const pageOrigin =
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+      return apiOrigin !== pageOrigin;
+    } catch {
+      return false;
+    }
   }
 
   /** Configured and no known network outage. */
