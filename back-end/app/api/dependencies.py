@@ -196,12 +196,11 @@ async def get_current_user(
     """
     token: Optional[str] = None
     
-    # Prioridad 1: Token desde cookie HttpOnly
-    token = request.cookies.get("access_token")
-    
-    # Prioridad 2: Bearer token desde header (fallback para APIs)
-    if not token and credentials:
-        token = credentials.credentials
+    # Prioridad 1: Authorization Bearer (Pages / API clients)
+    # Prioridad 2: Cookie HttpOnly (same-origin local/docker)
+    token = credentials.credentials if credentials else None
+    if not token:
+        token = request.cookies.get("access_token")
     
     if not token:
         raise HTTPException(
@@ -247,9 +246,7 @@ async def get_current_user_optional(
     Obtiene el usuario actual si está autenticado, None si no.
     Soporta tanto cookies como Bearer tokens.
     """
-    # Verificar si hay token en cookie o header
-    token = request.cookies.get("access_token")
-    if not token and not credentials:
+    if not credentials and not request.cookies.get("access_token"):
         return None
     
     try:
