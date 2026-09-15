@@ -7,12 +7,13 @@ import { WriteupsService } from '../../../writeups/services/writeups.service';
 import { CtfService } from '../../../../core/services/ctf.service';
 import { AdminService, AdminStats } from '../../../../core/services/admin.service';
 import { IconComponent } from '@shared/icons/icon.component';
+import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
 import { ApiError } from '@core/services/api.service';
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, RouterLink, IconComponent],
+    imports: [CommonModule, RouterLink, IconComponent, LoadingSpinnerComponent],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
 })

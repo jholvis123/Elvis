@@ -1,3 +1,4 @@
+import type { IconName } from '@shared/icons/icon.component';
 
 export type CTFCategory = 'web' | 'crypto' | 'forensics' | 'pwn' | 'reverse' | 'misc' | 'osint' | 'stego';
 
@@ -196,15 +197,15 @@ export const CATEGORY_ATTACHMENT_CONFIG: Record<CTFCategory, CategoryAttachmentC
 // ============================================
 
 // Constantes útiles
-export const CTF_CATEGORIES: { value: CTFCategory; label: string; icon: string; description: string }[] = [
-  { value: 'web', label: 'Web', icon: '', description: 'Seguridad web' },
-  { value: 'crypto', label: 'Criptografía', icon: '', description: 'Cifrado y hashing' },
-  { value: 'stego', label: 'Esteganografía', icon: '', description: 'Datos ocultos' },
-  { value: 'forensics', label: 'Forense', icon: '', description: 'Análisis digital' },
-  { value: 'pwn', label: 'Pwn/Exploit', icon: '', description: 'Explotación' },
-  { value: 'reverse', label: 'Reversing', icon: '', description: 'Ingeniería inversa' },
-  { value: 'misc', label: 'Miscelánea', icon: '', description: 'Retos variados' },
-  { value: 'osint', label: 'OSINT', icon: '', description: 'Inteligencia abierta' }
+export const CTF_CATEGORIES: { value: CTFCategory; label: string; icon: IconName; description: string }[] = [
+  { value: 'web', label: 'Web', icon: 'code-bracket', description: 'Seguridad web' },
+  { value: 'crypto', label: 'Criptografía', icon: 'lock-closed', description: 'Cifrado y hashing' },
+  { value: 'stego', label: 'Esteganografía', icon: 'photo', description: 'Datos ocultos' },
+  { value: 'forensics', label: 'Forense', icon: 'document-text', description: 'Análisis digital' },
+  { value: 'pwn', label: 'Pwn/Exploit', icon: 'puzzle-piece', description: 'Explotación' },
+  { value: 'reverse', label: 'Reversing', icon: 'wrench-screwdriver', description: 'Ingeniería inversa' },
+  { value: 'misc', label: 'Miscelánea', icon: 'cube', description: 'Retos variados' },
+  { value: 'osint', label: 'OSINT', icon: 'eye', description: 'Inteligencia abierta' }
 ];
 
 export const CTF_DIFFICULTIES: { value: CTFDifficulty; label: string; color: string; points: number }[] = [

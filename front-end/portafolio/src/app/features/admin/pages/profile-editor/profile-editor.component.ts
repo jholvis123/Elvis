@@ -21,6 +21,7 @@ import {
 import { IconComponent, IconName, HIGHLIGHT_ICON_NAMES } from '@shared/icons/icon.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DynamicListComponent } from '@shared/components/dynamic-list/dynamic-list.component';
+import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
     selector: 'app-profile-editor',
@@ -31,7 +32,8 @@ import { DynamicListComponent } from '@shared/components/dynamic-list/dynamic-li
         RouterLink,
         IconComponent,
         ConfirmDialogComponent,
-        DynamicListComponent
+        DynamicListComponent,
+        LoadingSpinnerComponent
     ],
     templateUrl: './profile-editor.component.html'
 })

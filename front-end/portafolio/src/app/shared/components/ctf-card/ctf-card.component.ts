@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { CTFChallenge, CTF_CATEGORIES, CTF_DIFFICULTIES, AttachmentType } from '@core/models/ctf.model';
+import { IconComponent, IconName } from '@shared/icons/icon.component';
 
 @Component({
   selector: 'app-ctf-card',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, IconComponent],
   templateUrl: './ctf-card.component.html',
   styleUrls: ['./ctf-card.component.scss']
 })
@@ -37,13 +38,13 @@ export class CtfCardComponent {
   }
 
   // Attachment helpers
-  getAttachmentIcon(type: AttachmentType): string {
-    const icons: Record<AttachmentType, string> = {
-      file: '📎',
-      url: '🔗',
-      docker: '🐳'
+  getAttachmentIconName(type: AttachmentType): IconName {
+    const icons: Record<AttachmentType, IconName> = {
+      file: 'paper-clip',
+      url: 'link',
+      docker: 'cube'
     };
-    return icons[type] || '📎';
+    return icons[type] || 'paper-clip';
   }
 
   getAttachmentLabel(type: AttachmentType): string {

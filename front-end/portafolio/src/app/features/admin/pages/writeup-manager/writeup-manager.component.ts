@@ -6,12 +6,13 @@ import { WriteupsService, Writeup } from '../../../writeups/services/writeups.se
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { IconComponent } from '../../../../shared/icons/icon.component';
+import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { ApiError } from '../../../../core/services/api.service';
 
 @Component({
     selector: 'app-writeup-manager',
     standalone: true,
-    imports: [CommonModule, RouterLink, ConfirmDialogComponent, IconComponent],
+    imports: [CommonModule, RouterLink, ConfirmDialogComponent, IconComponent, LoadingSpinnerComponent],
     templateUrl: './writeup-manager.component.html',
     styleUrls: ['./writeup-manager.component.scss']
 })

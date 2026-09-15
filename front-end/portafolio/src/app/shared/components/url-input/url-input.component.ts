@@ -20,12 +20,13 @@ import {
   Validators
 } from '@angular/forms';
 import { FileValidators } from '@core/validators/file.validators';
+import { IconComponent } from '@shared/icons/icon.component';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-url-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, IconComponent],
   templateUrl: './url-input.component.html',
   styleUrls: ['./url-input.component.scss'],
   providers: [

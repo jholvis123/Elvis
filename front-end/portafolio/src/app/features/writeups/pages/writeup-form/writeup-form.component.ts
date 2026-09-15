@@ -8,12 +8,13 @@ import { WriteupForm, WriteupsService } from '@features/writeups/services/writeu
 import { NotificationService } from '@core/services/notification.service';
 import { MarkdownEditorComponent } from '../../../../shared/components/markdown-editor/markdown-editor.component';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { IconComponent } from '@shared/icons/icon.component';
 
 
 @Component({
     selector: 'app-writeup-form',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, RouterLink, MarkdownEditorComponent],
+    imports: [CommonModule, ReactiveFormsModule, RouterLink, MarkdownEditorComponent, IconComponent],
     templateUrl: './writeup-form.component.html',
     styleUrls: ['./writeup-form.component.scss']
 })
