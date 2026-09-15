@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, ElementRef, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ElementRef, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -29,7 +29,7 @@ import {
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly portfolioService = inject(PortfolioService);
   private readonly contactService = inject(ContactService);
   private readonly projectsService = inject(ProjectsService);
@@ -57,7 +57,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   experienceError = false;
   capabilitiesError = false;
 
-  private observer!: IntersectionObserver;
+  private observer?: IntersectionObserver;
+  private mutationObserver?: MutationObserver;
+  private readonly observedReveals = new WeakSet<Element>();
 
   ngOnInit(): void {
     this.apiUnavailable = !this.apiAvailability.isApiAvailable();
@@ -91,13 +93,15 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.loadingCapabilities = false;
       this.clearPortfolioData();
     }
+  }
+
+  ngAfterViewInit(): void {
     this.setupIntersectionObserver();
   }
 
   ngOnDestroy(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
+    this.mutationObserver?.disconnect();
+    this.observer?.disconnect();
   }
 
   @HostListener('window:scroll')
@@ -240,23 +244,73 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private setupIntersectionObserver(): void {
-    const options: IntersectionObserverInit = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.1
-    };
+    const root = this.elementRef.nativeElement as HTMLElement;
+
+    // Accesibilidad: sin animación de reveal, mostrar contenido de inmediato.
+    // Sin IO (o reduced-motion): nunca dejar opacity 0 permanente.
+    const reducedMotion =
+      typeof matchMedia !== 'undefined' &&
+      matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion || typeof IntersectionObserver === 'undefined') {
+      this.activateRevealElements(root);
+      this.mutationObserver = new MutationObserver(() => this.activateRevealElements(root));
+      this.mutationObserver.observe(root, { childList: true, subtree: true });
+      return;
+    }
 
     this.observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('active');
+          this.observer?.unobserve(entry.target);
         }
       });
-    }, options);
+    }, {
+      root: null,
+      rootMargin: '0px 0px -5% 0px',
+      threshold: 0.05
+    });
 
-    setTimeout(() => {
-      const elements = this.elementRef.nativeElement.querySelectorAll('.reveal, .reveal-left, .reveal-right');
-      elements.forEach((el: Element) => this.observer.observe(el));
-    }, 100);
+    this.observeRevealElements(root);
+
+    // Proyectos / timeline llegan async (*ngIf / *ngFor); re-observar nodos nuevos.
+    this.mutationObserver = new MutationObserver(() => this.observeRevealElements(root));
+    this.mutationObserver.observe(root, { childList: true, subtree: true });
+  }
+
+  private observeRevealElements(root: HTMLElement = this.elementRef.nativeElement): void {
+    if (!this.observer) {
+      return;
+    }
+
+    const elements = root.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+    elements.forEach((el: Element) => {
+      if (this.observedReveals.has(el)) {
+        return;
+      }
+      this.observedReveals.add(el);
+
+      // Ya en viewport al montarse (p. ej. tras carga async): no depender solo del IO.
+      if (this.isElementInViewport(el)) {
+        el.classList.add('active');
+        return;
+      }
+
+      this.observer?.observe(el);
+    });
+  }
+
+  private activateRevealElements(root: HTMLElement = this.elementRef.nativeElement): void {
+    root.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach((el: Element) => {
+      el.classList.add('active');
+    });
+  }
+
+  private isElementInViewport(el: Element): boolean {
+    const rect = el.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    const vw = window.innerWidth || document.documentElement.clientWidth;
+    return rect.bottom > 0 && rect.right > 0 && rect.top < vh && rect.left < vw;
   }
 }
+
