@@ -35,6 +35,9 @@ from ...core.security_middleware import limiter
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+# OAuth token_type value (not a secret) — bandit S105 false positive
+_TOKEN_TYPE_BEARER = "bearer"  # noqa: S105
+
 
 @router.post("/register", response_model=UserResponseDTO, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/hour")  # Limitar registros a 5 por hora por IP
@@ -137,7 +140,7 @@ async def login(
     if data.token_in_body:
         payload.access_token = access_token
         payload.refresh_token = refresh_token
-        payload.token_type = "bearer"
+        payload.token_type = _TOKEN_TYPE_BEARER
     return payload
 
 
@@ -213,7 +216,7 @@ async def refresh_token(
     if data.token_in_body:
         payload.access_token = access_token
         payload.refresh_token = new_refresh_token
-        payload.token_type = "bearer"
+        payload.token_type = _TOKEN_TYPE_BEARER
     return payload
 
 
