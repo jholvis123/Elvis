@@ -1,7 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { Technology, Highlight, PortfolioProfile } from '../models';
+import { catchError, map } from 'rxjs/operators';
+import {
+  Technology,
+  Highlight,
+  PortfolioProfile,
+  ExperienceItem,
+  ExperienceListResponse,
+  ExperienceLinks,
+  CapabilityChip,
+  CapabilitiesResponse,
+  CapabilitySkill
+} from '../models';
 import { ApiService } from './api.service';
 import { ApiAvailabilityService } from './api-availability.service';
 
@@ -65,6 +75,134 @@ export class PortfolioService {
       }
     };
     return this.api.put<PortfolioProfile>('/portfolio/profile', body, { withCredentials: true });
+  }
+
+  /**
+   * Experiencia pública — GET /portfolio/experience → { items: ExperienceItemDTO[] }.
+   * Orden UI: order ASC, luego start_date DESC (también confía en orden del API).
+   * Sin mock: vacío hasta que el BE (PR #48) + seed estén desplegados.
+   */
+  getExperience(): Observable<ExperienceItem[]> {
+    if (!this.apiAvailability.isApiConfigured()) {
+      return of([]);
+    }
+    return this.api.get<ExperienceListResponse>('/portfolio/experience').pipe(
+      map(raw => this.normalizeExperienceResponse(raw)),
+      catchError(err => {
+        this.apiAvailability.noteRequestFailure(err);
+        throw err;
+      })
+    );
+  }
+
+  /**
+   * Capacidades públicas — GET /portfolio/capabilities → { roles, skills:[{name,category}] }.
+   * Preferir este endpoint. No inventar skills desde profile.stack_items (legacy aparte).
+   * Sin endpoint / error: lista vacía honesta.
+   */
+  getCapabilities(): Observable<CapabilityChip[]> {
+    if (!this.apiAvailability.isApiConfigured()) {
+      return of([]);
+    }
+    return this.api.get<CapabilitiesResponse>('/portfolio/capabilities').pipe(
+      map(raw => this.mapCapabilitiesResponse(raw)),
+      catchError(err => {
+        this.apiAvailability.noteRequestFailure(err);
+        throw err;
+      })
+    );
+  }
+
+  /** Capa de mapping única: CapabilitiesDTO → chips (roles + skills). */
+  mapCapabilitiesResponse(raw: CapabilitiesResponse | null | undefined): CapabilityChip[] {
+    if (!raw || typeof raw !== 'object') {
+      return [];
+    }
+    const roles = (raw.roles ?? [])
+      .map(r => String(r ?? '').trim())
+      .filter(Boolean)
+      .map(label => ({ label, kind: 'role' as const }));
+
+    const skills = (raw.skills ?? [])
+      .map(s => this.normalizeSkill(s))
+      .filter((s): s is CapabilitySkill => s !== null)
+      .map(s => ({
+        label: s.name,
+        kind: 'skill' as const,
+        category: s.category
+      }));
+
+    return [...roles, ...skills];
+  }
+
+  normalizeExperienceResponse(raw: ExperienceListResponse | ExperienceItem[] | null | undefined): ExperienceItem[] {
+    let list: ExperienceItem[] = [];
+    if (Array.isArray(raw)) {
+      list = raw;
+    } else if (raw && Array.isArray(raw.items)) {
+      list = raw.items;
+    }
+    return list
+      .map((item, index) => this.normalizeExperienceItem(item, index))
+      .filter((item): item is ExperienceItem => item !== null)
+      .sort((a, b) => {
+        const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+        if (orderDiff !== 0) return orderDiff;
+        return this.compareStartDateDesc(a.start_date, b.start_date);
+      });
+  }
+
+  private normalizeSkill(skill: CapabilitySkill | null | undefined): CapabilitySkill | null {
+    if (!skill || typeof skill !== 'object') return null;
+    const name = String(skill.name ?? '').trim();
+    if (!name) return null;
+    return {
+      name,
+      category: String(skill.category ?? '').trim() || 'general'
+    };
+  }
+
+  private normalizeExperienceItem(
+    item: Partial<ExperienceItem> | null | undefined,
+    index: number
+  ): ExperienceItem | null {
+    if (!item || typeof item !== 'object') return null;
+    const title = String(item.title ?? '').trim();
+    const summary = String(item.summary ?? '').trim();
+    if (!title && !summary) return null;
+
+    const linksRaw = (item.links ?? {}) as ExperienceLinks;
+    const links: ExperienceLinks = {
+      github: linksRaw.github ? String(linksRaw.github).trim() || null : null,
+      demo: linksRaw.demo ? String(linksRaw.demo).trim() || null : null
+    };
+
+    return {
+      id: String(item.id ?? index),
+      title: title || 'Experiencia',
+      organization: item.organization ?? null,
+      kind: (item.kind as ExperienceItem['kind']) || 'project',
+      location: item.location ?? null,
+      start_date: String(item.start_date ?? ''),
+      end_date: item.end_date ?? null,
+      current: Boolean(item.current),
+      summary,
+      highlights: Array.isArray(item.highlights)
+        ? item.highlights.map(h => String(h).trim()).filter(Boolean)
+        : [],
+      technologies: Array.isArray(item.technologies)
+        ? item.technologies.map(t => String(t).trim()).filter(Boolean)
+        : [],
+      links,
+      order: typeof item.order === 'number' ? item.order : index
+    };
+  }
+
+  private compareStartDateDesc(a: string, b: string): number {
+    const av = a || '';
+    const bv = b || '';
+    if (av === bv) return 0;
+    return av < bv ? 1 : -1;
   }
 
   /**

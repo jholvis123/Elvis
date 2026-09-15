@@ -13,6 +13,17 @@
   [stackItems]="stackItems">
 </app-about-section>
 
+<!-- Experience / Capabilities -->
+<app-experience-section
+  [items]="experienceItems"
+  [capabilities]="capabilities"
+  [loading]="loadingExperience"
+  [loadingCapabilities]="loadingCapabilities"
+  [apiUnavailable]="apiUnavailable"
+  [experienceError]="experienceError"
+  [capabilitiesError]="capabilitiesError">
+</app-experience-section>
+
 <!-- Projects Section -->
 <app-projects-section
   [projects]="projects"

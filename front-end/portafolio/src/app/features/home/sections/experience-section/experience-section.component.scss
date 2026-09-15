@@ -1,0 +1,130 @@
+.experience-section {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.4) 0%, rgba(15, 23, 42, 0.35) 100%);
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  border-left: 2px solid rgba(34, 211, 238, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -1.25rem;
+  top: 0.35rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: #22d3ee;
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.15);
+  transform: translateX(-50%);
+}
+
+.timeline-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgb(30 41 59);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.timeline-card:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.08);
+}
+
+.timeline-skeleton {
+  border: 1px solid rgb(30 41 59);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.kind-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #67e8f9;
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+}
+
+.kind-badge--current {
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.capabilities-panel {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgb(30 41 59);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  position: sticky;
+  top: 5.5rem;
+}
+
+.capability-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgb(51 65 85);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.capability-chip--role {
+  color: #22d3ee;
+  border-color: rgba(34, 211, 238, 0.35);
+  background: rgba(34, 211, 238, 0.08);
+}
+
+.capability-chip--skill {
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.capability-chip:hover {
+  border-color: rgba(34, 211, 238, 0.55);
+  color: #22d3ee;
+}
+
+@media (max-width: 1023px) {
+  .capabilities-panel {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-card,
+  .capability-chip {
+    transition: none;
+  }
+
+  .timeline-card:hover {
+    box-shadow: none;
+  }
+
+  :host ::ng-deep .animate-pulse {
+    animation: none !important;
+  }
+}

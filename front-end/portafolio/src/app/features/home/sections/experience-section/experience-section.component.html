@@ -1,0 +1,171 @@
+<section id="experience" class="section experience-section" aria-labelledby="experience-heading">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="mb-10 reveal">
+      <p class="eyebrow">Experiencia / capacidades</p>
+      <h2 id="experience-heading" class="section-heading">Trayectoria y fortalezas</h2>
+      <p class="muted-text mt-3 max-w-2xl">
+        Experiencia y capacidades publicadas desde el portfolio (sin datos inventados).
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-10 lg:gap-12 items-start">
+      <!-- Timeline -->
+      <div>
+        <h3 class="text-lg font-semibold text-textPrimary mb-6 flex items-center gap-2">
+          <app-icon name="calendar" cssClass="w-5 h-5 text-primary" ariaLabel=""></app-icon>
+          Experiencia
+        </h3>
+
+        <div *ngIf="loading" class="space-y-6" aria-busy="true" aria-label="Cargando experiencia">
+          <div *ngFor="let i of [1, 2, 3]" class="timeline-skeleton animate-pulse">
+            <div class="h-3 bg-slate-700 rounded w-1/4 mb-3"></div>
+            <div class="h-5 bg-slate-700 rounded w-2/3 mb-2"></div>
+            <div class="h-4 bg-slate-700 rounded w-full mb-2"></div>
+            <div class="h-4 bg-slate-700 rounded w-5/6"></div>
+          </div>
+        </div>
+
+        <div *ngIf="!loading && apiUnavailable" class="text-center py-10 border border-slate-800 rounded-2xl bg-surface/40 reveal">
+          <app-icon name="exclamation-triangle" cssClass="w-10 h-10 text-primary mx-auto mb-3"></app-icon>
+          <h4 class="text-lg font-semibold text-textPrimary mb-2">API no disponible</h4>
+          <p class="text-textSecondary text-sm px-4">
+            No se puede cargar la experiencia porque la API no está configurada o no responde.
+          </p>
+        </div>
+
+        <div *ngIf="!loading && !apiUnavailable && experienceError" class="text-center py-10 border border-slate-800 rounded-2xl bg-surface/40 reveal">
+          <app-icon name="x-circle" cssClass="w-10 h-10 text-primary mx-auto mb-3"></app-icon>
+          <h4 class="text-lg font-semibold text-textPrimary mb-2">No se pudo cargar la experiencia</h4>
+          <p class="text-textSecondary text-sm px-4">
+            Ocurrió un error al obtener los datos. Inténtalo de nuevo más tarde.
+          </p>
+        </div>
+
+        <div *ngIf="!loading && !apiUnavailable && !experienceError && items.length === 0" class="text-center py-10 border border-slate-800 rounded-2xl bg-surface/40 reveal">
+          <app-icon name="folder" cssClass="w-10 h-10 text-primary mx-auto mb-3"></app-icon>
+          <h4 class="text-lg font-semibold text-textPrimary mb-2">Sin experiencia publicada</h4>
+          <p class="text-textSecondary text-sm px-4">
+            Todavía no hay experiencia registrada en el portfolio.
+          </p>
+        </div>
+
+        <ol
+          *ngIf="!loading && !apiUnavailable && !experienceError && items.length > 0"
+          class="timeline"
+          role="list"
+          aria-label="Línea de tiempo de experiencia">
+          <li
+            *ngFor="let item of items; trackBy: trackByExperience"
+            class="timeline-item reveal">
+            <div class="timeline-marker" aria-hidden="true"></div>
+            <article class="timeline-card">
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <p *ngIf="formatDateRange(item)" class="text-xs uppercase tracking-wider text-primary font-semibold">
+                  {{ formatDateRange(item) }}
+                </p>
+                <span *ngIf="kindLabel(item.kind)" class="kind-badge" [attr.data-kind]="item.kind">
+                  {{ kindLabel(item.kind) }}
+                </span>
+                <span *ngIf="item.current" class="kind-badge kind-badge--current">Actual</span>
+              </div>
+
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <h4 class="text-xl font-semibold text-textPrimary leading-snug">{{ item.title }}</h4>
+                  <p *ngIf="item.organization" class="text-sm text-textSecondary mt-1">{{ item.organization }}</p>
+                  <p *ngIf="item.location" class="text-xs text-textSecondary/80 mt-1 inline-flex items-center gap-1">
+                    <app-icon name="flag" cssClass="w-3.5 h-3.5" ariaLabel=""></app-icon>
+                    {{ item.location }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <a
+                    *ngIf="item.links?.github"
+                    [href]="item.links.github"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-textSecondary hover:text-primary transition-colors"
+                    [attr.aria-label]="'Ver en GitHub: ' + item.title">
+                    <app-icon name="github" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+                  </a>
+                  <a
+                    *ngIf="item.links?.demo"
+                    [href]="item.links.demo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-textSecondary hover:text-primary transition-colors"
+                    [attr.aria-label]="'Ver demo: ' + item.title">
+                    <app-icon name="arrow-top-right-on-square" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+                  </a>
+                </div>
+              </div>
+
+              <p *ngIf="item.summary" class="muted-text mt-3 text-sm sm:text-base leading-relaxed">{{ item.summary }}</p>
+
+              <ul *ngIf="item.highlights?.length" class="mt-3 space-y-1.5" role="list">
+                <li *ngFor="let point of item.highlights" class="flex gap-2 text-sm text-textSecondary">
+                  <app-icon name="check" cssClass="w-4 h-4 text-primary mt-0.5 shrink-0" ariaLabel=""></app-icon>
+                  <span>{{ point }}</span>
+                </li>
+              </ul>
+
+              <div *ngIf="item.technologies?.length" class="flex flex-wrap gap-2 mt-4" role="list" aria-label="Tecnologías">
+                <app-tech-badge
+                  *ngFor="let tech of item.technologies"
+                  [name]="tech"
+                  variant="outline"
+                  size="sm">
+                </app-tech-badge>
+              </div>
+            </article>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Capabilities -->
+      <aside class="capabilities-panel reveal" aria-labelledby="capabilities-heading">
+        <h3 id="capabilities-heading" class="text-lg font-semibold text-textPrimary mb-4 flex items-center gap-2">
+          <app-icon name="puzzle-piece" cssClass="w-5 h-5 text-primary" ariaLabel=""></app-icon>
+          Capacidades
+        </h3>
+
+        <div *ngIf="loadingCapabilities" class="flex flex-wrap gap-2" aria-busy="true" aria-label="Cargando capacidades">
+          <span *ngFor="let i of [1, 2, 3, 4, 5, 6]" class="h-8 w-20 rounded-full bg-slate-700 animate-pulse"></span>
+        </div>
+
+        <div *ngIf="!loadingCapabilities && apiUnavailable" class="text-sm text-textSecondary border border-slate-800 rounded-xl p-4 bg-card/50">
+          No se pueden cargar las capacidades: la API no está disponible.
+        </div>
+
+        <div *ngIf="!loadingCapabilities && !apiUnavailable && capabilitiesError" class="text-sm text-textSecondary border border-slate-800 rounded-xl p-4 bg-card/50">
+          No se pudieron cargar las capacidades. Inténtalo más tarde.
+        </div>
+
+        <div *ngIf="!loadingCapabilities && !apiUnavailable && !capabilitiesError && capabilities.length === 0" class="text-sm text-textSecondary border border-slate-800 rounded-xl p-4 bg-card/50">
+          Todavía no hay capacidades publicadas.
+        </div>
+
+        <div *ngIf="!loadingCapabilities && !apiUnavailable && !capabilitiesError && capabilities.length > 0" class="space-y-5">
+          <div *ngIf="roleChips.length">
+            <p class="text-xs uppercase tracking-wider text-textSecondary mb-2">Roles</p>
+            <ul class="flex flex-wrap gap-2" role="list" aria-label="Roles">
+              <li *ngFor="let chip of roleChips; trackBy: trackByCapability">
+                <span class="capability-chip capability-chip--role">{{ chip.label }}</span>
+              </li>
+            </ul>
+          </div>
+          <div *ngIf="skillChips.length">
+            <p class="text-xs uppercase tracking-wider text-textSecondary mb-2">Skills</p>
+            <ul class="flex flex-wrap gap-2" role="list" aria-label="Skills">
+              <li *ngFor="let chip of skillChips; trackBy: trackByCapability">
+                <span class="capability-chip capability-chip--skill" [attr.title]="chip.category || null">
+                  {{ chip.label }}
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
