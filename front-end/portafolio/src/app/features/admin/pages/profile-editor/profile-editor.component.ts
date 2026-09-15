@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
     AbstractControl,
@@ -10,7 +10,10 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PortfolioService } from '../../../../core/services/portfolio.service';
+import {
+    AVATAR_ACCEPT_ATTR,
+    PortfolioService
+} from '../../../../core/services/portfolio.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ApiError } from '../../../../core/services/api.service';
 import {
@@ -35,7 +38,8 @@ import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/load
         DynamicListComponent,
         LoadingSpinnerComponent
     ],
-    templateUrl: './profile-editor.component.html'
+    templateUrl: './profile-editor.component.html',
+    styleUrls: ['./profile-editor.component.scss']
 })
 export class ProfileEditorComponent implements OnInit {
     private readonly fb = inject(FormBuilder);
@@ -43,7 +47,10 @@ export class ProfileEditorComponent implements OnInit {
     private readonly notificationService = inject(NotificationService);
     private readonly destroyRef = inject(DestroyRef);
 
+    @ViewChild('avatarInput') avatarInput?: ElementRef<HTMLInputElement>;
+
     readonly highlightIcons: IconName[] = [...HIGHLIGHT_ICON_NAMES];
+    readonly avatarAccept = AVATAR_ACCEPT_ATTR;
 
     form: FormGroup = this.fb.group({
         name: ['', [Validators.required, Validators.minLength(2)]],
@@ -67,12 +74,25 @@ export class ProfileEditorComponent implements OnInit {
     showConfirm = false;
     loaded = false;
 
+    /** Snapshot used for DELETE fallback PUT. */
+    private profileSnapshot: PortfolioProfile | null = null;
+
+    avatarUploading = false;
+    avatarRemoving = false;
+    avatarError = '';
+    avatarDragging = false;
+    previewBroken = false;
+
     ngOnInit(): void {
         this.loadProfile();
     }
 
     get highlights(): FormArray {
         return this.form.get('highlights') as FormArray;
+    }
+
+    get avatarPreviewUrl(): string | null {
+        return this.portfolioService.resolveAvatarUrl(this.form.get('avatar_url')?.value);
     }
 
     highlightGroup(control: AbstractControl): FormGroup {
@@ -92,6 +112,7 @@ export class ProfileEditorComponent implements OnInit {
         this.loading = true;
         this.errorMessage = '';
         this.saveError = '';
+        this.avatarError = '';
         this.loaded = false;
 
         this.portfolioService.getProfile().pipe(
@@ -124,6 +145,11 @@ export class ProfileEditorComponent implements OnInit {
         if (this.form.invalid) {
             this.form.markAllAsTouched();
             this.saveError = 'Revisa los campos marcados antes de guardar.';
+            return;
+        }
+        const manualUrl = (this.form.get('avatar_url')?.value || '').trim();
+        if (manualUrl && !/^https:\/\//i.test(manualUrl) && !manualUrl.startsWith('/')) {
+            this.saveError = 'La URL del avatar debe ser https://… o una ruta relativa del API.';
             return;
         }
         this.saveError = '';
@@ -162,7 +188,112 @@ export class ProfileEditorComponent implements OnInit {
         });
     }
 
+    openAvatarPicker(): void {
+        this.avatarInput?.nativeElement?.click();
+    }
+
+    onAvatarSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        input.value = '';
+        if (file) {
+            this.uploadAvatarFile(file);
+        }
+    }
+
+    onAvatarDragOver(event: DragEvent): void {
+        event.preventDefault();
+        event.stopPropagation();
+        this.avatarDragging = true;
+    }
+
+    onAvatarDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        event.stopPropagation();
+        this.avatarDragging = false;
+    }
+
+    onAvatarDrop(event: DragEvent): void {
+        event.preventDefault();
+        event.stopPropagation();
+        this.avatarDragging = false;
+        const file = event.dataTransfer?.files?.[0];
+        if (file) {
+            this.uploadAvatarFile(file);
+        }
+    }
+
+    uploadAvatarFile(file: File): void {
+        this.avatarError = '';
+        const clientError = this.portfolioService.validateAvatarFile(file);
+        if (clientError) {
+            this.avatarError = clientError;
+            return;
+        }
+
+        this.avatarUploading = true;
+        this.portfolioService.uploadAvatar(file).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+            next: (profile) => {
+                this.avatarUploading = false;
+                this.previewBroken = false;
+                // Upload already persisted avatar_url on BE — refresh form field + snapshot.
+                this.form.patchValue({ avatar_url: profile.avatar_url || '' });
+                this.profileSnapshot = {
+                    ...(this.profileSnapshot || this.toPutBody()),
+                    avatar_url: profile.avatar_url ?? null
+                };
+                this.notificationService.success('Avatar actualizado');
+            },
+            error: (err: unknown) => {
+                this.avatarUploading = false;
+                this.avatarError = this.humanAvatarError(err, 'No se pudo subir el avatar.');
+            }
+        });
+    }
+
+    removeAvatar(): void {
+        if (this.avatarRemoving || this.avatarUploading) {
+            return;
+        }
+        const snapshot = this.profileSnapshot || this.toPutBody();
+        this.avatarError = '';
+        this.avatarRemoving = true;
+
+        this.portfolioService.deleteAvatar(snapshot).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+            next: (profile) => {
+                this.avatarRemoving = false;
+                this.previewBroken = false;
+                this.form.patchValue({ avatar_url: profile.avatar_url || '' });
+                this.profileSnapshot = {
+                    ...snapshot,
+                    ...profile,
+                    avatar_url: profile.avatar_url ?? null
+                };
+                this.notificationService.success('Avatar eliminado');
+            },
+            error: (err: unknown) => {
+                this.avatarRemoving = false;
+                this.avatarError = this.humanAvatarError(err, 'No se pudo eliminar el avatar.');
+            }
+        });
+    }
+
+    onPreviewError(): void {
+        this.previewBroken = true;
+    }
+
+    onManualAvatarUrlChange(): void {
+        this.previewBroken = false;
+        this.avatarError = '';
+    }
+
     private applyProfile(profile: PortfolioProfile): void {
+        this.profileSnapshot = { ...profile };
+        this.previewBroken = false;
         this.highlights.clear();
         const highlights = profile.highlights ?? [];
         highlights.forEach((h) => this.highlights.push(this.buildHighlightGroup(h)));
@@ -277,5 +408,30 @@ export class ProfileEditorComponent implements OnInit {
             return err.message;
         }
         return 'No se pudo guardar el perfil.';
+    }
+
+    private humanAvatarError(err: unknown, fallback: string): string {
+        if (err instanceof ApiError) {
+            if (err.status === 401) {
+                return err.message || 'Sesión expirada. Inicia sesión de nuevo.';
+            }
+            if (err.status === 403) {
+                return err.message || 'No tienes permisos de administrador para cambiar el avatar.';
+            }
+            if (err.status === 413) {
+                return 'La imagen es demasiado grande (máximo 2 MB).';
+            }
+            if (err.status === 415 || err.status === 400 || err.status === 422) {
+                return err.message || 'Archivo no válido. Usa JPG, PNG o WebP de hasta 2 MB.';
+            }
+            if (err.status === 404) {
+                return 'El endpoint de avatar aún no está disponible en el API.';
+            }
+            return err.message || fallback;
+        }
+        if (err instanceof Error && err.message) {
+            return err.message;
+        }
+        return fallback;
     }
 }

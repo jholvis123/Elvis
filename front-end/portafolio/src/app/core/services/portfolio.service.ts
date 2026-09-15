@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {
   Technology,
@@ -12,8 +12,15 @@ import {
   CapabilitiesResponse,
   CapabilitySkill
 } from '../models';
-import { ApiService } from './api.service';
+import { ApiService, ApiError } from './api.service';
 import { ApiAvailabilityService } from './api-availability.service';
+import { environment } from '../../../environments/environment';
+import { resolveApiMediaUrl } from '../utils/media-url';
+
+/** Client-side avatar upload constraints (aligned with BE). */
+export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+export const AVATAR_ACCEPT_MIME = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const AVATAR_ACCEPT_ATTR = 'image/jpeg,image/png,image/webp';
 
 export type { PortfolioProfile };
 
@@ -75,6 +82,74 @@ export class PortfolioService {
       }
     };
     return this.api.put<PortfolioProfile>('/portfolio/profile', body, { withCredentials: true });
+  }
+
+  /**
+   * Absolute URL for <img src> from profile.avatar_url (may be relative to API host).
+   */
+  resolveAvatarUrl(avatarUrl: string | null | undefined): string | null {
+    return resolveApiMediaUrl(avatarUrl, environment.apiUrl);
+  }
+
+  /**
+   * POST /portfolio/avatar — multipart field `file`.
+   * Response: full PortfolioProfileDTO with updated avatar_url.
+   */
+  uploadAvatar(file: File): Observable<PortfolioProfile> {
+    const validationError = this.validateAvatarFile(file);
+    if (validationError) {
+      return throwError(() => new ApiError(validationError, 400));
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.upload<PortfolioProfile>('/portfolio/avatar', formData, {
+      withCredentials: true
+    });
+  }
+
+  /**
+   * DELETE /portfolio/avatar. On 404/405, fallback: PUT profile with avatar_url=null
+   * (requires current profile snapshot so other fields are not wiped).
+   */
+  deleteAvatar(currentProfile: PortfolioProfile): Observable<PortfolioProfile> {
+    const cleared: PortfolioProfile = { ...currentProfile, avatar_url: null };
+    return this.api.delete<PortfolioProfile | null>('/portfolio/avatar', { withCredentials: true }).pipe(
+      map((res) => {
+        if (res && typeof res === 'object' && ('name' in res || 'avatar_url' in res)) {
+          return res as PortfolioProfile;
+        }
+        return cleared;
+      }),
+      catchError((err: unknown) => {
+        const status = err instanceof ApiError
+          ? err.status
+          : (err && typeof err === 'object' && 'status' in err
+            ? Number((err as { status?: number }).status)
+            : undefined);
+        if (status === 404 || status === 405) {
+          return this.updateProfile(cleared);
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  validateAvatarFile(file: File | null | undefined): string | null {
+    if (!file) {
+      return 'Selecciona una imagen.';
+    }
+    const mime = (file.type || '').toLowerCase();
+    const okMime =
+      AVATAR_ACCEPT_MIME.includes(mime as (typeof AVATAR_ACCEPT_MIME)[number]) ||
+      // some browsers omit type; allow by extension
+      /\.(jpe?g|png|webp)$/i.test(file.name || '');
+    if (!okMime) {
+      return 'Formato no permitido. Usa JPG, PNG o WebP.';
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      return 'La imagen supera el máximo de 2 MB.';
+    }
+    return null;
   }
 
   /**
