@@ -81,7 +81,7 @@ async def register(
     )
 
 
-@router.post("/login", response_model=AuthStatusDTO)
+@router.post("/login", response_model=AuthStatusDTO, response_model_exclude_none=True)
 @limiter.limit("10/minute")  # Limitar intentos de login a 10 por minuto por IP
 async def login(
     request: Request,
@@ -144,7 +144,7 @@ async def login(
     return payload
 
 
-@router.post("/refresh", response_model=AuthStatusDTO)
+@router.post("/refresh", response_model=AuthStatusDTO, response_model_exclude_none=True)
 async def refresh_token(
     request: Request,
     response: Response,

@@ -27,3 +27,6 @@ no pueden usar cookies CSRF/SameSite de forma fiable cross-origin.
 5. **Logout**: limpia cookies; el cliente Bearer descarta el token en memoria/storage.
 
 `is_admin` no se debilita.
+
+## Nota JSON
+Login/refresh serializan con `exclude_none`: si `token_in_body` es false, no se emiten `access_token`/`refresh_token`/`token_type` como null.

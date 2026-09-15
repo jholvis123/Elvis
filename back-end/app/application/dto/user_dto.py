@@ -81,6 +81,8 @@ class AuthStatusDTO(BaseModel):
     Por defecto los JWT van en cookies HttpOnly (sin tokens en body).
     Con `token_in_body=true` en la petición, también se incluyen
     access_token / refresh_token para clientes Bearer (Pages cross-origin).
+    Login/refresh usan response_model_exclude_none: sin token_in_body no
+    aparecen keys null en el JSON.
     """
     
     authenticated: bool
