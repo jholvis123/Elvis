@@ -47,6 +47,7 @@ from .infrastructure.persistence.models import (
     ContactModel,
     FlagSubmissionModel,
     PortfolioProfileModel,
+    ExperienceModel,
 )
 
 

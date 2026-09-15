@@ -10,6 +10,7 @@ from .attachment_model import AttachmentModel
 from .contact_model import ContactModel
 from .flag_submission_model import FlagSubmissionModel
 from .portfolio_model import PortfolioProfileModel
+from .experience_model import ExperienceModel
 
 __all__ = [
     "UserModel",
@@ -20,4 +21,5 @@ __all__ = [
     "ContactModel",
     "FlagSubmissionModel",
     "PortfolioProfileModel",
+    "ExperienceModel",
 ]

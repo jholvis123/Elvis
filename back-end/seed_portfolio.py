@@ -34,6 +34,7 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 from app.infrastructure.persistence.models.project_model import ProjectModel
+from app.infrastructure.persistence.models.experience_model import ExperienceModel
 
 
 def normalize_database_url(url: str) -> str:
@@ -170,6 +171,158 @@ SEED_PROJECTS: List[Dict[str, Any]] = [
 ]
 
 
+
+# Experiencia / trayectoria REAL (sin empleos inventados). IDs uuid5 estables.
+SEED_EXPERIENCES = [
+    {
+        "id": "0ed267a0-66e2-5527-9da9-1d73da2515ab",
+        "title": "Portafolio Elvis",
+        "organization": None,
+        "kind": "project",
+        "location": None,
+        "start_date": "2025-12",
+        "end_date": None,
+        "current": True,
+        "summary": (
+            "Portafolio fullstack Clean/Hexagonal FastAPI + Angular; JWT/CSRF; "
+            "CTFs/writeups; Pages+Render."
+        ),
+        "highlights": [
+            "Monorepo FastAPI + Angular",
+            "Auth JWT/cookies + CSRF",
+            "GitHub Pages + API en Render/Postgres",
+        ],
+        "technologies": ["Python", "FastAPI", "TypeScript", "Angular", "Docker", "PostgreSQL"],
+        "links": {
+            "github": "https://github.com/jholvis123/Elvis",
+            "demo": "https://jholvis123.github.io/Elvis/",
+        },
+        "order": 1,
+    },
+    {
+        "id": "6cd8b8b3-2890-57f0-8e25-3aacb53ca504",
+        "title": "Global — Sistema de gestión de autotransporte",
+        "organization": None,
+        "kind": "project",
+        "location": "Bolivia",
+        "start_date": "2026-03",
+        "end_date": "2026-03",
+        "current": False,
+        "summary": (
+            "Según README del repo: Angular 17 + FastAPI + SQL Server; JWT multi-rol; "
+            "gestión de socios/choferes/vehículos/viajes; localización Bolivia."
+        ),
+        "highlights": [
+            "FastAPI + Angular 17 + SQL Server (README)",
+            "JWT con roles documentados en el README",
+        ],
+        "technologies": ["Python", "FastAPI", "TypeScript", "Angular", "SQL Server", "JWT", "Docker"],
+        "links": {"github": "https://github.com/jholvis123/Global-"},
+        "order": 2,
+    },
+    {
+        "id": "07172136-4215-580d-b62a-49ba5c3be6fe",
+        "title": "fastapi-product — API productos/tareas (fork)",
+        "organization": None,
+        "kind": "project",
+        "location": None,
+        "start_date": "2026-03",
+        "end_date": "2026-03",
+        "current": False,
+        "summary": (
+            "Fork de henrytaby/fastapi-product. API FastAPI modular (productos/tareas) "
+            "con repositorio, JWT y PostgreSQL/SQLModel según README del fork."
+        ),
+        "highlights": [
+            "Etiquetado FORK (upstream henrytaby/fastapi-product)",
+            "Homepage del repo: https://fastapi-product.vercel.app",
+        ],
+        "technologies": ["Python", "FastAPI", "SQLModel", "PostgreSQL", "JWT"],
+        "links": {
+            "github": "https://github.com/jholvis123/fastapi-product",
+            "demo": "https://fastapi-product.vercel.app",
+        },
+        "order": 3,
+    },
+    {
+        "id": "dc82717a-0933-5653-8d25-096b93fc611f",
+        "title": "CTF / seguridad aplicada",
+        "organization": None,
+        "kind": "security",
+        "location": None,
+        "start_date": "2025-11",
+        "end_date": "2026-09",
+        "current": False,
+        "summary": (
+            "Fork de CTFd/CTFd para estudio/despliegue de plataformas CTF, más el repo "
+            "Trabajo-Final-De-Seguridad (https://github.com/jholvis123/Trabajo-Final-De-Seguridad; "
+            "árbol público limitado al seed; sin inventar labs ni flags)."
+        ),
+        "highlights": [
+            "CTFd: fork de CTFd/CTFd (no framework original propio)",
+            "Trabajo-Final-De-Seguridad: repo real con contenido público limitado",
+        ],
+        "technologies": ["Python", "Docker"],
+        "links": {"github": "https://github.com/jholvis123/CTFd"},
+        "order": 4,
+    },
+    {
+        "id": "f1afbc65-5c17-5d0f-999c-90af80fd6c60",
+        "title": "Formación continua (MisApuntes)",
+        "organization": None,
+        "kind": "training",
+        "location": None,
+        "start_date": "2025-10",
+        "end_date": None,
+        "current": True,
+        "summary": (
+            "Repositorio de apuntes personales (jholvis123/MisApuntes). "
+            "Descripción GitHub: «Aqui yase todos los apuntes nesesarios ..». "
+            "No es un empleo — formación continua."
+        ),
+        "highlights": [
+            "Repo de apuntes personales (no puesto laboral)",
+        ],
+        "technologies": [],
+        "links": {"github": "https://github.com/jholvis123/MisApuntes"},
+        "order": 5,
+    },
+]
+
+
+def seed_experiences(db):
+    """Inserta o actualiza experiencias por id estable. Returns (created, updated)."""
+    created = 0
+    updated = 0
+    now = datetime.utcnow()
+    for item in SEED_EXPERIENCES:
+        existing = db.query(ExperienceModel).filter(ExperienceModel.id == item["id"]).first()
+        payload = dict(
+            title=item["title"],
+            organization=item.get("organization"),
+            kind=item["kind"],
+            location=item.get("location"),
+            start_date=item["start_date"],
+            end_date=item.get("end_date"),
+            current=bool(item.get("current")),
+            summary=item["summary"],
+            highlights=json.dumps(item.get("highlights") or [], ensure_ascii=False),
+            technologies=json.dumps(item.get("technologies") or [], ensure_ascii=False),
+            links=json.dumps(item.get("links") or {}, ensure_ascii=False),
+            order=int(item.get("order") or 0),
+            updated_at=now,
+        )
+        if existing:
+            for k, v in payload.items():
+                setattr(existing, k, v)
+            updated += 1
+        else:
+            db.add(ExperienceModel(id=item["id"], created_at=now, **payload))
+            created += 1
+    db.commit()
+    return created, updated
+
+
 def _find_existing(db, github_url: Optional[str], title: str) -> Optional[ProjectModel]:
     if github_url:
         found = db.query(ProjectModel).filter(ProjectModel.github_url == github_url).first()
@@ -240,10 +393,13 @@ def main() -> int:
     db = SessionLocal()
     try:
         created, updated = seed_projects(db)
+        exp_c, exp_u = seed_experiences(db)
         published = (
             db.query(ProjectModel).filter(ProjectModel.status == "published").count()
         )
-        print(f"Seed OK — created={created} updated={updated} published_total={published}")
+        exp_total = db.query(ExperienceModel).count()
+        print(f"Seed OK — projects created={created} updated={updated} published_total={published}")
+        print(f"Experience created={exp_c} updated={exp_u} total={exp_total}")
         print("CTFs/writeups: omitidos (sin contenido inventado).")
         return 0
     except Exception as exc:

@@ -4,13 +4,22 @@ Router de Portfolio - Información del perfil profesional.
 
 from typing import List
 from datetime import datetime
+import json
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 from ...application.dto.portfolio_dto import (
     PortfolioProfileDTO,
     HighlightDTO,
     ContactInfoDTO,
+    ExperienceItemDTO,
+    ExperienceListDTO,
+    ExperienceLinksDTO,
+    CapabilitySkillDTO,
+    CapabilitiesDTO,
 )
+from ...core.database import get_db
+from ...infrastructure.persistence.models.experience_model import ExperienceModel
 from ...domain.entities.portfolio import PortfolioProfile, Highlight
 from ...domain.entities.user import User
 from ...domain.services.portfolio_service import PortfolioService
@@ -183,4 +192,73 @@ async def get_contact_info(
         github=social.get("github"),
         linkedin=social.get("linkedin"),
         twitter=social.get("twitter"),
+    )
+
+
+# Skills con evidencia en repos públicos jholvis123 (Elvis, Global-, fastapi-product, CTFd).
+# No inventa .NET / Node / Azure aquí (pueden seguir en profile.stack_items).
+EVIDENCED_SKILLS = [
+    CapabilitySkillDTO(name="Angular", category="frontend"),
+    CapabilitySkillDTO(name="TypeScript", category="frontend"),
+    CapabilitySkillDTO(name="Python", category="backend"),
+    CapabilitySkillDTO(name="FastAPI", category="backend"),
+    CapabilitySkillDTO(name="JWT", category="security"),
+    CapabilitySkillDTO(name="Docker", category="devops"),
+    CapabilitySkillDTO(name="CI/CD", category="devops"),
+    CapabilitySkillDTO(name="SQL Server", category="data"),
+    CapabilitySkillDTO(name="PostgreSQL", category="data"),
+]
+
+
+def _experience_to_dto(row: ExperienceModel) -> ExperienceItemDTO:
+    links_raw = json.loads(row.links) if row.links else {}
+    return ExperienceItemDTO(
+        id=row.id,
+        title=row.title,
+        organization=row.organization,
+        kind=row.kind,
+        location=row.location,
+        start_date=row.start_date,
+        end_date=row.end_date,
+        current=bool(row.current),
+        summary=row.summary,
+        highlights=json.loads(row.highlights) if row.highlights else [],
+        technologies=json.loads(row.technologies) if row.technologies else [],
+        links=ExperienceLinksDTO(
+            github=links_raw.get("github"),
+            demo=links_raw.get("demo"),
+        ),
+        order=int(row.order or 0),
+    )
+
+
+@router.get(
+    "/experience",
+    response_model=ExperienceListDTO,
+    summary="Trayectoria / experiencia (público)",
+)
+async def list_experience(
+    db: Session = Depends(get_db),
+) -> ExperienceListDTO:
+    """Lista ordenada: proyectos, formación y seguridad aplicada (sin empleos inventados)."""
+    rows = (
+        db.query(ExperienceModel)
+        .order_by(ExperienceModel.order.asc(), ExperienceModel.start_date.desc())
+        .all()
+    )
+    return ExperienceListDTO(items=[_experience_to_dto(r) for r in rows])
+
+
+@router.get(
+    "/capabilities",
+    response_model=CapabilitiesDTO,
+    summary="Roles y skills con evidencia",
+)
+async def get_capabilities(
+    portfolio_service: PortfolioService = Depends(get_portfolio_service),
+) -> CapabilitiesDTO:
+    """roles = perfil; skills = evidencia de repos seed (ver docstring del DTO)."""
+    return CapabilitiesDTO(
+        roles=list(portfolio_service.get_roles()),
+        skills=list(EVIDENCED_SKILLS),
     )

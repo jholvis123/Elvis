@@ -23,6 +23,7 @@ from app.infrastructure.persistence.models import (
     user_model, project_model, ctf_model, writeup_model,
     attachment_model, contact_model, flag_submission_model,
     portfolio_model,
+    experience_model,
 )
 
 # Sobrescribir la URL de la base de datos con la de la configuración

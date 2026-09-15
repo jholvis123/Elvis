@@ -18,6 +18,7 @@ from ..infrastructure.persistence.models import (  # noqa: F401 - register metad
     ContactModel,
     FlagSubmissionModel,
     PortfolioProfileModel,
+    ExperienceModel,
 )
 
 
