@@ -170,3 +170,49 @@ class TestBearerAdminAuth:
         body = res.json()
         assert body.get("access_token")
         assert body.get("refresh_token")
+
+    def test_empty_bearer_does_not_bypass_csrf_or_use_cookie(
+        self, client: TestClient, db: Session
+    ):
+        """Authorization: Bearer  (vacío) no debe anular CSRF ni usar cookie."""
+        uid = str(uuid4())
+        password = "Test1!pass"
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("ascii")
+        db.add(
+            UserModel(
+                id=uid,
+                email="empty-bearer@example.com",
+                username="emptybearer",
+                hashed_password=hashed,
+                is_active=True,
+                is_admin=True,
+            )
+        )
+        db.commit()
+        login = client.post(
+            "/api/v1/auth/login",
+            json={"email": "empty-bearer@example.com", "password": password},
+        )
+        assert login.status_code == 200
+        assert login.cookies.get("access_token")
+        assert login.cookies.get("csrf_token")
+        # Keep cookies, send empty Bearer (CSRF header missing)
+        res = client.put(
+            "/api/v1/portfolio/profile",
+            headers={"Authorization": "Bearer "},
+            json={
+                "name": "Elvis",
+                "title": "Dev",
+                "bio": "x",
+                "avatar_url": None,
+                "roles": ["Dev"],
+                "stack_items": ["Python"],
+                "about_points": ["a"],
+                "highlights": [],
+                "social_links": {},
+            },
+        )
+        # Must NOT succeed: 401 (bearer attempted, empty) or 403 CSRF
+        assert res.status_code in (401, 403)
+        assert res.status_code != 200
+

@@ -74,8 +74,21 @@ async def csrf_protect_middleware(request: Request, call_next):
         return await call_next(request)
 
     auth = request.headers.get("Authorization") or ""
-    if auth.lower().startswith("bearer "):
-        return await call_next(request)
+    if auth.lower().startswith("bearer"):
+        raw = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+        if not raw:
+            # Empty Bearer must NOT skip CSRF (fall through to cookie CSRF rules)
+            pass
+        else:
+            # Only skip CSRF if access JWT verifies (not just non-empty string)
+            try:
+                from ..infrastructure.security.jwt_provider import JWTProvider
+
+                if JWTProvider().verify_access_token(raw):
+                    return await call_next(request)
+            except Exception:
+                # Invalid bearer → do not exempt CSRF; cookie path may still apply
+                pass
 
     cookie_token = request.cookies.get(CSRF_COOKIE_NAME)
     if not cookie_token:
