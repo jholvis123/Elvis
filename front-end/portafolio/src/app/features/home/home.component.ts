@@ -4,11 +4,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PortfolioService, ContactService, ApiAvailabilityService } from '@core/services';
 import { ProjectsService } from '../projects/services/projects.service';
-import { ProjectSummary, Highlight, ContactInfo } from '@core/models';
+import { ProjectSummary, Highlight, ContactInfo, ExperienceItem, CapabilityChip } from '@core/models';
 import { ScrollToTopComponent } from '@shared/components';
 import {
   HeroSectionComponent,
   AboutSectionComponent,
+  ExperienceSectionComponent,
   ProjectsSectionComponent,
   ContactSectionComponent
 } from './sections';
@@ -21,6 +22,7 @@ import {
     ScrollToTopComponent,
     HeroSectionComponent,
     AboutSectionComponent,
+    ExperienceSectionComponent,
     ProjectsSectionComponent,
     ContactSectionComponent
   ],
@@ -44,9 +46,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   stackItems: string[] = [];
   roles: string[] = [];
 
+  experienceItems: ExperienceItem[] = [];
+  capabilities: CapabilityChip[] = [];
+
   showScrollTop = false;
   loadingProjects = true;
+  loadingExperience = true;
+  loadingCapabilities = true;
   apiUnavailable = false;
+  experienceError = false;
+  capabilitiesError = false;
 
   private observer!: IntersectionObserver;
 
@@ -59,7 +68,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (unavailable) {
           this.clearPortfolioData();
           this.projects = [];
+          this.experienceItems = [];
+          this.capabilities = [];
           this.loadingProjects = false;
+          this.loadingExperience = false;
+          this.loadingCapabilities = false;
         }
       });
 
@@ -70,8 +83,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.loadContact();
       this.loadProjects();
       this.loadProjectTypes();
+      this.loadExperience();
+      this.loadCapabilities();
     } else {
       this.loadingProjects = false;
+      this.loadingExperience = false;
+      this.loadingCapabilities = false;
       this.clearPortfolioData();
     }
     this.setupIntersectionObserver();
@@ -112,6 +129,56 @@ export class HomeComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.apiAvailability.noteRequestFailure(err);
         this.clearPortfolioData();
+      }
+    });
+  }
+
+  private loadExperience(): void {
+    this.loadingExperience = true;
+    this.experienceError = false;
+    this.portfolioService.getExperience().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (items) => {
+        this.apiAvailability.markNetworkOk();
+        this.experienceItems = items;
+        this.loadingExperience = false;
+        this.experienceError = false;
+      },
+      error: (err) => {
+        this.apiAvailability.noteRequestFailure(err);
+        this.experienceItems = [];
+        this.loadingExperience = false;
+        // 404 (ruta aún no desplegada) → empty honesto, no error alarmista
+        const status = err && typeof err === 'object' && 'status' in err
+          ? (err as { status?: number }).status
+          : undefined;
+        this.experienceError = status !== 404;
+      }
+    });
+  }
+
+  private loadCapabilities(): void {
+    this.loadingCapabilities = true;
+    this.capabilitiesError = false;
+    this.portfolioService.getCapabilities().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (chips) => {
+        this.apiAvailability.markNetworkOk();
+        this.capabilities = chips;
+        this.loadingCapabilities = false;
+        this.capabilitiesError = false;
+      },
+      error: (err) => {
+        this.apiAvailability.noteRequestFailure(err);
+        this.capabilities = [];
+        this.loadingCapabilities = false;
+        const status = err && typeof err === 'object' && 'status' in err
+          ? (err as { status?: number }).status
+          : undefined;
+        // Hasta merge+#48: 404 → empty honesto (no inventar desde stack_items)
+        this.capabilitiesError = status !== 404;
       }
     });
   }
@@ -168,6 +235,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.technologies = [];
     this.aboutPoints = [];
     this.highlights = [];
+    this.experienceItems = [];
+    this.capabilities = [];
   }
 
   private setupIntersectionObserver(): void {
