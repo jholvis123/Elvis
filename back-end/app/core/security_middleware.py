@@ -58,6 +58,25 @@ CSRF_HEADER_NAME = "X-CSRF-Token"
 CSRF_COOKIE_NAME = "csrf_token"
 
 
+
+def _bearer_access_token_verified(authorization: str) -> bool:
+    """True only when Authorization carries a non-empty Bearer access JWT that verifies.
+
+    Empty `Bearer ` / invalid JWT → False (must not skip CSRF; must not imply cookie auth).
+    """
+    if not authorization:
+        return False
+    scheme, _, remainder = authorization.partition(" ")
+    if scheme.lower() != "bearer":
+        return False
+    raw = remainder.strip()
+    if not raw:
+        return False
+    from ..infrastructure.security.jwt_provider import JWTProvider
+
+    return JWTProvider().verify_access_token(raw) is not None
+
+
 async def csrf_protect_middleware(request: Request, call_next):
     """
     Double-submit CSRF usando el header X-CSRF-Token que envía Angular.
@@ -74,21 +93,8 @@ async def csrf_protect_middleware(request: Request, call_next):
         return await call_next(request)
 
     auth = request.headers.get("Authorization") or ""
-    if auth.lower().startswith("bearer"):
-        raw = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
-        if not raw:
-            # Empty Bearer must NOT skip CSRF (fall through to cookie CSRF rules)
-            pass
-        else:
-            # Only skip CSRF if access JWT verifies (not just non-empty string)
-            try:
-                from ..infrastructure.security.jwt_provider import JWTProvider
-
-                if JWTProvider().verify_access_token(raw):
-                    return await call_next(request)
-            except Exception:
-                # Invalid bearer → do not exempt CSRF; cookie path may still apply
-                pass
+    if _bearer_access_token_verified(auth):
+        return await call_next(request)
 
     cookie_token = request.cookies.get(CSRF_COOKIE_NAME)
     if not cookie_token:
