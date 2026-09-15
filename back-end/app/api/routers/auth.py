@@ -3,7 +3,7 @@ Router de autenticación.
 Implementa autenticación segura con cookies HttpOnly.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Body
 from sqlalchemy.orm import Session
 
 from ...application.dto.user_dto import (
@@ -12,6 +12,7 @@ from ...application.dto.user_dto import (
     UserLoginDTO,
     TokenDTO,
     AuthStatusDTO,
+    RefreshRequestDTO,
 )
 from ...core.database import get_db
 from ...core.security import get_password_hash, verify_password
@@ -33,6 +34,9 @@ from ...infrastructure.security.csrf_service import CSRFService
 from ...core.security_middleware import limiter
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+# OAuth token_type value (not a secret) — bandit S105 false positive
+_TOKEN_TYPE_BEARER = "bearer"  # noqa: S105
 
 
 @router.post("/register", response_model=UserResponseDTO, status_code=status.HTTP_201_CREATED)
@@ -77,7 +81,7 @@ async def register(
     )
 
 
-@router.post("/login", response_model=AuthStatusDTO)
+@router.post("/login", response_model=AuthStatusDTO, response_model_exclude_none=True)
 @limiter.limit("10/minute")  # Limitar intentos de login a 10 por minuto por IP
 async def login(
     request: Request,
@@ -90,10 +94,11 @@ async def login(
     csrf_service: CSRFService = Depends(get_csrf_service),
 ):
     """
-    Inicia sesión y establece cookies seguras.
-    
-    - Los tokens se almacenan en cookies HttpOnly (no accesibles desde JavaScript)
-    - Se genera un token CSRF para protección adicional
+    Inicia sesión.
+
+    - Siempre emite cookies HttpOnly (access/refresh/csrf) para same-origin.
+    - Si `token_in_body=true`, también devuelve access_token + refresh_token
+      en el JSON para Authorization: Bearer (GitHub Pages → Render).
     """
     # Buscar usuario
     user = user_repo.get_by_email(data.email)
@@ -115,13 +120,12 @@ async def login(
     refresh_token = jwt_provider.create_refresh_token(str(user.id))
     csrf_token = csrf_service.generate_token(str(user.id))
     
-    # Establecer cookies seguras
+    # Cookies para same-origin (local/docker). Cross-origin puede ignorarlas.
     cookie_service.set_access_token_cookie(response, access_token)
     cookie_service.set_refresh_token_cookie(response, refresh_token)
     cookie_service.set_csrf_token_cookie(response, csrf_token)
-    
-    # Retornar solo información del usuario (sin tokens en body)
-    return AuthStatusDTO(
+
+    payload = AuthStatusDTO(
         authenticated=True,
         user=UserResponseDTO(
             id=user.id,
@@ -133,27 +137,34 @@ async def login(
         ),
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+    if data.token_in_body:
+        payload.access_token = access_token
+        payload.refresh_token = refresh_token
+        payload.token_type = _TOKEN_TYPE_BEARER
+    return payload
 
 
-@router.post("/refresh", response_model=AuthStatusDTO)
+@router.post("/refresh", response_model=AuthStatusDTO, response_model_exclude_none=True)
 async def refresh_token(
     request: Request,
     response: Response,
+    data: RefreshRequestDTO = Body(default_factory=RefreshRequestDTO),
     jwt_provider: JWTProvider = Depends(get_jwt_provider),
     user_repo: UserRepository = Depends(get_user_repository),
     cookie_service: CookieService = Depends(get_cookie_service),
     csrf_service: CSRFService = Depends(get_csrf_service),
 ):
     """
-    Refresca el access token usando el refresh token de la cookie.
+    Refresca tokens.
 
-    Emite un refresh token nuevo (rotación) vía Set-Cookie. No incluye
-    tokens en el body (AuthStatus). Los JWT son stateless: el refresh
-    anterior sigue siendo verificable hasta su exp (riesgo residual).
+    Fuente del refresh (en orden): body.refresh_token, luego cookie.
+    Con token_in_body=true también devuelve JWT en el JSON (Pages Bearer).
+    Siempre rota cookies para same-origin.
     """
-    # Obtener refresh token de la cookie
-    refresh_token_value = cookie_service.get_refresh_token_from_cookie(request)
-    
+    refresh_token_value = data.refresh_token or cookie_service.get_refresh_token_from_cookie(
+        request
+    )
+
     if not refresh_token_value:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -189,8 +200,8 @@ async def refresh_token(
     cookie_service.set_access_token_cookie(response, access_token)
     cookie_service.set_refresh_token_cookie(response, new_refresh_token)
     cookie_service.set_csrf_token_cookie(response, csrf_token)
-    
-    return AuthStatusDTO(
+
+    payload = AuthStatusDTO(
         authenticated=True,
         user=UserResponseDTO(
             id=user.id,
@@ -202,6 +213,11 @@ async def refresh_token(
         ),
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+    if data.token_in_body:
+        payload.access_token = access_token
+        payload.refresh_token = new_refresh_token
+        payload.token_type = _TOKEN_TYPE_BEARER
+    return payload
 
 
 @router.post("/logout")
@@ -210,7 +226,7 @@ async def logout(
     cookie_service: CookieService = Depends(get_cookie_service),
 ):
     """
-    Cierra sesión eliminando las cookies de autenticación.
+    Cierra sesión: limpia cookies. Clientes Bearer deben descartar el token en el cliente.
     """
     cookie_service.clear_auth_cookies(response)
     return {"message": "Logged out successfully"}

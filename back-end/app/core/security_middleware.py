@@ -58,18 +58,42 @@ CSRF_HEADER_NAME = "X-CSRF-Token"
 CSRF_COOKIE_NAME = "csrf_token"
 
 
+
+def _bearer_access_token_verified(authorization: str) -> bool:
+    """True only when Authorization carries a non-empty Bearer access JWT that verifies.
+
+    Empty `Bearer ` / invalid JWT → False (must not skip CSRF; must not imply cookie auth).
+    """
+    if not authorization:
+        return False
+    scheme, _, remainder = authorization.partition(" ")
+    if scheme.lower() != "bearer":
+        return False
+    raw = remainder.strip()
+    if not raw:
+        return False
+    from ..infrastructure.security.jwt_provider import JWTProvider
+
+    return JWTProvider().verify_access_token(raw) is not None
+
+
 async def csrf_protect_middleware(request: Request, call_next):
     """
     Double-submit CSRF usando el header X-CSRF-Token que envía Angular.
 
-    Solo se exige cuando el navegador ya tiene la cookie csrf_token
-    (sesión cookie). Clientes Bearer sin esa cookie no se ven afectados.
+    Solo se exige en flujo cookie (double-submit).
+    Requests con Authorization: Bearer ... no requieren CSRF
+    (el token no es enviado automáticamente por el navegador cross-site).
     """
     if request.method.upper() in _CSRF_SAFE_METHODS:
         return await call_next(request)
 
     path = request.url.path
     if any(path.endswith(suffix) for suffix in _CSRF_EXEMPT_SUFFIXES):
+        return await call_next(request)
+
+    auth = request.headers.get("Authorization") or ""
+    if _bearer_access_token_verified(auth):
         return await call_next(request)
 
     cookie_token = request.cookies.get(CSRF_COOKIE_NAME)

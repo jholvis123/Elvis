@@ -194,14 +194,27 @@ async def get_current_user(
     Raises:
         HTTPException: Si el token es inválido o el usuario no existe.
     """
+    # If client sent Authorization: Bearer ... (even empty), do NOT fall back to cookie.
+    # Empty/invalid Bearer → 401 (prevents CSRF bypass via "Bearer " + cookie session).
+    auth_header = request.headers.get("Authorization") or ""
+    auth_lower = auth_header.lower()
+    bearer_attempted = auth_lower.startswith("bearer")
     token: Optional[str] = None
-    
-    # Prioridad 1: Token desde cookie HttpOnly
-    token = request.cookies.get("access_token")
-    
-    # Prioridad 2: Bearer token desde header (fallback para APIs)
-    if not token and credentials:
-        token = credentials.credentials
+    if bearer_attempted:
+        # credentials.credentials may be "" for "Bearer " / "Bearer"
+        if credentials and credentials.credentials:
+            token = credentials.credentials.strip() or None
+        elif auth_lower.startswith("bearer "):
+            token = auth_header[7:].strip() or None
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    else:
+        # Cookie HttpOnly (same-origin local/docker)
+        token = request.cookies.get("access_token")
     
     if not token:
         raise HTTPException(
@@ -247,11 +260,16 @@ async def get_current_user_optional(
     Obtiene el usuario actual si está autenticado, None si no.
     Soporta tanto cookies como Bearer tokens.
     """
-    # Verificar si hay token en cookie o header
-    token = request.cookies.get("access_token")
-    if not token and not credentials:
+    auth_header = request.headers.get("Authorization") or ""
+    bearer_attempted = auth_header.lower().startswith("bearer")
+    if bearer_attempted:
+        # Delegate to get_current_user (no cookie fallback; may 401 → None)
+        try:
+            return await get_current_user(request, credentials, jwt_provider, user_repo)
+        except HTTPException:
+            return None
+    if not request.cookies.get("access_token"):
         return None
-    
     try:
         return await get_current_user(request, credentials, jwt_provider, user_repo)
     except HTTPException:

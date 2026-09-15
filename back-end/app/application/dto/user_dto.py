@@ -44,6 +44,9 @@ class UserLoginDTO(BaseModel):
     
     email: EmailStr
     password: str
+    # Cross-origin admin (GitHub Pages → Render): pedir tokens en el body.
+    # Cookies HttpOnly siguen emitiéndose para same-origin (local/docker).
+    token_in_body: bool = False
 
 
 class TokenDTO(BaseModel):
@@ -73,13 +76,21 @@ class PasswordChangeDTO(BaseModel):
 
 class AuthStatusDTO(BaseModel):
     """
-    DTO para respuesta de estado de autenticación.
-    Usado en login y refresh - NO incluye tokens (van en cookies HttpOnly).
+    DTO para respuesta de estado de autenticación (login/refresh).
+
+    Por defecto los JWT van en cookies HttpOnly (sin tokens en body).
+    Con `token_in_body=true` en la petición, también se incluyen
+    access_token / refresh_token para clientes Bearer (Pages cross-origin).
+    Login/refresh usan response_model_exclude_none: sin token_in_body no
+    aparecen keys null en el JSON.
     """
     
     authenticated: bool
     user: Optional[UserResponseDTO] = None
     expires_in: Optional[int] = None  # Segundos hasta expiración del access token
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    token_type: Optional[str] = None  # noqa: S105 — OAuth token_type when Bearer body mode
     
     class Config:
         json_schema_extra = {
@@ -96,3 +107,10 @@ class AuthStatusDTO(BaseModel):
                 "expires_in": 1800
             }
         }
+
+
+class RefreshRequestDTO(BaseModel):
+    """Refresh opcional vía body (Bearer / Pages). Cookie refresh sigue válida."""
+
+    refresh_token: Optional[str] = None
+    token_in_body: bool = False
