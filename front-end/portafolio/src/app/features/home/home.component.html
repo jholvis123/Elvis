@@ -12,7 +12,8 @@
 <app-about-section
   [aboutPoints]="aboutPoints"
   [stackItems]="stackItems"
-  [avatarUrl]="avatarUrl">
+  [avatarUrl]="avatarUrl"
+  [stackLine]="roles.length ? roles.join(' · ') : null">
 </app-about-section>
 
 <!-- Experience / Capabilities -->

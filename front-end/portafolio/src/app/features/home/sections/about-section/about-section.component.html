@@ -35,12 +35,9 @@
       </div>
 
       <div class="bg-surface border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4 reveal-right hover:border-primary/30 transition-all duration-500">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-textSecondary">Stack principal</p>
-            <p class="text-xl font-semibold text-textPrimary">Frontend · Backend · Sec</p>
-          </div>
-          <span class="px-3 py-1 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">Fullstack</span>
+        <div>
+          <p class="text-sm text-textSecondary">Stack principal</p>
+          <p *ngIf="stackLine" class="text-xl font-semibold text-textPrimary">{{ stackLine }}</p>
         </div>
         <div class="grid grid-cols-2 gap-3 text-sm" role="list" aria-label="Stack tecnológico">
           <app-tech-badge 
