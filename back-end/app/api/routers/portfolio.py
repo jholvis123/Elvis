@@ -209,7 +209,7 @@ async def get_contact_info(
 
 
 # Skills con evidencia en repos públicos jholvis123 (Elvis, Global-, fastapi-product, CTFd).
-# No inventa .NET / Node / Azure aquí (pueden seguir en profile.stack_items).
+# No inventa .NET / Node / Azure (tampoco en DEFAULT_PROFILE / stack_items).
 EVIDENCED_SKILLS = [
     CapabilitySkillDTO(name="Angular", category="frontend"),
     CapabilitySkillDTO(name="TypeScript", category="frontend"),
