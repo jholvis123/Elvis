@@ -13,7 +13,8 @@ from ..repositories.portfolio_repo import PortfolioRepository
 class PortfolioService:
     """Servicio de dominio para lógica del portfolio."""
 
-    # Datos por defecto del portfolio (fallback si no hay fila persistida)
+    # Fallback evidence-only (sin placeholders inventados). Solo datos con
+    # evidencia en repos públicos jholvis123 / comentarios de seed.
     DEFAULT_PROFILE = PortfolioProfile(
         name="Elvis",
         title="Desarrollador Fullstack & Especialista en Ciberseguridad",
@@ -25,22 +26,31 @@ class PortfolioService:
             "DevSecOps Engineer",
         ],
         stack_items=[
-            "Angular", "Tailwind", ".NET", "Node.js", "Azure", "DevSecOps"
+            "Python",
+            "FastAPI",
+            "TypeScript",
+            "Angular",
+            "Tailwind",
+            "PostgreSQL",
+            "Docker",
+            "JWT",
+            "DevSecOps",
         ],
         about_points=[
             "Construyo aplicaciones seguras y mantenibles con foco en rendimiento.",
             "Integro prácticas de ciberseguridad desde el diseño hasta el despliegue.",
-            "Disfruto escribir y compartir writeups y laboratorios prácticos.",
+            "Publico proyectos reales en GitHub (portafolio, APIs, seguridad aplicada).",
         ],
         highlights=[
-            Highlight(label="Años de experiencia", value="05+", icon="calendar", order=0),
-            Highlight(label="Proyectos entregados", value="25+", icon="folder", order=1),
-            Highlight(label="CTF resueltos", value="60+", icon="flag", order=2),
+            Highlight(label="Proyectos GitHub", value="jholvis123", icon="folder", order=0),
+            # HIGHLIGHT_ICON_NAMES (admin FE set): folder / eye / rocket-launch
+            Highlight(label="Enfoque", value="Seguridad", icon="eye", order=1),
+            Highlight(label="Deploy", value="Pages+Render", icon="rocket-launch", order=2),
         ],
         social_links={
-            "email": "elvis.dev@mail.com",
-            "linkedin": "https://linkedin.com/in/elvis",
-            "github": "https://github.com/elvis",
+            "email": "yhon.elvis.49@gmail.com",
+            "github": "https://github.com/jholvis123",
+            # linkedin / twitter: omitidos (sin inventar URLs)
         },
     )
 
@@ -93,7 +103,7 @@ class PortfolioService:
         contact_info = []
         social = self._current().social_links
 
-        if "email" in social:
+        if "email" in social and social["email"]:
             contact_info.append({
                 "type": "email",
                 "label": "Correo directo",
@@ -102,7 +112,7 @@ class PortfolioService:
                 "icon": "email",
             })
 
-        if "linkedin" in social:
+        if social.get("linkedin"):
             contact_info.append({
                 "type": "linkedin",
                 "label": "Perfil profesional",
@@ -111,7 +121,7 @@ class PortfolioService:
                 "icon": "linkedin",
             })
 
-        if "github" in social:
+        if social.get("github"):
             contact_info.append({
                 "type": "github",
                 "label": "Código y proyectos",
