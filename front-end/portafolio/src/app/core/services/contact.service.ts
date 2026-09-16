@@ -38,40 +38,44 @@ export class ContactService {
   mapContactInfo(info: ContactInfoApi | null | undefined): ContactInfo[] {
     if (!info) return [];
     const items: ContactInfo[] = [];
+    const email = info.email?.trim();
+    const github = info.github?.trim();
+    const linkedin = info.linkedin?.trim();
+    const twitter = info.twitter?.trim();
 
-    if (info.email) {
+    if (email) {
       items.push({
         type: 'email',
         label: 'Correo directo',
-        value: info.email,
-        url: `mailto:${info.email}`,
+        value: email,
+        url: `mailto:${email}`,
         icon: 'email'
       });
     }
-    if (info.github) {
+    if (github) {
       items.push({
         type: 'github',
         label: 'Código y proyectos',
-        value: this.displayUrl(info.github),
-        url: this.ensureUrl(info.github),
+        value: this.displayUrl(github),
+        url: this.ensureUrl(github),
         icon: 'github'
       });
     }
-    if (info.linkedin) {
+    if (linkedin) {
       items.push({
         type: 'linkedin',
         label: 'Perfil profesional',
-        value: this.displayUrl(info.linkedin),
-        url: this.ensureUrl(info.linkedin),
+        value: this.displayUrl(linkedin),
+        url: this.ensureUrl(linkedin),
         icon: 'linkedin'
       });
     }
-    if (info.twitter) {
+    if (twitter) {
       items.push({
         type: 'twitter',
         label: 'Red social',
-        value: this.displayUrl(info.twitter),
-        url: this.ensureUrl(info.twitter),
+        value: this.displayUrl(twitter),
+        url: this.ensureUrl(twitter),
         icon: 'twitter'
       });
     }

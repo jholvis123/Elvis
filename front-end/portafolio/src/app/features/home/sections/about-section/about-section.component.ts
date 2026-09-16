@@ -17,6 +17,8 @@ export class AboutSectionComponent implements OnChanges {
   @Input() stackItems: string[] = [];
   /** Absolute resolved avatar URL (or null). */
   @Input() avatarUrl: string | null = null;
+  /** Optional honest subtitle (e.g. roles joined) — omit when empty. */
+  @Input() stackLine: string | null = null;
 
   avatarBroken = false;
 
