@@ -1,2 +1,4 @@
-// Estilos adicionales si son necesarios
-// Tailwind CSS maneja la mayoría del diseño
+.auth-card {
+  @apply bg-card border border-slate-700 p-6 sm:p-8 rounded-2xl;
+  box-shadow: var(--shadow-card);
+}
