@@ -1,2 +1,24 @@
-// Estilos adicionales si son necesarios
-// Tailwind CSS maneja la mayoría del diseño
+.auth-card {
+  @apply bg-card border border-slate-700 p-6 sm:p-8 rounded-2xl;
+  box-shadow: var(--shadow-card);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe-spin {
+    animation: login-spin 0.8s linear infinite;
+  }
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe-spin {
+    animation: none;
+    opacity: 0.85;
+    border-style: dashed;
+  }
+}
