@@ -1,160 +1,301 @@
-<div class="container mx-auto px-4 py-12 max-w-4xl">
-    <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+<div class="admin-page">
+  <div class="max-w-4xl mx-auto">
+    <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" novalidate class="card p-6 sm:p-8">
 
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-white mb-2">
-                {{ isEditMode ? 'Editar Proyecto' : 'Nuevo Proyecto' }}
-            </h1>
-            <p class="text-gray-400">{{ isEditMode ? 'Actualiza la información del proyecto' : 'Completa los datos del
-                nuevo proyecto' }}</p>
+      <!-- Header -->
+      <div class="mb-8">
+        <p class="eyebrow">Administración</p>
+        <h1 class="section-heading text-2xl sm:text-3xl mb-2">
+          {{ isEditMode ? 'Editar Proyecto' : 'Nuevo Proyecto' }}
+        </h1>
+        <p class="muted-text">
+          {{ isEditMode ? 'Actualiza la información del proyecto' : 'Completa los datos del nuevo proyecto' }}
+        </p>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        *ngIf="error"
+        class="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/40"
+        role="alert"
+        aria-live="assertive">
+        <p class="text-red-300 text-sm">{{ error }}</p>
+      </div>
+
+      <!-- Title -->
+      <div class="mb-6">
+        <label for="project-title" class="block text-sm font-medium text-textPrimary mb-2">
+          Título <span class="text-red-400" aria-hidden="true">*</span>
+        </label>
+        <input
+          type="text"
+          id="project-title"
+          formControlName="title"
+          class="input min-h-[44px]"
+          placeholder="Nombre del proyecto"
+          autocomplete="off"
+          [attr.aria-invalid]="projectForm.get('title')?.invalid && projectForm.get('title')?.touched"
+          [attr.aria-describedby]="projectForm.get('title')?.invalid && projectForm.get('title')?.touched ? 'project-title-error' : null"
+          [class.border-red-500]="projectForm.get('title')?.invalid && projectForm.get('title')?.touched"
+        />
+        <div
+          *ngIf="projectForm.get('title')?.invalid && projectForm.get('title')?.touched"
+          id="project-title-error"
+          class="mt-1 text-red-400 text-sm"
+          role="alert">
+          El título es requerido (mínimo 3 caracteres)
         </div>
+      </div>
 
-        <!-- Error Message -->
-        <div *ngIf="error" class="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-            <p class="text-red-200">{{ error }}</p>
+      <!-- Short Description -->
+      <div class="mb-6">
+        <label for="project-short-description" class="block text-sm font-medium text-textPrimary mb-2">
+          Descripción Corta <span class="text-red-400" aria-hidden="true">*</span>
+        </label>
+        <input
+          type="text"
+          id="project-short-description"
+          formControlName="short_description"
+          class="input min-h-[44px]"
+          placeholder="Resumen breve del proyecto (máx 200 caracteres)"
+          maxlength="200"
+          [attr.aria-invalid]="projectForm.get('short_description')?.invalid && projectForm.get('short_description')?.touched"
+          [attr.aria-describedby]="projectForm.get('short_description')?.invalid && projectForm.get('short_description')?.touched ? 'project-short-description-error' : null"
+          [class.border-red-500]="projectForm.get('short_description')?.invalid && projectForm.get('short_description')?.touched"
+        />
+        <div
+          *ngIf="projectForm.get('short_description')?.invalid && projectForm.get('short_description')?.touched"
+          id="project-short-description-error"
+          class="mt-1 text-red-400 text-sm"
+          role="alert">
+          La descripción corta es requerida
         </div>
+      </div>
 
-        <!-- Title -->
-        <div class="mb-6">
-            <label class="block text-white font-medium mb-2">Título *</label>
-            <input type="text" formControlName="title"
-                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Nombre del proyecto" />
-            <div *ngIf="projectForm.get('title')?.invalid && projectForm.get('title')?.touched"
-                class="mt-1 text-red-400 text-sm">
-                El título es requerido (mínimo 3 caracteres)
-            </div>
+      <!-- Description -->
+      <div class="mb-6">
+        <label for="project-description" class="block text-sm font-medium text-textPrimary mb-2">
+          Descripción Completa <span class="text-red-400" aria-hidden="true">*</span>
+        </label>
+        <textarea
+          id="project-description"
+          formControlName="description"
+          rows="6"
+          class="input"
+          placeholder="Descripción detallada del proyecto, objetivos, características..."
+          [attr.aria-invalid]="projectForm.get('description')?.invalid && projectForm.get('description')?.touched"
+          [attr.aria-describedby]="projectForm.get('description')?.invalid && projectForm.get('description')?.touched ? 'project-description-error' : null"
+          [class.border-red-500]="projectForm.get('description')?.invalid && projectForm.get('description')?.touched"
+        ></textarea>
+        <div
+          *ngIf="projectForm.get('description')?.invalid && projectForm.get('description')?.touched"
+          id="project-description-error"
+          class="mt-1 text-red-400 text-sm"
+          role="alert">
+          La descripción es requerida (mínimo 50 caracteres)
         </div>
+      </div>
 
-        <!-- Short Description -->
-        <div class="mb-6">
-            <label class="block text-white font-medium mb-2">Descripción Corta *</label>
-            <input type="text" formControlName="short_description"
-                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Resumen breve del proyecto (máx 200 caracteres)" maxlength="200" />
-            <div *ngIf="projectForm.get('short_description')?.invalid && projectForm.get('short_description')?.touched"
-                class="mt-1 text-red-400 text-sm">
-                La descripción corta es requerida
-            </div>
+      <!-- Image URL -->
+      <div class="mb-6">
+        <label for="project-image-url" class="block text-sm font-medium text-textPrimary mb-2">
+          URL de Imagen <span class="text-red-400" aria-hidden="true">*</span>
+        </label>
+        <input
+          type="url"
+          id="project-image-url"
+          formControlName="image_url"
+          class="input min-h-[44px]"
+          placeholder="https://ejemplo.com/imagen.jpg"
+          [attr.aria-invalid]="projectForm.get('image_url')?.invalid && projectForm.get('image_url')?.touched"
+          [attr.aria-describedby]="projectForm.get('image_url')?.invalid && projectForm.get('image_url')?.touched ? 'project-image-url-error' : null"
+          [class.border-red-500]="projectForm.get('image_url')?.invalid && projectForm.get('image_url')?.touched"
+        />
+        <div
+          *ngIf="projectForm.get('image_url')?.invalid && projectForm.get('image_url')?.touched"
+          id="project-image-url-error"
+          class="mt-1 text-red-400 text-sm"
+          role="alert">
+          La URL de imagen es requerida
         </div>
+      </div>
 
-        <!-- Description -->
-        <div class="mb-6">
-            <label class="block text-white font-medium mb-2">Descripción Completa *</label>
-            <textarea formControlName="description" rows="6"
-                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Descripción detallada del proyecto, objetivos, características..."></textarea>
-            <div *ngIf="projectForm.get('description')?.invalid && projectForm.get('description')?.touched"
-                class="mt-1 text-red-400 text-sm">
-                La descripción es requerida (mínimo 50 caracteres)
-            </div>
+      <!-- URLs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <label for="project-github-url" class="block text-sm font-medium text-textPrimary mb-2">
+            GitHub URL
+          </label>
+          <input
+            type="url"
+            id="project-github-url"
+            formControlName="github_url"
+            class="input min-h-[44px]"
+            placeholder="https://github.com/..."
+          />
         </div>
-
-        <!-- Image URL -->
-        <div class="mb-6">
-            <label class="block text-white font-medium mb-2">URL de Imagen *</label>
-            <input type="url" formControlName="image_url"
-                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="https://ejemplo.com/imagen.jpg" />
+        <div>
+          <label for="project-demo-url" class="block text-sm font-medium text-textPrimary mb-2">
+            Demo URL
+          </label>
+          <input
+            type="url"
+            id="project-demo-url"
+            formControlName="demo_url"
+            class="input min-h-[44px]"
+            placeholder="https://demo.ejemplo.com"
+          />
         </div>
+      </div>
 
-        <!-- URLs -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-                <label class="block text-white font-medium mb-2">GitHub URL</label>
-                <input type="url" formControlName="github_url"
-                    class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="https://github.com/..." />
-            </div>
-            <div>
-                <label class="block text-white font-medium mb-2">Demo URL</label>
-                <input type="url" formControlName="demo_url"
-                    class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="https://demo.ejemplo.com" />
-            </div>
+      <!-- Technologies -->
+      <div class="mb-6">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-2">
+          <label id="project-technologies-label" class="block text-sm font-medium text-textPrimary">
+            Tecnologías <span class="text-red-400" aria-hidden="true">*</span>
+          </label>
+          <button
+            type="button"
+            (click)="addTechnology()"
+            class="btn-outline text-sm px-3 py-1.5 min-h-[44px] gap-1.5">
+            <app-icon name="plus" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+            Agregar
+          </button>
         </div>
-
-        <!-- Technologies -->
-        <div class="mb-6">
-            <div class="flex justify-between items-center mb-2">
-                <label class="block text-white font-medium">Tecnologías *</label>
-                <button type="button" (click)="addTechnology()"
-                    class="px-3 py-1 bg-primary hover:bg-primaryHover text-black text-sm rounded-lg transition">
-                    + Agregar
-                </button>
-            </div>
-            <div formArrayName="technologies" class="space-y-2">
-                <div *ngFor="let tech of technologies.controls; let i = index" class="flex gap-2">
-                    <input [formControlName]="i" type="text"
-                        class="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="Nombre de la tecnología" />
-                    <button type="button" (click)="removeTechnology(i)"
-                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
-                        ✕
-                    </button>
-                </div>
-            </div>
-            <div *ngIf="technologies.length === 0" class="mt-1 text-gray-400 text-sm">
-                Agrega al menos una tecnología
-            </div>
-        </div>
-
-        <!-- Highlights -->
-        <div class="mb-6">
-            <div class="flex justify-between items-center mb-2">
-                <label class="block text-white font-medium">Características Destacadas</label>
-                <button type="button" (click)="addHighlight()"
-                    class="px-3 py-1 bg-primary hover:bg-primaryHover text-black text-sm rounded-lg transition">
-                    + Agregar
-                </button>
-            </div>
-            <div formArrayName="highlights" class="space-y-2">
-                <div *ngFor="let highlight of highlights.controls; let i = index" class="flex gap-2">
-                    <input [formControlName]="i" type="text"
-                        class="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="Característica destacada" />
-                    <button type="button" (click)="removeHighlight(i)"
-                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
-                        ✕
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div>
-                <label class="flex items-center">
-                    <input type="checkbox" formControlName="featured"
-                        class="w-5 h-5 text-primary bg-white/10 border-white/20 rounded focus:ring-primary" />
-                    <span class="ml-2 text-white">Proyecto destacado</span>
-                </label>
-            </div>
-            <div>
-                <label class="block text-white font-medium mb-2">Orden de visualización</label>
-                <input type="number" formControlName="order"
-                    class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="0" />
-            </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex gap-3">
-            <button type="submit" [disabled]="loading"
-                class="px-6 py-3 bg-primary hover:bg-primaryHover text-black font-medium rounded-lg transition disabled:opacity-50">
-                {{ loading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear') }} Proyecto
+        <div
+          formArrayName="technologies"
+          class="space-y-2"
+          role="group"
+          aria-labelledby="project-technologies-label">
+          <div *ngFor="let tech of technologies.controls; let i = index" class="flex gap-2">
+            <label [attr.for]="'project-tech-' + i" class="sr-only">Tecnología {{ i + 1 }}</label>
+            <input
+              [id]="'project-tech-' + i"
+              [formControlName]="i"
+              type="text"
+              class="input min-h-[44px] flex-1"
+              placeholder="Nombre de la tecnología"
+              [attr.aria-invalid]="tech.invalid && tech.touched"
+            />
+            <button
+              type="button"
+              (click)="removeTechnology(i)"
+              class="admin-action border border-red-500/40 text-red-300 hover:bg-red-500/10 transition"
+              [attr.aria-label]="'Quitar tecnología ' + (i + 1)">
+              <app-icon name="x-mark" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+              <span class="sr-only">Quitar</span>
             </button>
-
-            <button *ngIf="isEditMode && projectId" type="button" (click)="publishProject()" [disabled]="loading"
-                class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition disabled:opacity-50">
-                Publicar
-            </button>
-
-            <a [routerLink]="isEditMode ? ['/projects', projectId] : ['/projects']"
-                class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition">
-                Cancelar
-            </a>
+          </div>
         </div>
+        <div
+          *ngIf="technologies.length === 0"
+          id="project-technologies-hint"
+          class="mt-1 muted-text text-sm">
+          Agrega al menos una tecnología
+        </div>
+      </div>
+
+      <!-- Highlights -->
+      <div class="mb-6">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-2">
+          <label id="project-highlights-label" class="block text-sm font-medium text-textPrimary">
+            Características Destacadas
+          </label>
+          <button
+            type="button"
+            (click)="addHighlight()"
+            class="btn-outline text-sm px-3 py-1.5 min-h-[44px] gap-1.5">
+            <app-icon name="plus" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+            Agregar
+          </button>
+        </div>
+        <div
+          formArrayName="highlights"
+          class="space-y-2"
+          role="group"
+          aria-labelledby="project-highlights-label">
+          <div *ngFor="let highlight of highlights.controls; let i = index" class="flex gap-2">
+            <label [attr.for]="'project-highlight-' + i" class="sr-only">Característica {{ i + 1 }}</label>
+            <input
+              [id]="'project-highlight-' + i"
+              [formControlName]="i"
+              type="text"
+              class="input min-h-[44px] flex-1"
+              placeholder="Característica destacada"
+            />
+            <button
+              type="button"
+              (click)="removeHighlight(i)"
+              class="admin-action border border-red-500/40 text-red-300 hover:bg-red-500/10 transition"
+              [attr.aria-label]="'Quitar característica ' + (i + 1)">
+              <app-icon name="x-mark" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+              <span class="sr-only">Quitar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="flex items-center min-h-[44px]">
+          <input
+            type="checkbox"
+            id="project-featured"
+            formControlName="featured"
+            class="w-5 h-5 rounded border-slate-700 bg-card text-primary focus:ring-primary/20 focus:ring-2"
+          />
+          <label for="project-featured" class="ml-3 text-sm font-medium text-textPrimary">
+            Proyecto destacado
+          </label>
+        </div>
+        <div>
+          <label for="project-order" class="block text-sm font-medium text-textPrimary mb-2">
+            Orden de visualización
+          </label>
+          <input
+            type="number"
+            id="project-order"
+            formControlName="order"
+            class="input min-h-[44px]"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="loading"
+          [attr.aria-busy]="loading">
+          <span *ngIf="!loading">
+            {{ isEditMode ? 'Actualizar' : 'Crear' }} Proyecto
+          </span>
+          <span *ngIf="loading" class="inline-flex items-center gap-2">
+            <span
+              class="inline-block h-5 w-5 rounded-full border-2 border-black/30 border-t-black motion-safe-spin"
+              aria-hidden="true"></span>
+            Guardando…
+          </span>
+        </button>
+
+        <button
+          *ngIf="isEditMode && projectId"
+          type="button"
+          (click)="publishProject()"
+          class="btn-outline border-emerald-500/50 text-emerald-300 hover:bg-emerald-500 hover:text-black"
+          [disabled]="loading"
+          [attr.aria-busy]="loading">
+          Publicar
+        </button>
+
+        <a
+          [routerLink]="isEditMode ? ['/projects', projectId] : ['/projects']"
+          class="btn-outline">
+          Cancelar
+        </a>
+      </div>
     </form>
+  </div>
 </div>
