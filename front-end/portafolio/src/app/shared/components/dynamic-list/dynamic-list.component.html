@@ -50,8 +50,9 @@
         class="dynamic-list__item-remove"
         [disabled]="disabled"
         (click)="removeItem(i)"
-        title="Eliminar">
-        <app-icon name="x-mark" cssClass="w-4 h-4"></app-icon>
+        title="Eliminar"
+        [attr.aria-label]="'Eliminar ' + item">
+        <app-icon name="x-mark" cssClass="w-4 h-4" ariaLabel=""></app-icon>
       </button>
     </li>
   </ul>
@@ -64,8 +65,9 @@
         type="button"
         class="dynamic-list__tag-remove"
         [disabled]="disabled"
-        (click)="removeItem(i)">
-        <app-icon name="x-mark" cssClass="w-3 h-3"></app-icon>
+        (click)="removeItem(i)"
+        [attr.aria-label]="'Eliminar ' + item">
+        <app-icon name="x-mark" cssClass="w-3 h-3" ariaLabel=""></app-icon>
       </button>
     </span>
   </div>

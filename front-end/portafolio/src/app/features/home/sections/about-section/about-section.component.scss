@@ -1,3 +1,8 @@
+/* About: id lives on the heading so hash jumps clear the navbar without avatar offset */
+#about.section-heading {
+  scroll-margin-top: 5.5rem;
+}
+
 /* Estilos específicos de about-section si son necesarios */
 
 .about-avatar {

@@ -440,11 +440,11 @@
     }
     
     &.callout-note {
-        background: rgba(139, 92, 246, 0.1);
-        border-color: #8b5cf6;
+        background: rgba(34, 211, 238, 0.1);
+        border-color: #22d3ee; // design-system primary
         
         .callout-title {
-            color: #8b5cf6;
+            color: #22d3ee;
         }
     }
     
