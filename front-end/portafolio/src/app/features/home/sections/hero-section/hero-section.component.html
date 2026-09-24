@@ -67,19 +67,19 @@
         </div>
       </div>
 
-      <div class="flex flex-col items-center gap-6" aria-label="Panel de perfil">
-        <div class="hero-avatar" aria-hidden="false">
+      <div class="flex flex-col items-center gap-6" role="group" aria-label="Panel de perfil">
+        <div class="hero-avatar">
           <img
             *ngIf="avatarUrl && !avatarBroken"
             [src]="avatarUrl"
             alt="Avatar del perfil"
             class="hero-avatar__img"
             (error)="onAvatarError()" />
-          <div *ngIf="!avatarUrl || avatarBroken" class="hero-avatar__placeholder" aria-label="Sin avatar">
+          <div *ngIf="!avatarUrl || avatarBroken" class="hero-avatar__placeholder" role="img" aria-label="Sin avatar">
             <app-icon name="user" cssClass="w-16 h-16 text-primary"></app-icon>
           </div>
         </div>
-        <div class="hidden md:block w-full" aria-label="Panel de perfil tipado">
+        <div class="hidden md:block w-full" role="group" aria-label="Panel de perfil tipado">
           <app-code-block></app-code-block>
         </div>
       </div>

@@ -105,4 +105,30 @@ describe('ProjectsService', () => {
         expect(req.request.body).toEqual(newProject);
         req.flush({ ...newProject, id: '123' });
     });
+
+    it('should normalize technologies map from API into an array', () => {
+        const mapResponse = { Python: 4, Angular: 2 };
+
+        service.getTechnologies().subscribe((techs) => {
+            expect(Array.isArray(techs)).toBeTrue();
+            expect(techs.length).toBe(2);
+            expect(techs.find(t => t.technology === 'Python')?.count).toBe(4);
+            expect(techs.find(t => t.technology === 'Angular')?.count).toBe(2);
+        });
+
+        const req = httpMock.expectOne(r => r.url.includes('/projects/technologies'));
+        expect(req.request.method).toBe('GET');
+        req.flush(mapResponse);
+    });
+
+    it('should pass through technologies array responses', () => {
+        const arr = [{ technology: 'Docker', count: 3 }];
+
+        service.getTechnologies().subscribe((techs) => {
+            expect(techs).toEqual(arr);
+        });
+
+        const req = httpMock.expectOne(r => r.url.includes('/projects/technologies'));
+        req.flush(arr);
+    });
 });

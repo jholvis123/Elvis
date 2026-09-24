@@ -16,36 +16,36 @@
     </div>
 
     <!-- Code content -->
-    <div class="space-y-3 text-xs sm:text-sm font-mono overflow-x-auto max-w-full" aria-label="Snippet de perfil tipado">
+    <div class="space-y-3 text-xs sm:text-sm font-mono overflow-x-auto max-w-full" role="group" aria-label="Snippet de perfil tipado">
       <div class="flex gap-2">
-        <span class="text-slate-500">1</span>
+        <span class="text-slate-400">1</span>
         <span class="text-primary">const</span>
         <span class="text-textPrimary">profile</span>
         <span class="text-primary">=</span>
         <span class="text-cyan-300">{{ '{' }}</span>
       </div>
       <div class="flex gap-2 pl-6 min-h-[1.25rem]">
-        <span class="text-slate-500">2</span>
+        <span class="text-slate-400">2</span>
         <span class="text-textSecondary">rol:</span>
         <span class="text-emerald-300">{{ displayedRole }}</span>
         <span class="text-cyan-300" *ngIf="displayedRole.length > 0 && !isTypingProperty('displayedRole')">,</span>
         <span class="cursor" *ngIf="isTypingProperty('displayedRole')"></span>
       </div>
       <div class="flex gap-2 pl-6 min-h-[1.25rem]">
-        <span class="text-slate-500">3</span>
+        <span class="text-slate-400">3</span>
         <span class="text-textSecondary">stack:</span>
         <span class="text-emerald-300">{{ displayedStack }}</span>
         <span class="text-cyan-300" *ngIf="displayedStack.length > 0 && !isTypingProperty('displayedStack')">,</span>
         <span class="cursor" *ngIf="isTypingProperty('displayedStack')"></span>
       </div>
       <div class="flex gap-2 pl-6 min-h-[1.25rem]">
-        <span class="text-slate-500">4</span>
+        <span class="text-slate-400">4</span>
         <span class="text-textSecondary">estado:</span>
         <span class="text-emerald-300">{{ displayedStatus }}</span>
         <span class="cursor" *ngIf="isTypingProperty('displayedStatus')"></span>
       </div>
       <div class="flex gap-2">
-        <span class="text-slate-500">5</span>
+        <span class="text-slate-400">5</span>
         <span class="text-cyan-300">{{ '}' }};</span>
       </div>
     </div>

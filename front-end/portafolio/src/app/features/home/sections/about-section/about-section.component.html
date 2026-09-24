@@ -9,7 +9,7 @@
             alt="Avatar"
             class="about-avatar__img"
             (error)="onAvatarError()" />
-          <div *ngIf="!avatarUrl || avatarBroken" class="about-avatar__placeholder" aria-label="Sin avatar">
+          <div *ngIf="!avatarUrl || avatarBroken" class="about-avatar__placeholder" role="img" aria-label="Sin avatar">
             <app-icon name="user" cssClass="w-10 h-10 text-primary"></app-icon>
           </div>
         </div>

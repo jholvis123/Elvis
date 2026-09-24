@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import {
     Project,
@@ -108,7 +108,22 @@ export class ProjectsService {
      * Obtiene resumen de tecnologías
      */
     getTechnologies(): Observable<{ technology: string; count: number }[]> {
-        return this.api.get<{ technology: string; count: number }[]>('/projects/technologies').pipe(
+        // API may return a map { [tech]: count } or an array of { technology, count }.
+        return this.api.get<Record<string, number> | { technology: string; count: number }[]>(
+            '/projects/technologies'
+        ).pipe(
+            map((raw) => {
+                if (Array.isArray(raw)) {
+                    return raw;
+                }
+                if (raw && typeof raw === 'object') {
+                    return Object.entries(raw).map(([technology, count]) => ({
+                        technology,
+                        count: Number(count) || 0,
+                    }));
+                }
+                return [];
+            }),
             catchError(() => of([]))
         );
     }
