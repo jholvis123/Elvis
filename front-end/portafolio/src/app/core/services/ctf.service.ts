@@ -97,16 +97,6 @@ export class CtfService {
   /**
    * Obtiene los CTFs desde la API
    */
-  /**
-   * Lightweight public list page (keeps total) — used by SectionVisibilityService.
-   */
-  getChallengesPage(params?: { page?: number; size?: number }): Observable<CTFListResponse> {
-    return this.api.get<CTFListResponse>('/ctfs', {
-      page: params?.page || 1,
-      size: params?.size || 10,
-    });
-  }
-
   getChallengesFromApi(filter?: CTFFilter): Observable<CTFChallenge[]> {
     const params: Record<string, string | number> = {
       page: 1,

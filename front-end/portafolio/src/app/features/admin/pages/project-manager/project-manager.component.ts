@@ -7,6 +7,7 @@ import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/load
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ProjectsService, Project } from '../../../projects/services/projects.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { SectionVisibilityService } from '@core/services/section-visibility.service';
 
 @Component({
     selector: 'app-project-manager',
@@ -38,7 +39,8 @@ export class ProjectManagerComponent implements OnInit {
 
     constructor(
         private projectsService: ProjectsService,
-        private notificationService: NotificationService
+        private notificationService: NotificationService,
+        private sectionVisibility: SectionVisibilityService
     ) { }
 
     ngOnInit(): void {
@@ -117,6 +119,7 @@ export class ProjectManagerComponent implements OnInit {
                 project.status = 'published';
                 this.updateStats();
                 this.notificationService.success('Proyecto publicado exitosamente');
+                this.sectionVisibility.refresh();
             },
             error: () => {
                 // El interceptor ya muestra el mensaje humano

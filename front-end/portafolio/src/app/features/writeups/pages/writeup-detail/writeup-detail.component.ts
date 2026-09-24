@@ -9,6 +9,7 @@ import { TableOfContentsComponent, TOCItem as TOCComponentItem, TOCStats } from 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { IconComponent } from '@shared/icons/icon.component';
 import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
+import { SectionVisibilityService } from '@core/services/section-visibility.service';
 
 @Component({
     selector: 'app-writeup-detail',
@@ -52,7 +53,8 @@ export class WriteupDetailComponent implements OnInit, OnDestroy {
         private router: Router,
         private writeupsService: WriteupsService,
         public authService: AuthService,
-        private notificationService: NotificationService
+        private notificationService: NotificationService,
+        private sectionVisibility: SectionVisibilityService
     ) { }
 
     ngOnInit(): void {
@@ -156,6 +158,7 @@ export class WriteupDetailComponent implements OnInit, OnDestroy {
             next: (writeup) => {
                 this.writeup = writeup;
                 this.notificationService.success('Writeup publicado exitosamente');
+                this.sectionVisibility.refresh();
             },
             error: (err) => {
                 this.notificationService.error('Error al publicar el writeup');
