@@ -3,7 +3,7 @@
 
     <!-- Header -->
     <div class="form-header mb-6 pb-5 border-b border-white/10">
-      <div class="header-content">
+      <div>
         <p class="eyebrow">Administración</p>
         <h1 class="section-heading text-2xl sm:text-3xl mb-2">
           {{ isEditMode ? 'Editar Writeup' : 'Nuevo Writeup' }}
@@ -12,7 +12,7 @@
           {{ isEditMode ? 'Actualiza el writeup' : 'Documenta la solución del CTF con el editor profesional' }}
         </p>
       </div>
-      <div class="header-actions flex flex-wrap gap-3">
+      <div class="flex flex-wrap gap-3">
         <a
           [routerLink]="isEditMode ? ['/writeups', writeupId] : ['/writeups']"
           class="btn-outline">
@@ -50,7 +50,7 @@
       <!-- Left Column - Metadata -->
       <aside class="form-sidebar card p-5">
         <!-- Title -->
-        <div class="form-field">
+        <div>
           <label for="writeup-title" class="block text-sm font-medium text-textPrimary mb-2">
             Título <span class="text-red-400" aria-hidden="true">*</span>
           </label>
@@ -75,7 +75,7 @@
         </div>
 
         <!-- CTF Selection -->
-        <div class="form-field">
+        <div>
           <label for="writeup-ctf" class="block text-sm font-medium text-textPrimary mb-2">
             Reto CTF (Opcional)
           </label>
@@ -88,7 +88,7 @@
         </div>
 
         <!-- Summary -->
-        <div class="form-field">
+        <div>
           <label for="writeup-summary" class="block text-sm font-medium text-textPrimary mb-2">
             Resumen
           </label>
@@ -107,7 +107,7 @@
         </div>
 
         <!-- Tools -->
-        <div class="form-field">
+        <div>
           <div class="flex flex-wrap justify-between items-center gap-3 mb-2">
             <label id="writeup-tools-label" class="block text-sm font-medium text-textPrimary">
               Herramientas
@@ -151,7 +151,7 @@
         </div>
 
         <!-- Techniques -->
-        <div class="form-field">
+        <div>
           <div class="flex flex-wrap justify-between items-center gap-3 mb-2">
             <label id="writeup-techniques-label" class="block text-sm font-medium text-textPrimary">
               Técnicas
