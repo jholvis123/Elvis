@@ -1,5 +1,4 @@
 import {
-    AfterViewChecked,
     ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
@@ -30,7 +29,7 @@ import { WriteupsService } from '../../../features/writeups/services/writeups.se
     styleUrls: ['./markdown-viewer.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MarkdownViewerComponent implements OnChanges, OnDestroy, AfterViewChecked {
+export class MarkdownViewerComponent implements OnChanges, OnDestroy {
     private readonly writeupsService = inject(WriteupsService);
     private readonly markdownService = inject(MarkdownService);
     private readonly sanitizer = inject(DomSanitizer);
@@ -39,7 +38,8 @@ export class MarkdownViewerComponent implements OnChanges, OnDestroy, AfterViewC
     private readonly destroy$ = new Subject<void>();
     private copyResetTimer: ReturnType<typeof setTimeout> | null = null;
     private copyUnlisteners: Array<() => void> = [];
-    private lastDecoratedRoot: HTMLElement | null = null;
+    /** Pending decorate timer; cleared on re-render or component destroy. */
+    private decorateTimer: ReturnType<typeof setTimeout> | null = null;
 
     @ViewChild('contentArea') contentArea?: ElementRef<HTMLElement>;
 
@@ -62,22 +62,20 @@ export class MarkdownViewerComponent implements OnChanges, OnDestroy, AfterViewC
         } else if (changes['content'] && this.content && !this.html) {
             this.renderContent();
         } else if ((changes['content'] || changes['html']) && !this.content && !this.html) {
+            this.cancelPendingDecorate();
             this.clearCopyListeners();
             this.renderedHtml.set('');
-            this.lastDecoratedRoot = null;
         }
-    }
-
-    ngAfterViewChecked(): void {
-        this.decorateCodeBlocksWithCopyButtons();
     }
 
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+        this.cancelPendingDecorate();
         this.clearCopyListeners();
         if (this.copyResetTimer) {
             clearTimeout(this.copyResetTimer);
+            this.copyResetTimer = null;
         }
     }
 
@@ -88,6 +86,8 @@ export class MarkdownViewerComponent implements OnChanges, OnDestroy, AfterViewC
      */
     private renderContent(): void {
         if (!this.content) {
+            this.cancelPendingDecorate();
+            this.clearCopyListeners();
             this.renderedHtml.set('');
             return;
         }
@@ -121,47 +121,53 @@ export class MarkdownViewerComponent implements OnChanges, OnDestroy, AfterViewC
     /**
      * Sanitize HTML for [innerHTML]. Copy buttons are NOT embedded here —
      * Angular strips <button> from bound HTML; we add them with Renderer2 after paint.
+     * Listeners/buttons are cleared only on a full re-render (new sanitized HTML).
      */
     private setSanitizedHtml(rawHtml: string): void {
         const cleaned = this.sanitizer.sanitize(SecurityContext.HTML, rawHtml) || '';
+        // Full re-render: drop prior listeners (old DOM nodes are about to be replaced)
+        // and cancel any decorate scheduled for a previous render.
+        this.cancelPendingDecorate();
         this.clearCopyListeners();
-        this.lastDecoratedRoot = null;
         this.renderedHtml.set(cleaned);
         this.cdr.markForCheck();
+        this.scheduleDecorateAfterRender();
+    }
+
+    /**
+     * Decorate exactly once after [innerHTML] updates.
+     * Angular 16.2 exposes afterNextRender (dev preview) but it is awkward outside
+     * constructor injection context and flaky under TestBed; setTimeout(0) +
+     * detectChanges reliably runs after the binding paints.
+     */
+    private scheduleDecorateAfterRender(): void {
+        this.decorateTimer = setTimeout(() => {
+            this.decorateTimer = null;
+            // Ensure the view has applied the latest sanitized HTML before querying <pre>.
+            this.cdr.detectChanges();
+            this.decorateCodeBlocksWithCopyButtons();
+        }, 0);
+    }
+
+    private cancelPendingDecorate(): void {
+        if (this.decorateTimer != null) {
+            clearTimeout(this.decorateTimer);
+            this.decorateTimer = null;
+        }
     }
 
     /**
      * After sanitized HTML is in the DOM, wrap each <pre> and attach an accessible Copy button.
+     * Called once per full re-render; [innerHTML] already removed prior buttons.
+     * Idempotent: never adds a second button to a block that already has one.
      */
     private decorateCodeBlocksWithCopyButtons(): void {
         const root = this.contentArea?.nativeElement;
-        if (!root || root === this.lastDecoratedRoot) {
-            // Re-check if buttons missing after re-render of same root
-            if (root && root.querySelectorAll('pre').length > 0
-                && root.querySelectorAll('.code-copy-btn').length === 0) {
-                // fall through to decorate
-            } else if (root && root.querySelectorAll('pre').length
-                === root.querySelectorAll('.code-copy-btn').length) {
-                return;
-            } else if (!root) {
-                return;
-            }
+        if (!root) {
+            return;
         }
 
         const pres = Array.from(root.querySelectorAll('pre')) as HTMLPreElement[];
-        if (!pres.length) {
-            this.lastDecoratedRoot = root;
-            return;
-        }
-
-        // If already fully decorated, skip
-        if (root.querySelectorAll('.code-copy-btn').length === pres.length) {
-            this.lastDecoratedRoot = root;
-            return;
-        }
-
-        this.clearCopyListeners();
-
         for (const pre of pres) {
             let block = pre.closest('.code-block') as HTMLElement | null;
             if (!block) {
@@ -218,8 +224,6 @@ export class MarkdownViewerComponent implements OnChanges, OnDestroy, AfterViewC
             });
             this.copyUnlisteners.push(unlisten);
         }
-
-        this.lastDecoratedRoot = root;
     }
 
     private clearCopyListeners(): void {
