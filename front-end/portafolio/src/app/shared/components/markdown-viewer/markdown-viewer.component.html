@@ -14,8 +14,11 @@
     <span>{{ error() }}</span>
 </div>
 
+<!-- Screen-reader / a11y live region for copy feedback -->
+<div class="sr-only" aria-live="polite">{{ copyStatus() }}</div>
+
 <!-- Main Content -->
-<article 
+<article
     *ngIf="!isLoading() && !error() && renderedHtml()"
     #contentArea
     class="markdown-content prose"
@@ -30,11 +33,11 @@
 </div>
 
 <!-- Image Lightbox -->
-<div 
-    *ngIf="lightboxImage()" 
-    class="lightbox-overlay" 
+<div
+    *ngIf="lightboxImage()"
+    class="lightbox-overlay"
     (click)="closeLightbox()">
-    <button class="lightbox-close" aria-label="Cerrar imagen">
+    <button type="button" class="lightbox-close" aria-label="Cerrar imagen">
         <app-icon name="x-mark" cssClass="w-6 h-6"></app-icon>
     </button>
     <img [src]="lightboxImage()" alt="Imagen ampliada" (click)="$event.stopPropagation()"/>
