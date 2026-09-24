@@ -1,5 +1,5 @@
 <!-- CTF Detail Page -->
-<div class="ctf-detail" *ngIf="challenge">
+<div class="ctf-detail min-w-0 max-w-full overflow-x-hidden" *ngIf="challenge">
   <!-- Header -->
   <header class="ctf-detail__header">
     <div class="max-w-4xl mx-auto px-6 py-8">
@@ -43,13 +43,15 @@
 
   <!-- Content -->
   <main class="max-w-4xl mx-auto px-6 py-8">
-    <div class="grid lg:grid-cols-3 gap-8">
+    <div class="grid lg:grid-cols-3 gap-8 min-w-0">
       <!-- Main Content -->
-      <div class="lg:col-span-2 space-y-8">
+      <div class="lg:col-span-2 space-y-8 min-w-0">
         <!-- Description -->
-        <section class="card">
+        <section class="card min-w-0 overflow-hidden">
           <h2 class="text-lg font-semibold text-textPrimary mb-4">Descripción</h2>
-          <p class="text-textSecondary leading-relaxed">{{ challenge.description }}</p>
+          <div class="ctf-detail__description min-w-0">
+            <app-markdown-viewer [content]="challenge.description"></app-markdown-viewer>
+          </div>
         </section>
 
         <!-- Skills -->
@@ -115,22 +117,6 @@
 
       <!-- Sidebar -->
       <aside class="space-y-6">
-        <!-- Auth Prompt Banner (Solo para no autenticados) -->
-        <section class="card bg-gradient-to-br from-cyan-700 to-slate-900 border border-primary/30"
-          *ngIf="showAuthPrompt">
-          <div class="text-center">
-            <app-icon name="flag" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
-            <h3 class="text-textPrimary text-xl font-bold mb-2">¿Listo para el desafío?</h3>
-            <p class="text-textSecondary mb-6 text-sm">
-              Inicia sesión para enviar flags, ganar puntos y competir en el laboratorio CTF
-            </p>
-            <div class="flex flex-col gap-3">
-              <a routerLink="/auth/login" class="btn-primary">
-                Iniciar sesión
-              </a>
-            </div>
-          </div>
-        </section>
 
         <!-- Flag Submission -->
         <section class="card">

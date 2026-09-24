@@ -3,16 +3,16 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IconComponent, IconName } from '@shared/icons/icon.component';
+import { MarkdownViewerComponent } from '../../../../shared/components/markdown-viewer/markdown-viewer.component';
 
 import { CtfService, FlagSubmitResult } from '@core/services/ctf.service';
-import { AuthService } from '../../../../core/services/auth.service';
 import { ApiAvailabilityService } from '@core/services/api-availability.service';
 import { CTFChallenge, CTF_CATEGORIES, CTF_DIFFICULTIES, CTFAttachment, AttachmentType } from '@core/models/ctf.model';
 
 @Component({
   selector: 'app-ctf-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, IconComponent],
+  imports: [CommonModule, RouterLink, FormsModule, IconComponent, MarkdownViewerComponent],
   templateUrl: './ctf-detail.component.html',
   styleUrls: ['./ctf-detail.component.scss']
 })
@@ -20,7 +20,6 @@ export class CtfDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly ctfService = inject(CtfService);
-  public readonly authService = inject(AuthService); // Public para usar en template
   public readonly apiAvailability = inject(ApiAvailabilityService);
 
   challenge: CTFChallenge | null = null;
@@ -70,11 +69,6 @@ export class CtfDetailComponent implements OnInit {
   }
 
   // ... getters unchanged ...
-
-  /** Login/register solo si la API está disponible (Pages sin API: ocultar). */
-  get showAuthPrompt(): boolean {
-    return this.apiAvailability.isApiAvailable() && !this.authService.isAuthenticated;
-  }
 
   get categoryInfo() {
     if (!this.challenge) return null;
