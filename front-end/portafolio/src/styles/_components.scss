@@ -70,6 +70,11 @@
     scroll-margin-top: 5.5rem;
   }
 
+  // When fragment id is on the heading (about), keep same offset as sections
+  #about.section-heading {
+    scroll-margin-top: 5.5rem; // same as .section; id is on heading
+  }
+
   .eyebrow {
     @apply text-xs uppercase tracking-[0.2em] text-primary font-semibold mb-2;
   }

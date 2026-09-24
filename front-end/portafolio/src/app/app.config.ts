@@ -10,7 +10,9 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withInMemoryScrolling({
-      anchorScrolling: 'enabled',
+      // Handled in AppComponent via scrollIntoView so CSS scroll-margin-top applies
+      // (Angular's ViewportScroller ignores scroll-margin and raced with mobile nav close).
+      anchorScrolling: 'disabled',
       scrollPositionRestoration: 'enabled'
     })),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
