@@ -18,7 +18,13 @@
     <app-skeleton-loader *ngFor="let i of [1,2,3,4,5,6]" type="card"></app-skeleton-loader>
   </div>
 
-  <app-error-message *ngIf="error && !loading" [message]="error" customClass="max-w-md mx-auto"></app-error-message>
+  <div *ngIf="error && !loading" class="max-w-lg mx-auto text-center space-y-4">
+    <app-error-message [message]="error" customClass="max-w-md mx-auto"></app-error-message>
+    <a routerLink="/" class="btn-primary inline-flex items-center justify-center gap-2 min-h-[44px]">
+      <app-icon name="chevron-left" cssClass="w-5 h-5"></app-icon>
+      Volver al inicio
+    </a>
+  </div>
 
   <div *ngIf="!loading && !error && writeups.length > 0"
     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -55,12 +61,16 @@
     </article>
   </div>
 
-  <div *ngIf="!loading && !error && writeups.length === 0" class="text-center py-20 card max-w-lg mx-auto">
+  <div *ngIf="!loading && !error && writeups.length === 0" class="text-center py-16 sm:py-20 card max-w-lg mx-auto border border-slate-800 bg-surface/60">
     <app-icon name="document-text" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
     <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin writeups publicados</h2>
-    <p class="text-textSecondary">
-      No hay writeups disponibles en este momento. Cuando la API publique datos, aparecerán aquí.
+    <p class="text-textSecondary mb-6 px-2">
+      Todavía no hay writeups en el laboratorio. Cuando la API publique contenido, aparecerá aquí automáticamente.
     </p>
+    <a routerLink="/" class="btn-primary inline-flex items-center justify-center gap-2 min-h-[44px]">
+      <app-icon name="chevron-left" cssClass="w-5 h-5"></app-icon>
+      Volver al inicio
+    </a>
   </div>
 
   <div *ngIf="totalPages > 1 && !loading && !error && writeups.length > 0" class="mt-12 flex justify-center flex-wrap gap-2">

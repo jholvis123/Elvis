@@ -27,6 +27,7 @@ import { UrlInputComponent } from '@shared/components/url-input/url-input.compon
 import { CategorySelectorComponent } from '@shared/components/category-selector/category-selector.component';
 import { DynamicListComponent } from '@shared/components/dynamic-list/dynamic-list.component';
 import { IconComponent } from '@shared/icons/icon.component';
+import { SectionVisibilityService } from '@core/services/section-visibility.service';
 
 @Component({
   selector: 'app-ctf-upload',
@@ -45,6 +46,7 @@ import { IconComponent } from '@shared/icons/icon.component';
 })
 export class CtfUploadComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
+  private readonly sectionVisibility = inject(SectionVisibilityService);
   private readonly router = inject(Router);
   private readonly ctfService = inject(CtfService);
   private readonly attachmentService = inject(AttachmentService);
@@ -240,6 +242,7 @@ export class CtfUploadComponent implements OnDestroy {
       };
 
       const created = await this.ctfService.createChallenge(formValue);
+      this.sectionVisibility.refresh();
       if (this.urlAttachment && created?.id) {
         await firstValueFrom(this.attachmentService.addUrlAttachment({
           ctf_id: created.id,

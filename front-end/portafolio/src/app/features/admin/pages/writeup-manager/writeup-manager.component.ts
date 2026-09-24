@@ -8,6 +8,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 import { IconComponent } from '../../../../shared/icons/icon.component';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { ApiError } from '../../../../core/services/api.service';
+import { SectionVisibilityService } from '@core/services/section-visibility.service';
 
 @Component({
     selector: 'app-writeup-manager',
@@ -24,6 +25,7 @@ export class WriteupManagerComponent implements OnInit {
     writeupToDelete: Writeup | null = null;
 
     private readonly writeupsService = inject(WriteupsService);
+  private readonly sectionVisibility = inject(SectionVisibilityService);
     private readonly notificationService = inject(NotificationService);
     private readonly destroyRef = inject(DestroyRef);
 
@@ -57,6 +59,7 @@ export class WriteupManagerComponent implements OnInit {
         this.writeupsService.publishWriteup(id).subscribe({
             next: () => {
                 this.notificationService.success('Writeup publicado exitosamente');
+                this.sectionVisibility.refresh();
                 this.loadWriteups();
             }
         });

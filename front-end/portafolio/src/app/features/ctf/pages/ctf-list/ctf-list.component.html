@@ -153,23 +153,39 @@
         </app-ctf-card>
       </div>
 
-      <!-- Empty / API unavailable / no filter results -->
-      <div *ngIf="!isLoading && challenges.length === 0" class="no-results card max-w-lg mx-auto text-center py-12">
+      <!-- Empty / API unavailable / no filter results / catalog empty -->
+      <div *ngIf="!isLoading && challenges.length === 0" class="no-results card max-w-lg mx-auto text-center py-12 border border-slate-800 bg-surface/60">
         <app-icon name="puzzle-piece" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
-        <ng-container *ngIf="apiUnavailable; else noFilterResults">
+        <ng-container *ngIf="apiUnavailable; else emptyOrFilters">
           <h2 class="text-xl font-semibold text-textPrimary mb-2">API no disponible</h2>
-          <p class="text-textSecondary mb-4">
+          <p class="text-textSecondary mb-6">
             No se pueden cargar los retos CTF en este momento.
           </p>
+          <a routerLink="/" class="btn-primary inline-flex items-center justify-center gap-2 min-h-[44px]">
+            <app-icon name="chevron-left" cssClass="w-5 h-5"></app-icon>
+            Volver al inicio
+          </a>
         </ng-container>
-        <ng-template #noFilterResults>
-          <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin retos publicados</h2>
-          <p class="text-textSecondary mb-4">
-            No se encontraron retos con los filtros seleccionados.
-          </p>
-          <button type="button" (click)="clearFilters()" class="btn-primary mt-2">
-            Limpiar filtros
-          </button>
+        <ng-template #emptyOrFilters>
+          <ng-container *ngIf="isCatalogEmpty; else noFilterResults">
+            <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin retos publicados</h2>
+            <p class="text-textSecondary mb-6 px-2">
+              Todavía no hay retos CTF en el laboratorio. Cuando la API publique challenges, aparecerán aquí automáticamente.
+            </p>
+            <a routerLink="/" class="btn-primary inline-flex items-center justify-center gap-2 min-h-[44px]">
+              <app-icon name="chevron-left" cssClass="w-5 h-5"></app-icon>
+              Volver al inicio
+            </a>
+          </ng-container>
+          <ng-template #noFilterResults>
+            <h2 class="text-xl font-semibold text-textPrimary mb-2">Sin resultados</h2>
+            <p class="text-textSecondary mb-4">
+              No se encontraron retos con los filtros seleccionados.
+            </p>
+            <button type="button" (click)="clearFilters()" class="btn-primary mt-2 min-h-[44px]">
+              Limpiar filtros
+            </button>
+          </ng-template>
         </ng-template>
       </div>
     </div>

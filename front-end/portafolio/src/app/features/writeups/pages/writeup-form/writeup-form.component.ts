@@ -9,6 +9,7 @@ import { NotificationService } from '@core/services/notification.service';
 import { MarkdownEditorComponent } from '../../../../shared/components/markdown-editor/markdown-editor.component';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { IconComponent } from '@shared/icons/icon.component';
+import { SectionVisibilityService } from '@core/services/section-visibility.service';
 
 
 @Component({
@@ -38,7 +39,8 @@ export class WriteupFormComponent implements OnInit {
         private router: Router,
         private writeupsService: WriteupsService,
         private ctfService: CtfService,
-        private notificationService: NotificationService
+        private notificationService: NotificationService,
+        private sectionVisibility: SectionVisibilityService
     ) { }
 
     ngOnInit(): void {
@@ -233,6 +235,7 @@ export class WriteupFormComponent implements OnInit {
             next: (writeup) => {
                 const message = this.isEditMode ? 'Writeup actualizado exitosamente' : 'Writeup creado exitosamente';
                 this.notificationService.success(message);
+                this.sectionVisibility.refresh();
                 this.clearDraft();
                 this.router.navigate(['/writeups', writeup.id]);
             },

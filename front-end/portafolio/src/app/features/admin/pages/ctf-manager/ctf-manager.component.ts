@@ -7,6 +7,7 @@ import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/load
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { CtfService, CTFChallengeAdmin } from '../../../../core/services/ctf.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { SectionVisibilityService } from '@core/services/section-visibility.service';
 
 @Component({
     selector: 'app-ctf-manager',
@@ -39,7 +40,8 @@ export class CtfManagerComponent implements OnInit {
 
     constructor(
         private ctfService: CtfService,
-        private notificationService: NotificationService
+        private notificationService: NotificationService,
+        private sectionVisibility: SectionVisibilityService
     ) { }
 
     ngOnInit(): void {
@@ -102,6 +104,7 @@ export class CtfManagerComponent implements OnInit {
                 ctf.status = 'published';
                 this.updateStats();
                 this.notificationService.success('CTF publicado exitosamente');
+                this.sectionVisibility.refresh();
             },
             error: () => {
                 // El interceptor ya muestra el mensaje humano

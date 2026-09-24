@@ -109,6 +109,22 @@ export class CtfListComponent implements OnInit {
     return this.ctfService.isSolved(challengeId);
   }
 
+  /** True when user narrowed the catalog (search / category / difficulty / solved). */
+  get hasActiveFilters(): boolean {
+    const f = this.filter;
+    return !!(
+      (f.search && f.search.trim()) ||
+      (f.category && f.category !== 'all') ||
+      (f.difficulty && f.difficulty !== 'all') ||
+      f.showSolved === false
+    );
+  }
+
+  /** Empty because the public catalog has no published CTFs (not just filters). */
+  get isCatalogEmpty(): boolean {
+    return !this.isLoading && !this.apiUnavailable && this.challenges.length === 0 && !this.hasActiveFilters;
+  }
+
   get progressPercentage(): number {
     if (this.stats.totalChallenges === 0) return 0;
     return Math.round((this.stats.solvedChallenges / this.stats.totalChallenges) * 100);

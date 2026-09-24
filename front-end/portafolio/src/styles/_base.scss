@@ -73,3 +73,11 @@ html {
   white-space: nowrap;
   border: 0;
 }
+
+
+// Contain reveal translate ink overflow so off-screen cards cannot widen the document.
+.section,
+#hero {
+  overflow-x: clip;
+  max-width: 100%;
+}
