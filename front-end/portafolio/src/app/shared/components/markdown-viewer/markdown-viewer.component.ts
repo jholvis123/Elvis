@@ -192,7 +192,7 @@ export class MarkdownViewerComponent implements OnChanges, OnDestroy, AfterViewC
                 this.renderer.appendChild(block, pre);
             }
 
-            if (block.querySelector('.code-copy-btn')) {
+            if (!block || block.querySelector('.code-copy-btn')) {
                 continue;
             }
 
