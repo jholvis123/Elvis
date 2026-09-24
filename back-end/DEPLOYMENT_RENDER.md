@@ -60,12 +60,28 @@ See `SEED_PORTFOLIO.md` for the exact Render startCommand and env flag.
 
 ## Ephemeral disk / uploads (avatar & attachments)
 
-Render **free/starter** web services use an **ephemeral filesystem**: files written under `UPLOAD_DIR` (default `uploads/`, including `uploads/avatars/`) **do not survive** deploys, restarts, or scale-to-zero.
+Render **free/starter** web services use an **ephemeral filesystem**: files written under `UPLOAD_DIR` (default `uploads/`, including `uploads/avatars/`) **do not survive** deploys, restarts, or scale-to-zero when `STORAGE_TYPE=local`.
 
-Implications for avatar/logo:
+### Recommended: Cloudflare R2 for avatars (`STORAGE_TYPE=s3`)
 
-- `POST /api/v1/portfolio/avatar` stores the image on local disk and sets `profile.avatar_url` to a public API path (`/api/v1/portfolio/avatar/file/{id}`).
-- After a restart, that file may be gone → `GET .../avatar/file/{id}` returns 404 until re-upload.
-- `PUT /api/v1/portfolio/profile` still accepts an external `https://…` `avatar_url` as a durable fallback (CDN, GitHub raw, object storage).
+`STORAGE_TYPE=s3` applies **only to portfolio avatars**. Attachments and writeup images remain on the local ephemeral disk (`UPLOAD_DIR`) until a separate durable-storage design is added for them.
 
-Mitigations (ops, not in this PR): persistent disk on Render, or S3-compatible storage (`STORAGE_TYPE=s3` when implemented). Prefer HTTPS URLs for production avatars until durable storage is wired.
+Set these in the Render dashboard (never commit real keys):
+
+| Variable | Example / notes |
+|----------|-----------------|
+| `STORAGE_TYPE` | `s3` |
+| `S3_BUCKET` | Your R2 bucket name |
+| `S3_ENDPOINT` | `https://<accountid>.r2.cloudflarestorage.com` |
+| `S3_REGION` | `auto` |
+| `S3_ACCESS_KEY` | R2 API token access key ID |
+| `S3_SECRET_KEY` | R2 API token secret |
+
+Behavior:
+
+- `POST /api/v1/portfolio/avatar` uploads to the bucket under `avatars/{uuid}.{ext}` and still sets `profile.avatar_url` to the **relative** path `/api/v1/portfolio/avatar/file/{id}` (FE unchanged).
+- `GET .../avatar/file/{id}` **proxies** object bytes from R2 (no redirect; private bucket OK). Tradeoff vs public bucket URL or signed redirect: see `docs/AVATAR_UPLOAD.md`.
+- `DELETE /api/v1/portfolio/avatar` deletes the object from the bucket.
+- `PUT /api/v1/portfolio/profile` still accepts an external `https://…` `avatar_url` as an alternative.
+
+Keep `STORAGE_TYPE=local` only for local/dev. Do not rely on local disk for production avatars on Render free.
