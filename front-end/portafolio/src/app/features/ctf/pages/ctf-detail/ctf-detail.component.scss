@@ -86,3 +86,14 @@
     @apply hover:bg-cyan-500/30;
   }
 }
+.ctf-detail {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.ctf-detail__description {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}

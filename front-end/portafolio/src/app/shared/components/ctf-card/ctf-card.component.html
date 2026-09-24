@@ -23,7 +23,7 @@
   <!-- Content -->
   <div class="ctf-card__content">
     <h3 class="ctf-card__title">{{ challenge.title }}</h3>
-    <p *ngIf="showDetails" class="ctf-card__description">{{ challenge.description }}</p>
+    <p *ngIf="showDetails" class="ctf-card__description">{{ descriptionPreview }}</p>
     
     <!-- Skills -->
     <div class="ctf-card__skills" *ngIf="challenge.skills.length">

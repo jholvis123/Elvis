@@ -16,7 +16,7 @@ export class CtfCardComponent {
   @Input({ required: true }) challenge!: CTFChallenge;
   @Input() isSolved = false;
   @Input() showDetails = true;
-  
+
   @Output() solve = new EventEmitter<string>();
 
   get categoryInfo() {
@@ -37,7 +37,11 @@ export class CtfCardComponent {
     return colors[this.challenge.difficulty] || colors['easy'];
   }
 
-  // Attachment helpers
+  /** Plain-text preview: strip markdown fences/markers so long n/c never widen the card. */
+  get descriptionPreview(): string {
+    return stripMarkdownToPlain(this.challenge?.description || '');
+  }
+
   getAttachmentIconName(type: AttachmentType): IconName {
     const icons: Record<AttachmentType, IconName> = {
       file: 'paper-clip',
@@ -68,4 +72,28 @@ export class CtfCardComponent {
   onSolveClick(): void {
     this.solve.emit(this.challenge.id);
   }
+}
+
+/** Exported for unit tests. */
+export function stripMarkdownToPlain(md: string): string {
+  if (!md) {
+    return '';
+  }
+  let text = md;
+  // Fenced code blocks → drop contents (params live in detail)
+  text = text.replace(/```[\s\S]*?```/g, ' ');
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '$1');
+  // Images / links
+  text = text.replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1');
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  // Headings / emphasis / lists
+  text = text.replace(/^#{1,6}\s+/gm, '');
+  text = text.replace(/(\*\*|__)(.*?)\1/g, '$2');
+  text = text.replace(/(\*|_)(.*?)\1/g, '$2');
+  text = text.replace(/^\s*[-*+]\s+/gm, '');
+  text = text.replace(/^\s*\d+\.\s+/gm, '');
+  // Collapse whitespace
+  text = text.replace(/\s+/g, ' ').trim();
+  return text;
 }

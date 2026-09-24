@@ -1,6 +1,9 @@
 .ctf-card {
   @apply bg-surface border border-slate-800 rounded-xl p-5 flex flex-col gap-4;
   @apply hover:border-primary/40 transition-all duration-300;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 
   &--solved {
     @apply border-primary/30 bg-primary/5;
@@ -12,6 +15,8 @@
 
   &__content {
     @apply flex-1 space-y-3;
+    min-width: 0;
+    overflow: hidden;
   }
 
   &__title {
@@ -21,6 +26,10 @@
 
   &__description {
     @apply text-sm text-textSecondary line-clamp-2;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   &__skills {

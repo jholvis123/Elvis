@@ -17,7 +17,7 @@ export class NavbarComponent implements OnDestroy {
   public readonly apiAvailability = inject(ApiAvailabilityService);
   private readonly router = inject(Router);
   isMenuOpen = false;
-  avatarSrc = '/assets/imagen.jpg';
+  avatarSrc = 'assets/imagen.jpg';
   private readonly avatarFallback =
     'https://ui-avatars.com/api/?name=Elvis&background=0D8ABC&color=fff';
 
