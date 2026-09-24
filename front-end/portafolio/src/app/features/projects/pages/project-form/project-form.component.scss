@@ -1,1 +1,19 @@
-// Estilos manejados por Tailwind
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe-spin {
+    animation: project-form-spin 0.8s linear infinite;
+  }
+}
+
+@keyframes project-form-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe-spin {
+    animation: none;
+    opacity: 0.85;
+    border-style: dashed;
+  }
+}

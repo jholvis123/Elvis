@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } fr
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProjectsService, ProjectForm } from '../../services/projects.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { IconComponent } from '@shared/icons/icon.component';
 
 @Component({
     selector: 'app-project-form',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, RouterLink],
+    imports: [CommonModule, ReactiveFormsModule, RouterLink, IconComponent],
     templateUrl: './project-form.component.html',
     styleUrls: ['./project-form.component.scss']
 })
