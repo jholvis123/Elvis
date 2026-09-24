@@ -6,3 +6,4 @@ export * from './contact.service';
 export * from './ctf.service';
 export * from './attachment.service';
 export * from './admin.service';
+export * from './section-visibility.service';

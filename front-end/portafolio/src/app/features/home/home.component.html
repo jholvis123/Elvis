@@ -5,7 +5,10 @@
   [highlights]="highlights"
   [technologies]="technologies"
   [roles]="roles"
-  [avatarUrl]="avatarUrl">
+  [avatarUrl]="avatarUrl"
+  [showProjectsCta]="sections.showProjectsNav()"
+  [showCtfCta]="sections.showCtfNav()"
+  [showWriteupsCta]="sections.showWriteupsNav()">
 </app-hero-section>
 
 <!-- About Section -->
@@ -13,11 +16,13 @@
   [aboutPoints]="aboutPoints"
   [stackItems]="stackItems"
   [avatarUrl]="avatarUrl"
-  [stackLine]="roles.length ? roles.join(' · ') : null">
+  [stackLine]="roles.length ? roles.join(' · ') : null"
+  [showCtfLink]="sections.showCtfNav()">
 </app-about-section>
 
-<!-- Experience / Capabilities -->
+<!-- Experience / Capabilities — hidden when API returns empty (skeletons while loading) -->
 <app-experience-section
+  *ngIf="sections.showExperienceSection()"
   [items]="experienceItems"
   [capabilities]="capabilities"
   [loading]="loadingExperience"
@@ -29,6 +34,7 @@
 
 <!-- Projects Section -->
 <app-projects-section
+  *ngIf="sections.showProjectsSection()"
   [projects]="projects"
   [loading]="loadingProjects"
   [apiUnavailable]="apiUnavailable">

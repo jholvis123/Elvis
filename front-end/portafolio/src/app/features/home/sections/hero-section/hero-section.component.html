@@ -22,22 +22,26 @@
             Ingeniero de Sistemas con conocimientos en ciberseguridad. Construyo productos digitales seguros,
             escalables y centrados en la experiencia.
           </p>
-          <p class="text-sm text-textSecondary/80 max-w-xl">
-            Evidencia: proyectos, writeups y retos CTF publicados cuando la API los expone.
-          </p>
+          <p *ngIf="evidenceLine" class="text-sm text-textSecondary/80 max-w-xl">{{ evidenceLine }}</p>
         </div>
 
         <div class="flex flex-col sm:flex-row flex-wrap gap-3" role="group" aria-label="Acciones principales">
-          <a href="#projects" class="btn-primary" aria-label="Ver proyectos">
+          <a *ngIf="showProjectsCta" href="#projects" class="btn-primary" aria-label="Ver proyectos">
             <span class="flex items-center justify-center gap-2">
               <app-icon name="folder" cssClass="w-5 h-5"></app-icon>
               Ver proyectos
             </span>
           </a>
-          <a routerLink="/ctf" class="btn-outline" aria-label="Explorar CTF">
+          <a *ngIf="showCtfCta" routerLink="/ctf" class="btn-outline" aria-label="Explorar CTF">
             <span class="flex items-center justify-center gap-2">
               <app-icon name="puzzle-piece" cssClass="w-5 h-5"></app-icon>
               Explorar CTF
+            </span>
+          </a>
+          <a *ngIf="showWriteupsCta" routerLink="/writeups" class="btn-outline" aria-label="Ver writeups">
+            <span class="flex items-center justify-center gap-2">
+              <app-icon name="document-text" cssClass="w-5 h-5"></app-icon>
+              Ver writeups
             </span>
           </a>
           <a href="#contact" class="border border-slate-700 text-textSecondary px-6 py-2 rounded hover:border-primary hover:text-primary transition-all duration-300 inline-flex items-center justify-center gap-2 min-h-[44px]" aria-label="Ir a contacto">

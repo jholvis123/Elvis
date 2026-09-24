@@ -28,6 +28,10 @@ export class HeroSectionComponent implements OnInit, OnDestroy, OnChanges {
   @Input() roles: string[] = [];
   /** Absolute resolved avatar URL (or null). */
   @Input() avatarUrl: string | null = null;
+  /** Gate hero CTAs / copy by live section counts. */
+  @Input() showProjectsCta = false;
+  @Input() showCtfCta = false;
+  @Input() showWriteupsCta = false;
 
   currentRole = '';
   prefersReducedMotion = false;
@@ -59,6 +63,30 @@ export class HeroSectionComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy(): void {
     this.clearTyping();
+  }
+
+  /** Honest one-liner listing which labs currently have published items. */
+  get evidenceLine(): string | null {
+    const parts: string[] = [];
+    if (this.showProjectsCta) {
+      parts.push('proyectos');
+    }
+    if (this.showWriteupsCta) {
+      parts.push('writeups');
+    }
+    if (this.showCtfCta) {
+      parts.push('retos CTF');
+    }
+    if (!parts.length) {
+      return null;
+    }
+    if (parts.length === 1) {
+      return `Evidencia publicada: ${parts[0]}.`;
+    }
+    if (parts.length === 2) {
+      return `Evidencia publicada: ${parts[0]} y ${parts[1]}.`;
+    }
+    return `Evidencia publicada: ${parts[0]}, ${parts[1]} y ${parts[2]}.`;
   }
 
   onAvatarError(): void {

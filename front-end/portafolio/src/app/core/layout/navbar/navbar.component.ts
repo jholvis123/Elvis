@@ -1,8 +1,9 @@
-import { Component, HostListener, OnDestroy, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ApiAvailabilityService } from '../../../core/services/api-availability.service';
+import { SectionVisibilityService } from '../../../core/services/section-visibility.service';
 import { IconComponent } from '../../../shared/icons/icon.component';
 
 @Component({
@@ -12,15 +13,19 @@ import { IconComponent } from '../../../shared/icons/icon.component';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
 })
-export class NavbarComponent implements OnDestroy {
+export class NavbarComponent implements OnInit, OnDestroy {
   public readonly authService = inject(AuthService);
   public readonly apiAvailability = inject(ApiAvailabilityService);
+  public readonly sections = inject(SectionVisibilityService);
   private readonly router = inject(Router);
   isMenuOpen = false;
   avatarSrc = 'assets/imagen.jpg';
   private readonly avatarFallback =
     'https://ui-avatars.com/api/?name=Elvis&background=0D8ABC&color=fff';
 
+  ngOnInit(): void {
+    this.sections.ensureLoaded();
+  }
 
   onAvatarError(): void {
     if (this.avatarSrc !== this.avatarFallback) {

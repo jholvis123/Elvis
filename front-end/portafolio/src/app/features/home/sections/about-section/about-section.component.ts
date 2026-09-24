@@ -19,6 +19,7 @@ export class AboutSectionComponent implements OnChanges {
   @Input() avatarUrl: string | null = null;
   /** Optional honest subtitle (e.g. roles joined) — omit when empty. */
   @Input() stackLine: string | null = null;
+  @Input() showCtfLink = false;
 
   avatarBroken = false;
 

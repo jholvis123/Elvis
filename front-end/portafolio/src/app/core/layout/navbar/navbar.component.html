@@ -16,10 +16,10 @@
         <a routerLink="/" routerLinkActive="text-primary" [routerLinkActiveOptions]="{exact: true}"
           class="nav-link">Inicio</a>
         <a routerLink="/" fragment="about" class="nav-link">Sobre Mí</a>
-        <a routerLink="/" fragment="experience" class="nav-link">Experiencia</a>
-        <a routerLink="/" fragment="projects" class="nav-link">Proyectos</a>
-        <a routerLink="/ctf" routerLinkActive="text-primary" class="nav-link">CTF Lab</a>
-        <a routerLink="/writeups" routerLinkActive="text-primary" class="nav-link">Writeups</a>
+        <a *ngIf="sections.showExperienceNav()" routerLink="/" fragment="experience" class="nav-link">Experiencia</a>
+        <a *ngIf="sections.showProjectsNav()" routerLink="/" fragment="projects" class="nav-link">Proyectos</a>
+        <a *ngIf="sections.showCtfNav()" routerLink="/ctf" routerLinkActive="text-primary" class="nav-link">CTF Lab</a>
+        <a *ngIf="sections.showWriteupsNav()" routerLink="/writeups" routerLinkActive="text-primary" class="nav-link">Writeups</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/dashboard" routerLinkActive="text-primary"
           class="nav-link text-primary font-semibold border border-primary/30 px-2 py-1 rounded hover:bg-primary/10 transition-all">Admin</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/contact" routerLinkActive="text-primary"
@@ -63,10 +63,10 @@
       <div class="flex flex-col">
         <a routerLink="/" (click)="closeMenu()" class="nav-link-mobile">Inicio</a>
         <a routerLink="/" fragment="about" (click)="closeMenu()" class="nav-link-mobile">Sobre Mí</a>
-        <a routerLink="/" fragment="experience" (click)="closeMenu()" class="nav-link-mobile">Experiencia</a>
-        <a routerLink="/" fragment="projects" (click)="closeMenu()" class="nav-link-mobile">Proyectos</a>
-        <a routerLink="/ctf" (click)="closeMenu()" class="nav-link-mobile">CTF Lab</a>
-        <a routerLink="/writeups" (click)="closeMenu()" class="nav-link-mobile">Writeups</a>
+        <a *ngIf="sections.showExperienceNav()" routerLink="/" fragment="experience" (click)="closeMenu()" class="nav-link-mobile">Experiencia</a>
+        <a *ngIf="sections.showProjectsNav()" routerLink="/" fragment="projects" (click)="closeMenu()" class="nav-link-mobile">Proyectos</a>
+        <a *ngIf="sections.showCtfNav()" routerLink="/ctf" (click)="closeMenu()" class="nav-link-mobile">CTF Lab</a>
+        <a *ngIf="sections.showWriteupsNav()" routerLink="/writeups" (click)="closeMenu()" class="nav-link-mobile">Writeups</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/dashboard" (click)="closeMenu()"
           class="nav-link-mobile text-primary font-bold">Admin</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/contact" (click)="closeMenu()"

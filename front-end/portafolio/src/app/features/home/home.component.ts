@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ElementRef, 
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { PortfolioService, ContactService, ApiAvailabilityService } from '@core/services';
+import { PortfolioService, ContactService, ApiAvailabilityService, SectionVisibilityService } from '@core/services';
 import { ProjectsService } from '../projects/services/projects.service';
 import { ProjectSummary, Highlight, ContactInfo, ExperienceItem, CapabilityChip } from '@core/models';
 import { ScrollToTopComponent } from '@shared/components';
@@ -34,6 +34,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly contactService = inject(ContactService);
   private readonly projectsService = inject(ProjectsService);
   private readonly apiAvailability = inject(ApiAvailabilityService);
+  readonly sections = inject(SectionVisibilityService);
   private readonly elementRef = inject(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -63,6 +64,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly observedReveals = new WeakSet<Element>();
 
   ngOnInit(): void {
+    this.sections.ensureLoaded();
     this.apiUnavailable = !this.apiAvailability.isApiAvailable();
     this.apiAvailability.apiUnavailable$
       .pipe(takeUntilDestroyed(this.destroyRef))
