@@ -16,7 +16,7 @@
           Experiencia
         </h3>
 
-        <div *ngIf="loading" class="space-y-6" aria-busy="true" aria-label="Cargando experiencia">
+        <div *ngIf="loading" class="space-y-6" role="status" aria-busy="true" aria-label="Cargando experiencia">
           <div *ngFor="let i of [1, 2, 3]" class="timeline-skeleton animate-pulse">
             <div class="h-3 bg-slate-700 rounded w-1/4 mb-3"></div>
             <div class="h-5 bg-slate-700 rounded w-2/3 mb-2"></div>
@@ -129,7 +129,7 @@
           Capacidades
         </h3>
 
-        <div *ngIf="loadingCapabilities" class="flex flex-wrap gap-2" aria-busy="true" aria-label="Cargando capacidades">
+        <div *ngIf="loadingCapabilities" class="flex flex-wrap gap-2" role="status" aria-busy="true" aria-label="Cargando capacidades">
           <span *ngFor="let i of [1, 2, 3, 4, 5, 6]" class="h-8 w-20 rounded-full bg-slate-700 animate-pulse"></span>
         </div>
 

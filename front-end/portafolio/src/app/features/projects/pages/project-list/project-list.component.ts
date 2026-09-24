@@ -51,9 +51,16 @@ export class ProjectListComponent implements OnInit {
 
         this.projectsService.getProjects(params).subscribe({
             next: (response) => {
-                this.projects = response.items ?? [];
-                this.total = response.total;
-                this.totalPages = response.pages;
+                const items = Array.isArray(response?.items)
+                    ? response.items
+                    : Array.isArray(response)
+                      ? response
+                      : [];
+                this.projects = items;
+                this.total = typeof response?.total === 'number' ? response.total : items.length;
+                this.totalPages = typeof response?.pages === 'number'
+                    ? response.pages
+                    : Math.max(1, Math.ceil(this.total / this.pageSize) || 1);
                 this.loading = false;
             },
             error: () => {
@@ -67,7 +74,7 @@ export class ProjectListComponent implements OnInit {
     loadTechnologies(): void {
         this.projectsService.getTechnologies().subscribe({
             next: (techs) => {
-                this.technologies = techs ?? [];
+                this.technologies = Array.isArray(techs) ? techs : [];
             },
             error: () => {
                 this.technologies = [];
