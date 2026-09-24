@@ -68,6 +68,14 @@ class FileSystemStorage(StorageService):
             return True
         return False
 
+
+    def get_file(self, file_path: str) -> Optional[bytes]:
+        """Lee bytes de una ruta relativa segura, o None si no existe."""
+        resolved = self.resolve_path(file_path)
+        if resolved is None:
+            return None
+        return resolved.read_bytes()
+
     def resolve_path(self, relative_path: str) -> Optional[Path]:
         """Resuelve una ruta relativa segura dentro de upload_dir, o None."""
         relative = Path(relative_path)

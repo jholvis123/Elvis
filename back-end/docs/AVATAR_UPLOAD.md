@@ -33,7 +33,7 @@ Admin-only multipart upload for the portfolio profile avatar. Public file GET.
 
 ## DELETE
 
-Clears `avatar_url` and deletes the local file when it was a local upload.
+Clears `avatar_url` and deletes the stored object (local file or S3/R2 key) when it was an upload via this API.
 
 ```json
 { "avatar_url": null, "message": "Avatar eliminado" }
@@ -43,9 +43,30 @@ Clears `avatar_url` and deletes the local file when it was a local upload.
 
 `GET /api/v1/portfolio/profile` → `avatar_url` is either:
 
-- Local: `/api/v1/portfolio/avatar/file/{uuid}.{ext}` (relative to API origin), or
+- Uploaded: `/api/v1/portfolio/avatar/file/{uuid}.{ext}` (relative to API origin), or
 - External HTTPS set via `PUT /portfolio/profile`.
+
+## Storage backends
+
+Controlled by `STORAGE_TYPE`:
+
+| Value | Behavior |
+|-------|----------|
+| `local` (default) | Files under `UPLOAD_DIR` (e.g. `uploads/avatars/`) |
+| `s3` | S3-compatible bucket (Cloudflare R2 recommended on Render) |
+
+In both modes the public contract is unchanged: `avatar_url` stays the relative path `/api/v1/portfolio/avatar/file/{id}`. The GET endpoint **proxies/streams bytes** from disk or the bucket (no redirect), so the frontend needs no change. Responses include a reasonable `Cache-Control` (`public, max-age=86400`). Missing objects → `404`. `file_id` is validated with a UUID+ext regex (no path traversal).
+
+### GET tradeoff (proxy vs alternatives)
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Proxy via API (chosen)** | Same relative URL; private bucket OK; FE unchanged; authz flexible later | Extra bandwidth/CPU on the API |
+| Public bucket URL in `avatar_url` | Offloads bytes to R2/CDN | FE/CORS/cache changes; bucket must be public; breaks relative-path contract |
+| Signed redirect (`302` + presigned URL) | Offloads bytes; bucket can stay private | FE must follow redirects; URL shape changes; short-lived links |
+
+See `DEPLOYMENT_RENDER.md` for R2 env vars on Render.
 
 ## Render note
 
-Local files live on ephemeral disk — see `DEPLOYMENT_RENDER.md`. Prefer HTTPS `avatar_url` for durable production logos until object storage is available.
+With `STORAGE_TYPE=local`, files live on ephemeral disk — see `DEPLOYMENT_RENDER.md`. Prefer `STORAGE_TYPE=s3` (R2) or an HTTPS `avatar_url` for durable production logos.

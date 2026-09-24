@@ -167,13 +167,15 @@ def get_jwt_provider() -> JWTProvider:
 
 # Storage dependencies
 def get_storage_service() -> StorageService:
-    """Obtiene el servicio de almacenamiento."""
+    """Obtiene el servicio de almacenamiento (local filesystem o S3/R2)."""
     from ..core.config import settings
-    
-    if settings.STORAGE_TYPE == "s3":
-        # TODO: Implement S3Storage
-        raise NotImplementedError("S3 storage not implemented yet")
-        
+
+    storage_type = (settings.STORAGE_TYPE or "local").strip().lower()
+    if storage_type == "s3":
+        from ..infrastructure.storage.s3_storage import S3Storage
+
+        return S3Storage()
+
     return FileSystemStorage()
 
 

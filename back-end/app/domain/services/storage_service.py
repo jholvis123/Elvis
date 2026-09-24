@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import BinaryIO
+from typing import BinaryIO, Optional
 
 
 class StorageService(ABC):
@@ -10,5 +10,10 @@ class StorageService(ABC):
 
     @abstractmethod
     def delete_file(self, file_path: str) -> bool:
-        """Deletes a file (relative path from upload dir)."""
+        """Deletes a file (relative path from upload dir / object key)."""
+        pass
+
+    @abstractmethod
+    def get_file(self, file_path: str) -> Optional[bytes]:
+        """Returns file bytes for a relative path / object key, or None if missing."""
         pass

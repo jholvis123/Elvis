@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from ...application.dto.portfolio_dto import (
@@ -31,7 +31,6 @@ from ...domain.entities.user import User
 from ...domain.services.portfolio_service import PortfolioService
 from ...domain.services.storage_service import StorageService
 from ...domain.services.file_validator import FileValidator, FileValidationError
-from ...infrastructure.storage.local_storage import FileSystemStorage
 from ..dependencies import (
     get_portfolio_service,
     get_current_admin,
@@ -422,16 +421,16 @@ async def delete_avatar(
 @router.get(
     "/avatar/file/{file_id}",
     summary="Servir archivo de avatar (público)",
-    response_class=FileResponse,
 )
 async def get_avatar_file(
     file_id: str,
     storage_service: StorageService = Depends(get_storage_service),
-) -> FileResponse:
+) -> Response:
     """
     Sirve el archivo de avatar por id (público, sin auth).
 
-    `file_id` es el nombre en disco: `{uuid}.{ext}` (jpg|jpeg|png|webp).
+    `file_id` es `{uuid}.{ext}` (jpg|jpeg|png|webp). En modo S3 se proxifican
+    los bytes desde el bucket (sin redirect) para mantener la misma URL relativa.
     """
     if not _AVATAR_FILE_ID_RE.match(file_id):
         raise HTTPException(
@@ -440,26 +439,24 @@ async def get_avatar_file(
         )
 
     relative = f"{AVATAR_SUBFOLDER}/{file_id}"
-    if isinstance(storage_service, FileSystemStorage):
-        path = storage_service.resolve_path(relative)
-    else:
-        path = None
-
-    if path is None:
+    data = storage_service.get_file(relative)
+    if data is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Avatar not found",
         )
 
-    ext = path.suffix.lower()
+    ext = Path(file_id).suffix.lower()
     mime_map = {
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg",
         ".png": "image/png",
         ".webp": "image/webp",
     }
-    return FileResponse(
-        path=str(path),
+    return Response(
+        content=data,
         media_type=mime_map.get(ext, "application/octet-stream"),
-        filename=path.name,
+        headers={
+            "Cache-Control": "public, max-age=86400",
+        },
     )
