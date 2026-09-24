@@ -1,5 +1,6 @@
 .section {
-	@apply py-16 md:py-20 bg-background;
+	/* Rhythm / scroll-margin live in global _components.scss (.section, .home-sections) */
+	@apply py-16 md:py-20;
 }
 
 .section-heading {

@@ -196,8 +196,11 @@ export class SectionVisibilityService implements OnDestroy {
         if (Array.isArray(r)) {
           return r.length;
         }
-        if (r && typeof r === 'object' && Array.isArray((r as CountPage).items)) {
-          return (r as CountPage).items!.length;
+        if (r && typeof r === 'object') {
+          const items = (r as CountPage).items;
+          if (Array.isArray(items)) {
+            return items.length;
+          }
         }
         return 0;
       }),

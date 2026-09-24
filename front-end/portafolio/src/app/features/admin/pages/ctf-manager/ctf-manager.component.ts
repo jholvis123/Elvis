@@ -130,6 +130,7 @@ export class CtfManagerComponent implements OnInit {
         this.ctfService.deleteChallenge(this.ctfToDelete.id, this.forceDelete).subscribe({
             next: () => {
                 this.notificationService.success('CTF eliminado exitosamente');
+                this.sectionVisibility.refresh();
                 this.showDeleteModal = false;
                 this.ctfToDelete = null;
                 this.loadChallenges();
