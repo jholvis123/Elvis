@@ -6,7 +6,7 @@ Usa Pydantic Settings para manejar variables de entorno.
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import field_validator
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -69,8 +69,8 @@ class Settings(BaseSettings):
     S3_BUCKET: Optional[str] = None
     S3_REGION: str = "us-east-1"
     S3_ENDPOINT: Optional[str] = None
-    S3_ACCESS_KEY: Optional[str] = None
-    S3_SECRET_KEY: Optional[str] = None
+    S3_ACCESS_KEY: Optional[SecretStr] = None
+    S3_SECRET_KEY: Optional[SecretStr] = None
     
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

@@ -32,12 +32,12 @@ httpx==0.28.1
 
 # Object storage (S3-compatible: AWS S3, Cloudflare R2, MinIO)
 boto3==1.35.76
+urllib3>=2.5.0
 
 # Testing
 pytest==8.3.4
 pytest-asyncio==0.25.2
 pytest-cov==6.0.0
-moto[s3]==5.0.26
 
 # Development
 python-dotenv==1.0.1

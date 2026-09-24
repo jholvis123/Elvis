@@ -62,7 +62,9 @@ See `SEED_PORTFOLIO.md` for the exact Render startCommand and env flag.
 
 Render **free/starter** web services use an **ephemeral filesystem**: files written under `UPLOAD_DIR` (default `uploads/`, including `uploads/avatars/`) **do not survive** deploys, restarts, or scale-to-zero when `STORAGE_TYPE=local`.
 
-### Recommended: Cloudflare R2 (`STORAGE_TYPE=s3`)
+### Recommended: Cloudflare R2 for avatars (`STORAGE_TYPE=s3`)
+
+`STORAGE_TYPE=s3` applies **only to portfolio avatars**. Attachments and writeup images remain on the local ephemeral disk (`UPLOAD_DIR`) until a separate durable-storage design is added for them.
 
 Set these in the Render dashboard (never commit real keys):
 

@@ -48,14 +48,16 @@ Clears `avatar_url` and deletes the stored object (local file or S3/R2 key) when
 
 ## Storage backends
 
-Controlled by `STORAGE_TYPE`:
+Controlled by `STORAGE_TYPE` — **avatar uploads only**:
 
 | Value | Behavior |
 |-------|----------|
-| `local` (default) | Files under `UPLOAD_DIR` (e.g. `uploads/avatars/`) |
-| `s3` | S3-compatible bucket (Cloudflare R2 recommended on Render) |
+| `local` (default) | Avatar files under `UPLOAD_DIR` (e.g. `uploads/avatars/`) |
+| `s3` | Avatar objects in an S3-compatible bucket (Cloudflare R2 recommended on Render) |
 
-In both modes the public contract is unchanged: `avatar_url` stays the relative path `/api/v1/portfolio/avatar/file/{id}`. The GET endpoint **proxies/streams bytes** from disk or the bucket (no redirect), so the frontend needs no change. Responses include a reasonable `Cache-Control` (`public, max-age=86400`). Missing objects → `404`. `file_id` is validated with a UUID+ext regex (no path traversal).
+**Important:** `STORAGE_TYPE=s3` does **not** move attachments or writeup images to S3. Those keep using local filesystem storage (`UPLOAD_DIR` / `/uploads/...`) via `get_storage_service()`. Only the three avatar endpoints use `get_avatar_storage_service()`.
+
+In both avatar modes the public contract is unchanged: `avatar_url` stays the relative path `/api/v1/portfolio/avatar/file/{id}`. The GET endpoint **proxies/streams bytes** from disk or the bucket (no redirect), so the frontend needs no change. Responses include a reasonable `Cache-Control` (`public, max-age=86400`). Missing objects → `404`. `file_id` is validated with a UUID+ext regex (no path traversal).
 
 ### GET tradeoff (proxy vs alternatives)
 

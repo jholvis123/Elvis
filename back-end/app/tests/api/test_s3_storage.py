@@ -4,6 +4,7 @@ No usa credenciales reales ni red.
 """
 
 from io import BytesIO
+from pathlib import Path
 from uuid import uuid4
 
 import boto3
@@ -88,7 +89,7 @@ class TestS3StorageUnit:
 def s3_avatar_app(s3_storage, client: TestClient, monkeypatch: pytest.MonkeyPatch):
     from ...core.config import settings
     from ...main import app
-    from ...api.dependencies import get_storage_service
+    from ...api.dependencies import get_avatar_storage_service
 
     monkeypatch.setattr(settings, "STORAGE_TYPE", "s3")
     monkeypatch.setattr(settings, "S3_BUCKET", BUCKET)
@@ -97,9 +98,9 @@ def s3_avatar_app(s3_storage, client: TestClient, monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(settings, "S3_ACCESS_KEY", "testing")
     monkeypatch.setattr(settings, "S3_SECRET_KEY", "testing")
 
-    app.dependency_overrides[get_storage_service] = lambda: s3_storage
+    app.dependency_overrides[get_avatar_storage_service] = lambda: s3_storage
     yield s3_storage
-    app.dependency_overrides.pop(get_storage_service, None)
+    app.dependency_overrides.pop(get_avatar_storage_service, None)
 
 
 def _post_avatar(client: TestClient, headers: dict, *, filename: str, content: bytes):
@@ -168,3 +169,104 @@ class TestPortfolioAvatarS3:
     ):
         res = client.get("/api/v1/portfolio/avatar/file/../../etc/passwd")
         assert res.status_code == 404
+
+
+
+class TestStorageTypeS3DoesNotBreakLocalUploads:
+    """STORAGE_TYPE=s3 must NOT divert attachments/writeups away from local disk."""
+
+    def test_attachment_upload_stays_local_when_storage_type_s3(
+        self,
+        client: TestClient,
+        db: Session,
+        admin_headers: dict,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        s3_bucket,
+    ):
+        from ...core.config import settings
+        from ...api.dependencies import get_avatar_storage_service, get_storage_service
+        from ...infrastructure.storage.local_storage import FileSystemStorage
+        from ...infrastructure.storage.s3_storage import S3Storage
+        from ...main import app
+
+        upload = tmp_path / "uploads"
+        upload.mkdir()
+        monkeypatch.setattr(settings, "STORAGE_TYPE", "s3")
+        monkeypatch.setattr(settings, "UPLOAD_DIR", str(upload))
+        monkeypatch.setattr(settings, "S3_BUCKET", BUCKET)
+        monkeypatch.setattr(settings, "S3_REGION", REGION)
+        monkeypatch.setattr(settings, "S3_ENDPOINT", ENDPOINT)
+
+        # Prove factory ignores STORAGE_TYPE for non-avatar storage
+        assert isinstance(get_storage_service(), FileSystemStorage)
+
+        s3 = S3Storage(
+            bucket=BUCKET,
+            region=REGION,
+            endpoint_url=ENDPOINT,
+            access_key="testing",
+            secret_key="testing",
+            client=s3_bucket,
+        )
+        # Keep avatar on S3 mock; attachments must use real get_storage_service (local)
+        app.dependency_overrides[get_avatar_storage_service] = lambda: s3
+        try:
+            res = client.post(
+                "/api/v1/attachments/upload",
+                headers=admin_headers,
+                files={"file": ("note.txt", BytesIO(b"hello-attachment"), "text/plain")},
+            )
+            assert res.status_code in (200, 201), res.text
+            files = [p for p in upload.rglob("*") if p.is_file()]
+            assert files, f"expected local files under {upload}, got {list(upload.rglob('*'))}"
+            assert any(p.read_bytes() == b"hello-attachment" for p in files)
+        finally:
+            app.dependency_overrides.pop(get_avatar_storage_service, None)
+
+    def test_writeup_image_upload_returns_local_uploads_path(
+        self,
+        client: TestClient,
+        db: Session,
+        admin_headers: dict,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        s3_bucket,
+    ):
+        from ...core.config import settings
+        from ...api.dependencies import get_avatar_storage_service, get_storage_service
+        from ...infrastructure.storage.local_storage import FileSystemStorage
+        from ...infrastructure.storage.s3_storage import S3Storage
+        from ...main import app
+
+        upload = tmp_path / "uploads"
+        upload.mkdir()
+        monkeypatch.setattr(settings, "STORAGE_TYPE", "s3")
+        monkeypatch.setattr(settings, "UPLOAD_DIR", str(upload))
+        monkeypatch.setattr(settings, "S3_BUCKET", BUCKET)
+
+        assert isinstance(get_storage_service(), FileSystemStorage)
+
+        s3 = S3Storage(
+            bucket=BUCKET,
+            region=REGION,
+            endpoint_url=ENDPOINT,
+            access_key="testing",
+            secret_key="testing",
+            client=s3_bucket,
+        )
+        app.dependency_overrides[get_avatar_storage_service] = lambda: s3
+        try:
+            res = client.post(
+                "/api/v1/writeups/upload-image",
+                headers=admin_headers,
+                files={"file": ("shot.png", BytesIO(PNG_1X1), "image/png")},
+            )
+            assert res.status_code in (200, 201), res.text
+            body = res.json()
+            url = body.get("url") or body.get("image_url") or ""
+            assert url.startswith("/uploads/"), body
+            files = [p for p in upload.rglob("*") if p.is_file()]
+            assert files, f"expected local writeup image under {upload}"
+        finally:
+            app.dependency_overrides.pop(get_avatar_storage_service, None)

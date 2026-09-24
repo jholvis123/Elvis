@@ -1,0 +1,3 @@
+# Dev/test-only dependencies (not installed in production images)
+-r requirements.txt
+moto[s3]==5.0.26

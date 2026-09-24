@@ -167,7 +167,12 @@ def get_jwt_provider() -> JWTProvider:
 
 # Storage dependencies
 def get_storage_service() -> StorageService:
-    """Obtiene el servicio de almacenamiento (local filesystem o S3/R2)."""
+    """Always local filesystem — attachments/writeups depend on upload_dir + /uploads paths."""
+    return FileSystemStorage()
+
+
+def get_avatar_storage_service() -> StorageService:
+    """Avatar-only storage: S3/R2 when STORAGE_TYPE=s3, otherwise local filesystem."""
     from ..core.config import settings
 
     storage_type = (settings.STORAGE_TYPE or "local").strip().lower()

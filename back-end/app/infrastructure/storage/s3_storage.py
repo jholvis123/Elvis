@@ -49,8 +49,19 @@ class S3Storage(StorageService):
         self.endpoint_url = (
             endpoint_url if endpoint_url is not None else settings.S3_ENDPOINT
         )
-        access = access_key if access_key is not None else settings.S3_ACCESS_KEY
-        secret = secret_key if secret_key is not None else settings.S3_SECRET_KEY
+        if access_key is not None:
+            access = access_key
+        elif settings.S3_ACCESS_KEY is not None:
+            access = settings.S3_ACCESS_KEY.get_secret_value()
+        else:
+            access = None
+
+        if secret_key is not None:
+            secret = secret_key
+        elif settings.S3_SECRET_KEY is not None:
+            secret = settings.S3_SECRET_KEY.get_secret_value()
+        else:
+            secret = None
 
         if client is not None:
             self._client = client
@@ -61,7 +72,12 @@ class S3Storage(StorageService):
                 aws_access_key_id=access,
                 aws_secret_access_key=secret,
                 region_name=self.region,
-                config=Config(signature_version="s3v4"),
+                config=Config(
+                    signature_version="s3v4",
+                    connect_timeout=5,
+                    read_timeout=30,
+                    retries={"max_attempts": 3, "mode": "standard"},
+                ),
             )
 
     def _safe_subfolder(self, subfolder: str) -> str:

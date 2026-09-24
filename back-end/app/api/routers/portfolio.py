@@ -34,7 +34,7 @@ from ...domain.services.file_validator import FileValidator, FileValidationError
 from ..dependencies import (
     get_portfolio_service,
     get_current_admin,
-    get_storage_service,
+    get_avatar_storage_service,
 )
 
 
@@ -331,7 +331,7 @@ async def upload_avatar(
     file: UploadFile = File(..., description="Imagen de avatar/logo (jpg/png/webp)"),
     current_user: User = Depends(get_current_admin),
     portfolio_service: PortfolioService = Depends(get_portfolio_service),
-    storage_service: StorageService = Depends(get_storage_service),
+    storage_service: StorageService = Depends(get_avatar_storage_service),
 ) -> AvatarUploadResponseDTO:
     """
     Sube avatar/logo del portfolio (multipart field: `file`).
@@ -406,7 +406,7 @@ async def upload_avatar(
 async def delete_avatar(
     current_user: User = Depends(get_current_admin),
     portfolio_service: PortfolioService = Depends(get_portfolio_service),
-    storage_service: StorageService = Depends(get_storage_service),
+    storage_service: StorageService = Depends(get_avatar_storage_service),
 ) -> AvatarDeleteResponseDTO:
     """Limpia `avatar_url` del perfil y borra el archivo local si aplica."""
     _ = current_user
@@ -424,7 +424,7 @@ async def delete_avatar(
 )
 async def get_avatar_file(
     file_id: str,
-    storage_service: StorageService = Depends(get_storage_service),
+    storage_service: StorageService = Depends(get_avatar_storage_service),
 ) -> Response:
     """
     Sirve el archivo de avatar por id (público, sin auth).

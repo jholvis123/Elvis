@@ -26,7 +26,7 @@ def avatar_upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, client: T
 
     from ...core.config import settings
     from ...main import app
-    from ...api.dependencies import get_storage_service
+    from ...api.dependencies import get_avatar_storage_service
     from ...infrastructure.storage.local_storage import FileSystemStorage
 
     monkeypatch.setattr(settings, "UPLOAD_DIR", str(upload))
@@ -34,9 +34,9 @@ def avatar_upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, client: T
     def _override_storage():
         return FileSystemStorage(upload_dir=str(upload))
 
-    app.dependency_overrides[get_storage_service] = _override_storage
+    app.dependency_overrides[get_avatar_storage_service] = _override_storage
     yield upload
-    app.dependency_overrides.pop(get_storage_service, None)
+    app.dependency_overrides.pop(get_avatar_storage_service, None)
 
 
 def _post_avatar(client: TestClient, headers: dict, *, filename: str, content: bytes):
