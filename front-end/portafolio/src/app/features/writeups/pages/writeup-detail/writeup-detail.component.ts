@@ -143,6 +143,7 @@ export class WriteupDetailComponent implements OnInit, OnDestroy {
         this.writeupsService.deleteWriteup(this.writeup.id).subscribe({
             next: () => {
                 this.notificationService.success('Writeup eliminado');
+                this.sectionVisibility.refresh();
                 this.router.navigate(['/writeups']);
             },
             error: (err) => {

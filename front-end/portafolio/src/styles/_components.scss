@@ -32,13 +32,36 @@
     @apply text-textSecondary;
   }
 
-  // Section layout
+  // Section layout — border-top separates adjacent sections even when some are *ngIf-hidden
   .section {
-    @apply py-16 md:py-20 bg-background;
+    @apply py-16 md:py-20 bg-background border-t border-slate-800/70;
+    scroll-margin-top: 5.5rem; // fixed navbar ~77px
   }
 
   .section-heading {
     @apply text-3xl md:text-4xl font-bold text-textPrimary leading-tight;
+  }
+
+  // Public page blocks (list heroes / filter bands) share anchor offset
+  .page-section,
+  .ctf-hero,
+  .filters-section {
+    scroll-margin-top: 5.5rem;
+  }
+
+  // Home: alternate subtle slate bands by *rendered* host order (survives hidden sections)
+  .home-sections > *:nth-child(even) > .section,
+  .home-sections > *:nth-child(even) > section.section {
+    @apply bg-slate-950/70;
+  }
+
+  .home-sections > *:nth-child(odd) > .section,
+  .home-sections > *:nth-child(odd) > section.section {
+    @apply bg-background;
+  }
+
+  #hero {
+    scroll-margin-top: 5.5rem;
   }
 
   .eyebrow {

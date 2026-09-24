@@ -81,6 +81,7 @@ export class WriteupManagerComponent implements OnInit {
         this.writeupsService.deleteWriteup(id).subscribe({
             next: () => {
                 this.notificationService.success('Writeup eliminado exitosamente');
+                this.sectionVisibility.refresh();
                 this.cancelDelete();
                 this.loadWriteups();
             }

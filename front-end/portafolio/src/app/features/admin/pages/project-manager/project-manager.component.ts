@@ -133,6 +133,7 @@ export class ProjectManagerComponent implements OnInit {
                 project.status = 'archived';
                 this.updateStats();
                 this.notificationService.success('Proyecto archivado');
+                this.sectionVisibility.refresh();
             },
             error: () => {
                 // El interceptor ya muestra el mensaje humano
@@ -156,6 +157,7 @@ export class ProjectManagerComponent implements OnInit {
         this.projectsService.deleteProject(this.projectToDelete.id).subscribe({
             next: () => {
                 this.notificationService.success('Proyecto eliminado exitosamente');
+                this.sectionVisibility.refresh();
                 this.showDeleteModal = false;
                 this.projectToDelete = null;
                 this.loadProjects();
