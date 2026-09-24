@@ -1,113 +1,221 @@
-<div class="writeup-form-page">
-    <form [formGroup]="writeupForm" (ngSubmit)="onSubmit()">
+<div class="admin-page writeup-form-page">
+  <form [formGroup]="writeupForm" (ngSubmit)="onSubmit()" novalidate>
 
-        <!-- Header -->
-        <div class="form-header">
-            <div class="header-content">
-                <h1 class="text-3xl font-bold text-white mb-2">
-                    {{ isEditMode ? 'Editar Writeup' : 'Nuevo Writeup' }}
-                </h1>
-                <p class="text-gray-400">{{ isEditMode ? 'Actualiza el writeup' : 'Documenta la solución del CTF con el editor profesional' }}</p>
+    <!-- Header -->
+    <div class="form-header mb-6 pb-5 border-b border-white/10">
+      <div class="header-content">
+        <p class="eyebrow">Administración</p>
+        <h1 class="section-heading text-2xl sm:text-3xl mb-2">
+          {{ isEditMode ? 'Editar Writeup' : 'Nuevo Writeup' }}
+        </h1>
+        <p class="muted-text">
+          {{ isEditMode ? 'Actualiza el writeup' : 'Documenta la solución del CTF con el editor profesional' }}
+        </p>
+      </div>
+      <div class="header-actions flex flex-wrap gap-3">
+        <a
+          [routerLink]="isEditMode ? ['/writeups', writeupId] : ['/writeups']"
+          class="btn-outline">
+          Cancelar
+        </a>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="loading"
+          [attr.aria-busy]="loading">
+          <span *ngIf="!loading">
+            {{ isEditMode ? 'Actualizar' : 'Publicar' }}
+          </span>
+          <span *ngIf="loading" class="inline-flex items-center gap-2">
+            <span
+              class="inline-block h-5 w-5 rounded-full border-2 border-black/30 border-t-black motion-safe-spin"
+              aria-hidden="true"></span>
+            Guardando…
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div
+      *ngIf="error"
+      class="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/40 flex items-center gap-3"
+      role="alert"
+      aria-live="assertive">
+      <app-icon name="exclamation-triangle" cssClass="w-6 h-6 text-warning shrink-0" ariaLabel=""></app-icon>
+      <p class="text-red-300 text-sm m-0">{{ error }}</p>
+    </div>
+
+    <div class="form-layout">
+      <!-- Left Column - Metadata -->
+      <aside class="form-sidebar card p-5">
+        <!-- Title -->
+        <div class="form-field">
+          <label for="writeup-title" class="block text-sm font-medium text-textPrimary mb-2">
+            Título <span class="text-red-400" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="writeup-title"
+            formControlName="title"
+            class="input min-h-[44px]"
+            placeholder="Título del writeup"
+            autocomplete="off"
+            [attr.aria-invalid]="writeupForm.get('title')?.invalid && writeupForm.get('title')?.touched"
+            [attr.aria-describedby]="writeupForm.get('title')?.invalid && writeupForm.get('title')?.touched ? 'writeup-title-error' : null"
+            [class.border-red-500]="writeupForm.get('title')?.invalid && writeupForm.get('title')?.touched"
+          />
+          <div
+            *ngIf="writeupForm.get('title')?.touched && writeupForm.get('title')?.invalid"
+            id="writeup-title-error"
+            class="mt-1 text-red-400 text-sm"
+            role="alert">
+            El título es requerido (mín. 5 caracteres)
+          </div>
+        </div>
+
+        <!-- CTF Selection -->
+        <div class="form-field">
+          <label for="writeup-ctf" class="block text-sm font-medium text-textPrimary mb-2">
+            Reto CTF (Opcional)
+          </label>
+          <select id="writeup-ctf" formControlName="ctf_id" class="input min-h-[44px]">
+            <option value="">Sin CTF asociado</option>
+            <option *ngFor="let ctf of ctfs" [value]="ctf.id">
+              {{ ctf.title }} ({{ ctf.category }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Summary -->
+        <div class="form-field">
+          <label for="writeup-summary" class="block text-sm font-medium text-textPrimary mb-2">
+            Resumen
+          </label>
+          <textarea
+            id="writeup-summary"
+            formControlName="summary"
+            rows="3"
+            maxlength="500"
+            class="input"
+            placeholder="Breve descripción del writeup..."
+            [attr.aria-describedby]="'writeup-summary-hint'"
+          ></textarea>
+          <span id="writeup-summary-hint" class="mt-1 block muted-text text-xs">
+            {{ writeupForm.get('summary')?.value?.length || 0 }}/500 caracteres
+          </span>
+        </div>
+
+        <!-- Tools -->
+        <div class="form-field">
+          <div class="flex flex-wrap justify-between items-center gap-3 mb-2">
+            <label id="writeup-tools-label" class="block text-sm font-medium text-textPrimary">
+              Herramientas
+            </label>
+            <button
+              type="button"
+              (click)="addTool()"
+              class="btn-outline text-sm px-3 py-1.5 min-h-[44px] gap-1.5">
+              <app-icon name="plus" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+              Agregar
+            </button>
+          </div>
+          <div
+            formArrayName="tools_used"
+            class="space-y-2"
+            role="group"
+            aria-labelledby="writeup-tools-label">
+            <div *ngFor="let tool of tools.controls; let i = index" class="flex gap-2">
+              <label [attr.for]="'writeup-tool-' + i" class="sr-only">Herramienta {{ i + 1 }}</label>
+              <input
+                [id]="'writeup-tool-' + i"
+                [formControlName]="i"
+                type="text"
+                class="input min-h-[44px] flex-1"
+                placeholder="ej: nmap"
+                [attr.aria-invalid]="tool.invalid && tool.touched"
+              />
+              <button
+                type="button"
+                (click)="removeTool(i)"
+                class="admin-action border border-red-500/40 text-red-300 hover:bg-red-500/10 transition"
+                [attr.aria-label]="'Quitar herramienta ' + (i + 1)">
+                <app-icon name="x-mark" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+                <span class="sr-only">Quitar</span>
+              </button>
             </div>
-            <div class="header-actions">
-                <a [routerLink]="isEditMode ? ['/writeups', writeupId] : ['/writeups']"
-                    class="btn-secondary">
-                    Cancelar
-                </a>
-                <button type="submit" [disabled]="loading" class="btn-primary">
-                    {{ loading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Publicar') }}
-                </button>
+            <p *ngIf="tools.length === 0" class="muted-text text-sm italic">
+              Añade las herramientas utilizadas
+            </p>
+          </div>
+        </div>
+
+        <!-- Techniques -->
+        <div class="form-field">
+          <div class="flex flex-wrap justify-between items-center gap-3 mb-2">
+            <label id="writeup-techniques-label" class="block text-sm font-medium text-textPrimary">
+              Técnicas
+            </label>
+            <button
+              type="button"
+              (click)="addTechnique()"
+              class="btn-outline text-sm px-3 py-1.5 min-h-[44px] gap-1.5">
+              <app-icon name="plus" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+              Agregar
+            </button>
+          </div>
+          <div
+            formArrayName="techniques"
+            class="space-y-2"
+            role="group"
+            aria-labelledby="writeup-techniques-label">
+            <div *ngFor="let technique of techniques.controls; let i = index" class="flex gap-2">
+              <label [attr.for]="'writeup-technique-' + i" class="sr-only">Técnica {{ i + 1 }}</label>
+              <input
+                [id]="'writeup-technique-' + i"
+                [formControlName]="i"
+                type="text"
+                class="input min-h-[44px] flex-1"
+                placeholder="ej: SQL Injection"
+                [attr.aria-invalid]="technique.invalid && technique.touched"
+              />
+              <button
+                type="button"
+                (click)="removeTechnique(i)"
+                class="admin-action border border-red-500/40 text-red-300 hover:bg-red-500/10 transition"
+                [attr.aria-label]="'Quitar técnica ' + (i + 1)">
+                <app-icon name="x-mark" cssClass="w-4 h-4" ariaLabel=""></app-icon>
+                <span class="sr-only">Quitar</span>
+              </button>
             </div>
+            <p *ngIf="techniques.length === 0" class="muted-text text-sm italic">
+              Añade las técnicas aplicadas
+            </p>
+          </div>
         </div>
+      </aside>
 
-        <!-- Error -->
-        <div class="error-banner" *ngIf="error">
-            <app-icon name="exclamation-triangle" cssClass="w-6 h-6 text-warning" ariaLabel="Error"></app-icon>
-            <p>{{ error }}</p>
+      <!-- Right Column - Editor -->
+      <main class="form-main">
+        <div class="editor-container">
+          <label id="writeup-content-label" class="sr-only">Contenido Markdown</label>
+          <app-markdown-editor
+            [value]="writeupForm.get('content')?.value || ''"
+            (valueChange)="onContentChange($event)"
+            (save)="onEditorSave($event)"
+            placeholder="Escribe tu writeup en Markdown..."
+            aria-labelledby="writeup-content-label"
+          ></app-markdown-editor>
+
+          <div
+            *ngIf="writeupForm.get('content')?.touched && writeupForm.get('content')?.invalid"
+            id="writeup-content-error"
+            class="mt-2 text-red-400 text-sm"
+            role="alert">
+            El contenido es requerido (mín. 100 caracteres)
+          </div>
         </div>
-
-        <div class="form-layout">
-            <!-- Left Column - Metadata -->
-            <aside class="form-sidebar">
-                <!-- Title -->
-                <div class="form-field">
-                    <label class="field-label">Título *</label>
-                    <input type="text" formControlName="title"
-                        class="field-input"
-                        placeholder="Título del writeup" />
-                    <span class="field-error" *ngIf="writeupForm.get('title')?.touched && writeupForm.get('title')?.invalid">
-                        El título es requerido (mín. 5 caracteres)
-                    </span>
-                </div>
-
-                <!-- CTF Selection -->
-                <div class="form-field">
-                    <label class="field-label">Reto CTF (Opcional)</label>
-                    <select formControlName="ctf_id" class="field-input">
-                        <option value="">Sin CTF asociado</option>
-                        <option *ngFor="let ctf of ctfs" [value]="ctf.id">
-                            {{ ctf.title }} ({{ ctf.category }})
-                        </option>
-                    </select>
-                </div>
-
-                <!-- Summary -->
-                <div class="form-field">
-                    <label class="field-label">Resumen</label>
-                    <textarea formControlName="summary" rows="3" maxlength="500"
-                        class="field-input"
-                        placeholder="Breve descripción del writeup..."></textarea>
-                    <span class="field-hint">{{ writeupForm.get('summary')?.value?.length || 0 }}/500 caracteres</span>
-                </div>
-
-                <!-- Tools -->
-                <div class="form-field">
-                    <div class="field-header">
-                        <label class="field-label">Herramientas</label>
-                        <button type="button" (click)="addTool()" class="btn-add">+ Agregar</button>
-                    </div>
-                    <div formArrayName="tools_used" class="tags-list">
-                        <div class="tag-item" *ngFor="let tool of tools.controls; let i = index">
-                            <input [formControlName]="i" type="text"
-                                class="tag-input" placeholder="ej: nmap" />
-                            <button type="button" (click)="removeTool(i)" class="tag-remove">✕</button>
-                        </div>
-                        <p class="empty-hint" *ngIf="tools.length === 0">Añade las herramientas utilizadas</p>
-                    </div>
-                </div>
-
-                <!-- Techniques -->
-                <div class="form-field">
-                    <div class="field-header">
-                        <label class="field-label">Técnicas</label>
-                        <button type="button" (click)="addTechnique()" class="btn-add">+ Agregar</button>
-                    </div>
-                    <div formArrayName="techniques" class="tags-list">
-                        <div class="tag-item" *ngFor="let technique of techniques.controls; let i = index">
-                            <input [formControlName]="i" type="text"
-                                class="tag-input" placeholder="ej: SQL Injection" />
-                            <button type="button" (click)="removeTechnique(i)" class="tag-remove">✕</button>
-                        </div>
-                        <p class="empty-hint" *ngIf="techniques.length === 0">Añade las técnicas aplicadas</p>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Right Column - Editor -->
-            <main class="form-main">
-                <div class="editor-container">
-                    <app-markdown-editor
-                        [value]="writeupForm.get('content')?.value || ''"
-                        (valueChange)="onContentChange($event)"
-                        (save)="onEditorSave($event)"
-                        placeholder="Escribe tu writeup en Markdown..."
-                    ></app-markdown-editor>
-                    
-                    <span class="field-error mt-2" *ngIf="writeupForm.get('content')?.touched && writeupForm.get('content')?.invalid">
-                        El contenido es requerido (mín. 100 caracteres)
-                    </span>
-                </div>
-            </main>
-        </div>
-    </form>
+      </main>
+    </div>
+  </form>
 </div>
