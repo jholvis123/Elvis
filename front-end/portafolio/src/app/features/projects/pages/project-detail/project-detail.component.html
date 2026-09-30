@@ -1,104 +1,133 @@
-<div class="container mx-auto px-4 py-12" *ngIf="!loading && project">
-    <!-- Back Button -->
-    <a routerLink="/projects" class="inline-flex items-center text-primary hover:text-primaryHover mb-8">
-        <app-icon name="chevron-left" cssClass="w-5 h-5 mr-2" />
-        Volver a proyectos
-    </a>
+<div class="page-section container mx-auto px-4 py-12" *ngIf="!loading && project">
+  <!-- Back -->
+  <a
+    routerLink="/projects"
+    class="inline-flex items-center gap-2 text-textSecondary hover:text-primary transition-colors mb-8 min-h-[44px]">
+    <app-icon name="chevron-left" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+    Volver a proyectos
+  </a>
 
-    <!-- Header with Image -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-        <!-- Image -->
-        <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-cyan-950/40 to-slate-900">
-            <img *ngIf="project.image_url" [src]="project.image_url" [alt]="project.title"
-                class="w-full h-96 object-cover" />
-        </div>
-
-        <!-- Info -->
-        <div class="flex flex-col justify-center">
-            <div class="flex items-center gap-3 mb-4">
-                <h1 class="text-4xl font-bold text-white">{{ project.title }}</h1>
-                <span *ngIf="project.featured"
-                    class="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
-                    DESTACADO
-                </span>
-            </div>
-
-            <p class="text-gray-400 text-lg mb-6">{{ project.short_description }}</p>
-
-            <!-- Technologies -->
-            <div class="mb-6">
-                <h3 class="text-white font-semibold mb-3">Tecnologías</h3>
-                <div class="flex flex-wrap gap-2">
-                    <span *ngFor="let tech of project.technologies"
-                        class="bg-primary/20 text-primary px-3 py-1 rounded-lg text-sm">
-                        {{ tech }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-3">
-                <a *ngIf="project.github_url" [href]="project.github_url" target="_blank"
-                    class="inline-flex items-center px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition">
-                    <app-icon name="github" cssClass="w-5 h-5 mr-2" />
-                    Ver en GitHub
-                </a>
-
-                <a *ngIf="project.demo_url" [href]="project.demo_url" target="_blank"
-                    class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primaryHover text-black text-white rounded-lg font-medium transition">
-                    <app-icon name="arrow-top-right-on-square" cssClass="w-5 h-5 mr-2" />
-                    Ver Demo
-                </a>
-
-                <!-- Admin Actions -->
-                <a *ngIf="authService.isAdmin" [routerLink]="['/projects', project.id, 'edit']"
-                    class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
-                    <app-icon name="pencil-square" cssClass="w-5 h-5 mr-2" />
-                    Editar
-                </a>
-
-                <button *ngIf="authService.isAdmin" (click)="confirmDelete()"
-                    class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
-                    <app-icon name="trash" cssClass="w-5 h-5 mr-2" />
-                    Eliminar
-                </button>
-            </div>
-        </div>
+  <!-- Header with Image -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+    <!-- Image -->
+    <div
+      class="rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-cyan-950/40 to-slate-900 border border-slate-800/70 min-h-[16rem] flex items-center justify-center">
+      <img
+        *ngIf="project.image_url; else projectImagePlaceholder"
+        [src]="project.image_url"
+        [alt]="project.title"
+        class="w-full h-96 object-cover" />
+      <ng-template #projectImagePlaceholder>
+        <app-icon name="photo" cssClass="w-16 h-16 text-primary/40" ariaLabel=""></app-icon>
+      </ng-template>
     </div>
 
-    <!-- Description -->
-    <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-8 mb-8">
-        <h2 class="text-2xl font-bold text-white mb-4">Descripción</h2>
-        <div class="text-gray-300 leading-relaxed whitespace-pre-line">
-            {{ project.description }}
-        </div>
-    </div>
+    <!-- Info -->
+    <div class="flex flex-col justify-center min-w-0">
+      <p class="eyebrow">Proyecto</p>
+      <div class="flex flex-wrap items-center gap-3 mb-4">
+        <h1 class="section-heading text-3xl sm:text-4xl m-0">{{ project.title }}</h1>
+        <span
+          *ngIf="project.featured"
+          class="inline-flex items-center gap-1.5 bg-primary/15 text-primary border border-primary/30 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+          <app-icon name="star" cssClass="w-3.5 h-3.5" ariaLabel=""></app-icon>
+          Destacado
+        </span>
+      </div>
 
-    <!-- Highlights -->
-    <div *ngIf="project.highlights && project.highlights.length > 0"
-        class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-8">
-        <h2 class="text-2xl font-bold text-white mb-4">Características Destacadas</h2>
-        <ul class="space-y-3">
-            <li *ngFor="let highlight of project.highlights" class="flex items-start">
-                <app-icon name="check" cssClass="w-6 h-6 text-primary mr-3 flex-shrink-0 mt-0.5" />
-                <span class="text-gray-300">{{ highlight }}</span>
-            </li>
-        </ul>
+      <p class="muted-text text-lg mb-6">{{ project.short_description }}</p>
+
+      <!-- Technologies -->
+      <div class="mb-6" *ngIf="project.technologies?.length">
+        <h2 class="text-sm font-semibold text-textPrimary mb-3 uppercase tracking-wide">Tecnologías</h2>
+        <div class="flex flex-wrap gap-2">
+          <span
+            *ngFor="let tech of project.technologies"
+            class="bg-primary/15 text-primary border border-primary/25 px-3 py-1 rounded-lg text-sm">
+            {{ tech }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-3">
+        <a
+          *ngIf="project.github_url"
+          [href]="project.github_url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-outline gap-2">
+          <app-icon name="github" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+          Ver en GitHub
+        </a>
+
+        <a
+          *ngIf="project.demo_url"
+          [href]="project.demo_url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-primary gap-2">
+          <app-icon name="arrow-top-right-on-square" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+          Ver Demo
+        </a>
+
+        <!-- Admin Actions -->
+        <a
+          *ngIf="authService.isAdmin"
+          [routerLink]="['/projects', project.id, 'edit']"
+          class="btn-outline gap-2">
+          <app-icon name="pencil-square" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+          Editar
+        </a>
+
+        <button
+          *ngIf="authService.isAdmin"
+          type="button"
+          (click)="confirmDelete()"
+          class="btn-outline gap-2 text-red-400 border-red-500/40 hover:bg-red-500/10 hover:text-red-300 hover:border-red-400/60">
+          <app-icon name="trash" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+          Eliminar
+        </button>
+      </div>
     </div>
+  </div>
+
+  <!-- Description -->
+  <section class="card mb-8 hover:translate-y-0">
+    <h2 class="text-xl font-bold text-textPrimary mb-4">Descripción</h2>
+    <div class="muted-text leading-relaxed whitespace-pre-line">
+      {{ project.description }}
+    </div>
+  </section>
+
+  <!-- Highlights -->
+  <section
+    *ngIf="project.highlights && project.highlights.length > 0"
+    class="card hover:translate-y-0">
+    <h2 class="text-xl font-bold text-textPrimary mb-4">Características destacadas</h2>
+    <ul class="space-y-3 m-0 p-0 list-none">
+      <li *ngFor="let highlight of project.highlights" class="flex items-start gap-3">
+        <app-icon name="check" cssClass="w-5 h-5 text-primary shrink-0 mt-0.5" ariaLabel=""></app-icon>
+        <span class="muted-text">{{ highlight }}</span>
+      </li>
+    </ul>
+  </section>
 </div>
 
 <!-- Loading State -->
-<div *ngIf="loading" class="container mx-auto px-4">
-    <app-loading-spinner label="Cargando proyecto"></app-loading-spinner>
+<div *ngIf="loading" class="container mx-auto px-4 py-20">
+  <app-loading-spinner label="Cargando proyecto"></app-loading-spinner>
 </div>
 
 <!-- Error State -->
 <div *ngIf="error && !loading" class="container mx-auto px-4 py-20">
-    <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center max-w-md mx-auto">
-        <p class="text-red-200 mb-4">{{ error }}</p>
-        <a routerLink="/projects" class="text-primary hover:text-primaryHover">Volver a proyectos</a>
-    </div>
+  <div class="card border-red-500/40 text-center max-w-md mx-auto space-y-4 hover:translate-y-0" role="alert">
+    <app-icon name="exclamation-triangle" cssClass="w-10 h-10 text-warning mx-auto" ariaLabel=""></app-icon>
+    <p class="muted-text m-0">{{ error }}</p>
+    <a routerLink="/projects" class="btn-outline inline-flex">Volver a proyectos</a>
+  </div>
 </div>
+
 <app-confirm-dialog
   [open]="showDeleteModal"
   title="Eliminar proyecto"
