@@ -67,6 +67,15 @@ class FlagSubmissionSqlRepository(FlagSubmissionRepository):
             FlagSubmissionModel.user_id == str(user_id),
             FlagSubmissionModel.is_correct == True
         ).first() is not None
+
+    def has_anonymous_correct_from_ip(self, ctf_id: UUID, ip_address: str) -> bool:
+        """Verifica si ya hay un acierto anónimo (sin user_id) de esa IP."""
+        return self.db.query(FlagSubmissionModel).filter(
+            FlagSubmissionModel.ctf_id == str(ctf_id),
+            FlagSubmissionModel.user_id.is_(None),
+            FlagSubmissionModel.ip_address == ip_address,
+            FlagSubmissionModel.is_correct == True,
+        ).first() is not None
     
     def count_solvers(self, ctf_id: UUID) -> int:
         """Cuenta usuarios únicos que resolvieron un CTF."""

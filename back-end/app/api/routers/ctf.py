@@ -250,9 +250,10 @@ async def submit_flag(
             detail="This challenge is not active",
         )
     
-    # Obtener IP del cliente
+    # Obtener IP del cliente. Sin client no hay IP: el contador no se incrementa.
     ip_address = request.client.host if request.client else None
     user_id = current_user.id if current_user else None
+    is_admin = current_user is not None and current_user.is_admin
     
     # Intentar enviar la flag
     try:
@@ -261,6 +262,7 @@ async def submit_flag(
             flag=data.flag,
             user_id=user_id,
             ip_address=ip_address,
+            is_admin=is_admin,
         )
         
         return FlagSubmitResponseDTO(

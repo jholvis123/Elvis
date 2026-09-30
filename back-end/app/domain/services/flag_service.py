@@ -31,15 +31,21 @@ class FlagService:
         flag: str,
         user_id: Optional[UUID] = None,
         ip_address: Optional[str] = None,
+        is_admin: bool = False,
     ) -> Tuple[bool, str, Optional[int]]:
         """
         Valida un intento de flag.
-        
+
+        solved / solved_at solo los marca un admin (el owner).
+        solved_count solo cuenta aciertos de visitantes, deduplicados por
+        user_id o, si el intento es anónimo, por IP. Sin IP no se cuenta.
+
         Args:
             ctf_id: ID del CTF
             flag: Flag a validar
             user_id: ID del usuario (opcional)
             ip_address: IP del solicitante
+            is_admin: True si el solicitante autenticado es administrador
             
         Returns:
             Tuple de (éxito, mensaje, puntos_ganados)
@@ -53,7 +59,7 @@ class FlagService:
         if not ctf.is_available:
             return False, "Este reto no está disponible", None
         
-        # Verificar si el usuario ya resolvió este CTF
+        # Un usuario autenticado no vuelve a contar ni a reenviar el acierto.
         if user_id and self.submission_repository.has_user_solved(ctf_id, user_id):
             return False, "Ya has resuelto este reto", None
         
@@ -62,12 +68,21 @@ class FlagService:
             return False, "Formato de flag inválido", None
         
         # Verificar flag
-        is_correct = ctf.verify_flag(flag.strip())
+        normalized_flag = flag.strip()
+        is_correct = ctf.verify_flag(normalized_flag)
+        ip_address = self._normalized_ip(ip_address)
+        
+        # Decidir el contador ANTES de guardar: esta fila no puede contarse a sí misma.
+        count_visitor_solve = (
+            is_correct
+            and not is_admin
+            and self._is_new_visitor_solve(ctf_id, user_id, ip_address)
+        )
         
         # Hash de la flag para almacenamiento seguro
-        flag_hash = hashlib.sha256(flag.strip().encode()).hexdigest()
+        flag_hash = hashlib.sha256(normalized_flag.encode()).hexdigest()
         
-        # Registrar intento
+        # Registrar intento (también los repetidos anónimos; el contador ya está decidido)
         submission = FlagSubmission(
             ctf_id=ctf_id,
             flag=flag_hash,  # Guardamos el hash, no el texto plano
@@ -78,14 +93,38 @@ class FlagService:
         self.submission_repository.save(submission)
         
         if is_correct:
-            # Marcar CTF como resuelto y actualizar contador
-            ctf.mark_as_solved()
-            ctf.increment_solved_count()
-            self.ctf_repository.save(ctf)
+            if is_admin:
+                ctf.mark_as_solved()
+                self.ctf_repository.save(ctf)
+            elif count_visitor_solve:
+                ctf.increment_solved_count()
+                self.ctf_repository.save(ctf)
             
             return True, f"¡Correcto! +{ctf.points} puntos", ctf.points
         
         return False, "Flag incorrecta. Sigue intentando.", None
+
+    def _is_new_visitor_solve(
+        self,
+        ctf_id: UUID,
+        user_id: Optional[UUID],
+        ip_address: Optional[str],
+    ) -> bool:
+        """True si este acierto de visitante debe incrementar solved_count."""
+        if user_id is not None:
+            return not self.submission_repository.has_user_solved(ctf_id, user_id)
+        if not ip_address:
+            return False
+        return not self.submission_repository.has_anonymous_correct_from_ip(
+            ctf_id, ip_address
+        )
+
+    @staticmethod
+    def _normalized_ip(ip_address: Optional[str]) -> Optional[str]:
+        if ip_address is None:
+            return None
+        cleaned = ip_address.strip()
+        return cleaned or None
     
     def _validate_flag_format(self, flag: str) -> bool:
         """Valida el formato básico de una flag."""
