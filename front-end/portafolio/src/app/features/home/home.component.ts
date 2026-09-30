@@ -52,6 +52,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   capabilities: CapabilityChip[] = [];
 
   showScrollTop = false;
+
+  /** Single live region for home skeletons (experience, capabilities, projects). */
+  get homeLoadingStatus(): string {
+    const parts: string[] = [];
+    if (this.loadingExperience) {
+      parts.push('experiencia');
+    }
+    if (this.loadingCapabilities) {
+      parts.push('capacidades');
+    }
+    if (this.loadingProjects) {
+      parts.push('proyectos');
+    }
+    return parts.length ? `Cargando ${parts.join(', ')}…` : '';
+  }
+
   loadingProjects = true;
   loadingExperience = true;
   loadingCapabilities = true;

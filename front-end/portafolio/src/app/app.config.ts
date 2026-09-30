@@ -10,7 +10,10 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withInMemoryScrolling({
-      anchorScrolling: 'enabled',
+      // Fragment alignment is in AppComponent (live navbar + ResizeObserver).
+      // Angular's scroller ignores scroll-margin and, on popstate, restores a
+      // stored Y that ignores the fragment.
+      anchorScrolling: 'disabled',
       scrollPositionRestoration: 'enabled'
     })),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
