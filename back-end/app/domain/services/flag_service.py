@@ -37,8 +37,9 @@ class FlagService:
         Valida un intento de flag.
 
         solved / solved_at solo los marca un admin (el owner).
-        solved_count solo cuenta aciertos de visitantes, deduplicados por
-        user_id o, si el intento es anónimo, por IP. Sin IP no se cuenta.
+        solved_count solo cuenta aciertos de visitantes que traen IP,
+        deduplicados por user_id o, si el intento es anónimo, por esa IP.
+        Sin IP no se incrementa, ni anónimo ni autenticado no-admin.
 
         Args:
             ctf_id: ID del CTF
@@ -110,11 +111,15 @@ class FlagService:
         user_id: Optional[UUID],
         ip_address: Optional[str],
     ) -> bool:
-        """True si este acierto de visitante debe incrementar solved_count."""
-        if user_id is not None:
-            return not self.submission_repository.has_user_solved(ctf_id, user_id)
+        """True si este acierto de visitante debe incrementar solved_count.
+
+        Sin IP no se cuenta, aunque haya user_id. Con IP, un usuario no
+        repite conteo y un anónimo no repite conteo desde la misma IP.
+        """
         if not ip_address:
             return False
+        if user_id is not None:
+            return not self.submission_repository.has_user_solved(ctf_id, user_id)
         return not self.submission_repository.has_anonymous_correct_from_ip(
             ctf_id, ip_address
         )

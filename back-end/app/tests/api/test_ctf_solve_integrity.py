@@ -2,8 +2,8 @@
 Integridad de solved vs solved_count en POST /ctfs/{id}/submit y PUT.
 
 solved / solved_at: solo el owner (admin).
-solved_count: solo aciertos de visitantes, deduplicados por user_id o por IP
-anónima. Un anónimo sin IP no incrementa el contador.
+solved_count: solo aciertos de visitantes con IP, deduplicados por user_id o
+por IP anónima. Sin IP no incrementa, ni anónimo ni no-admin autenticado.
 """
 
 import hashlib
@@ -224,6 +224,20 @@ class TestSolvedCountDedupe:
             second = _submit(bare, cid)
         assert first["is_correct"] is True
         assert second["is_correct"] is True
+
+        state = _public_ctf(client, cid)
+        assert state["solved"] is False
+        assert state["solved_at"] is None
+        assert state["solved_count"] == 0
+
+    def test_authenticated_non_admin_without_ip_does_not_increment(
+        self, client: TestClient, db: Session, user_headers: dict
+    ):
+        cid = _insert_ctf(db)
+        with _peer(client, None) as bare:
+            body = _submit(bare, cid, user_headers)
+        assert body["success"] is True
+        assert body["is_correct"] is True
 
         state = _public_ctf(client, cid)
         assert state["solved"] is False
