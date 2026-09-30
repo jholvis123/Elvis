@@ -1,8 +1,8 @@
-<section id="experience" class="section experience-section" aria-labelledby="experience-heading">
+<section class="section experience-section" aria-labelledby="experience">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="mb-10 reveal">
       <p class="eyebrow">Experiencia / capacidades</p>
-      <h2 id="experience-heading" class="section-heading">Trayectoria y fortalezas</h2>
+      <h2 id="experience" class="section-heading">Trayectoria y fortalezas</h2>
       <p class="muted-text mt-3 max-w-2xl">
         Experiencia y capacidades publicadas desde el portfolio (sin datos inventados).
       </p>
@@ -17,7 +17,6 @@
         </h3>
 
         <div *ngIf="loading" class="space-y-6" aria-busy="true">
-          <p class="sr-only" role="status" aria-live="polite">Cargando experiencia…</p>
           <div *ngFor="let i of [1, 2, 3]" class="timeline-skeleton animate-pulse" aria-hidden="true">
             <div class="h-3 bg-slate-700 rounded w-1/4 mb-3"></div>
             <div class="h-5 bg-slate-700 rounded w-2/3 mb-2"></div>
@@ -131,7 +130,6 @@
         </h3>
 
         <div *ngIf="loadingCapabilities" class="flex flex-wrap gap-2" aria-busy="true">
-          <p class="sr-only" role="status" aria-live="polite">Cargando capacidades…</p>
           <span *ngFor="let i of [1, 2, 3, 4, 5, 6]" class="h-8 w-20 rounded-full bg-slate-700 animate-pulse" aria-hidden="true"></span>
         </div>
 

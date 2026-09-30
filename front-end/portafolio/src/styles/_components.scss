@@ -71,8 +71,11 @@
   }
 
   // When fragment id is on the heading (about), keep same offset as sections
-  #about.section-heading {
-    scroll-margin-top: 5.5rem; // same as .section; id is on heading
+  #about.section-heading,
+  #experience.section-heading,
+  #projects.section-heading,
+  #contact.section-heading {
+    scroll-margin-top: 5.5rem; // fragment id lives on the heading
   }
 
   .eyebrow {
