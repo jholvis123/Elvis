@@ -71,7 +71,7 @@ class CTF:
     author: Optional[str] = None                      # Autor del reto (texto libre)
     created_by_id: Optional[UUID] = None              # ID del usuario creador (sistema)
     updated_by_id: Optional[UUID] = None              # ID del usuario actualizador (sistema)
-    solved_count: int = 0                             # Número de soluciones
+    solved_count: int = 0                             # Aciertos de visitantes (no incluye al admin)
     is_active: bool = True                            # Si el reto está activo
     status: CTFStatus = CTFStatus.DRAFT
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -79,13 +79,19 @@ class CTF:
     attachments: List[Attachment] = field(default_factory=list)
     
     def mark_as_solved(self) -> None:
-        """Marca el CTF como resuelto."""
+        """Marca el CTF como resuelto por el owner (admin). No toca solved_count."""
         self.solved = True
         self.solved_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()
+
+    def clear_solved(self) -> None:
+        """Quita la marca de resuelto del owner. No toca solved_count."""
+        self.solved = False
+        self.solved_at = None
+        self.updated_at = datetime.utcnow()
     
     def increment_solved_count(self) -> None:
-        """Incrementa el contador de soluciones."""
+        """Incrementa el contador de aciertos de visitantes. No toca solved."""
         self.solved_count += 1
         self.updated_at = datetime.utcnow()
     

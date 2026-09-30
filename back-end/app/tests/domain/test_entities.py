@@ -42,6 +42,23 @@ class TestCTFEntity:
         
         assert ctf.solved is True
         assert ctf.solved_at is not None
+
+    def test_clear_solved_keeps_visitor_count(self):
+        """solved=false limpia la marca del owner y no toca solved_count."""
+        ctf = CTF(
+            title="Test CTF",
+            level=CTFLevel.MEDIUM,
+            category=CTFCategory.PWN,
+            platform="TryHackMe",
+            solved_count=4,
+        )
+        ctf.mark_as_solved()
+
+        ctf.clear_solved()
+
+        assert ctf.solved is False
+        assert ctf.solved_at is None
+        assert ctf.solved_count == 4
     
     def test_publish_ctf(self):
         """Test: publicar un CTF."""

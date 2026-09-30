@@ -77,8 +77,11 @@ class UpdateCTFUseCase:
              is_regex = data.is_flag_regex if data.is_flag_regex is not None else ctf.is_flag_regex
              ctf.set_flag(data.flag.strip(), is_regex=is_regex)
         
-        if data.solved is not None and data.solved and not ctf.solved:
+        # solved/solved_at son la marca del owner. solved_count no se toca aquí.
+        if data.solved is True and not ctf.solved:
             ctf.mark_as_solved()
+        elif data.solved is False:
+            ctf.clear_solved()
         
         if data.is_active is not None:
             ctf.is_active = data.is_active

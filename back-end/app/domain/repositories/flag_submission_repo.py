@@ -37,6 +37,11 @@ class FlagSubmissionRepository(ABC):
     def has_user_solved(self, ctf_id: UUID, user_id: UUID) -> bool:
         """Verifica si un usuario ya resolvió un CTF."""
         pass
+
+    @abstractmethod
+    def has_anonymous_correct_from_ip(self, ctf_id: UUID, ip_address: str) -> bool:
+        """Verifica si ya hay un acierto anónimo de esa IP en el CTF."""
+        pass
     
     @abstractmethod
     def count_solvers(self, ctf_id: UUID) -> int:
