@@ -6,8 +6,9 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     template: `
-    <div class="skeleton-loader" [ngClass]="getSkeletonClass()">
-      <div class="skeleton-shimmer"></div>
+    <div class="skeleton-loader" [ngClass]="getSkeletonClass()" role="status" aria-busy="true">
+      <div class="skeleton-shimmer" aria-hidden="true"></div>
+      <span class="sr-only">Cargando…</span>
     </div>
   `,
     styles: [`

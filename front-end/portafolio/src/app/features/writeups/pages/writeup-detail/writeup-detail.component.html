@@ -17,9 +17,9 @@
         <!-- Header -->
         <header class="writeup-header">
             <div class="header-top">
-                <a routerLink="/writeups" class="back-link">
-                    <span>←</span>
-                    <span>Writeups</span>
+                <a routerLink="/writeups" class="inline-flex items-center gap-2 text-textSecondary hover:text-primary transition-colors min-h-[44px]">
+                    <app-icon name="chevron-left" cssClass="w-5 h-5" ariaLabel=""></app-icon>
+                    Writeups
                 </a>
                 
                 <div class="admin-actions" *ngIf="authService.isAdmin">
@@ -100,7 +100,7 @@
 <div class="error-container" *ngIf="error && !loading">
     <app-icon name="exclamation-triangle" cssClass="w-8 h-8 text-warning error-icon" ariaLabel="Error"></app-icon>
     <p class="error-message">{{ error }}</p>
-    <a routerLink="/writeups" class="error-link">Volver a writeups</a>
+    <a routerLink="/writeups" class="btn-outline">Volver a writeups</a>
 </div>
 
 <app-confirm-dialog
