@@ -53,20 +53,6 @@ $breakpoint-lg: 1200px;
     margin-bottom: 24px;
 }
 
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: $primary-light;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
-    
-    &:hover {
-        color: #a5f3fc; // cyan-200
-    }
-}
-
 .admin-actions {
     display: flex;
     gap: 8px;
@@ -261,15 +247,6 @@ $breakpoint-lg: 1200px;
     .error-message {
         color: #fca5a5;
         font-size: 18px;
-    }
-    
-    .error-link {
-        color: $primary-light;
-        text-decoration: none;
-        
-        &:hover {
-            text-decoration: underline;
-        }
     }
 }
 
