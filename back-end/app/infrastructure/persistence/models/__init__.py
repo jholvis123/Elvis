@@ -11,6 +11,7 @@ from .contact_model import ContactModel
 from .flag_submission_model import FlagSubmissionModel
 from .portfolio_model import PortfolioProfileModel
 from .experience_model import ExperienceModel
+from .hint_unlock_model import HintUnlockModel
 
 __all__ = [
     "UserModel",
@@ -22,4 +23,5 @@ __all__ = [
     "FlagSubmissionModel",
     "PortfolioProfileModel",
     "ExperienceModel",
+    "HintUnlockModel",
 ]

@@ -30,5 +30,7 @@ services:
         value: "lax"
       - key: ALLOW_PUBLIC_REGISTER
         value: "false"
+      - key: ALLOW_PLAYER_REGISTER
+        value: "true"
       - key: DEBUG
         value: "false"

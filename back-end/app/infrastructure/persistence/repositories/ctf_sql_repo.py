@@ -36,6 +36,7 @@ class CTFSqlRepository(CTFRepository):
             existing.machine_os = ctf.machine_os
             existing.skills = json.dumps(ctf.skills)
             existing.hints = json.dumps(ctf.hints)
+            existing.hint_costs = json.dumps(ctf.hint_costs)
             existing.flag_hash = ctf.flag_hash
             existing.is_flag_regex = ctf.is_flag_regex
             existing.author = ctf.author
@@ -75,6 +76,7 @@ class CTFSqlRepository(CTFRepository):
                 machine_os=ctf.machine_os,
                 skills=json.dumps(ctf.skills),
                 hints=json.dumps(ctf.hints),
+                hint_costs=json.dumps(ctf.hint_costs),
                 flag_hash=ctf.flag_hash,
                 is_flag_regex=ctf.is_flag_regex,
                 author=ctf.author,
@@ -255,6 +257,7 @@ class CTFSqlRepository(CTFRepository):
             machine_os=model.machine_os,
             skills=json.loads(model.skills) if model.skills else [],
             hints=json.loads(model.hints) if model.hints else [],
+            hint_costs=json.loads(model.hint_costs) if model.hint_costs else [],
             flag_hash=model.flag_hash,
             is_flag_regex=bool(model.is_flag_regex),
             author=model.author,

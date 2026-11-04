@@ -69,6 +69,7 @@ class CTF:
     # Campos alineados con frontend
     skills: List[str] = field(default_factory=list)  # Antes: tags
     hints: List[str] = field(default_factory=list)   # Pistas para resolver
+    hint_costs: List[int] = field(default_factory=list)  # Coste en puntos por pista (mismo índice; falta = 0)
     flag_hash: Optional[str] = None                   # Hash de la flag (o patrón regex)
     is_flag_regex: bool = False                       # Si es True, flag_hash guarda el patrón regex
     author: Optional[str] = None                      # Autor del reto (texto libre)
@@ -182,6 +183,19 @@ class CTF:
                 return False
             return hmac.compare_digest(submitted, stored)
     
+    def hint_cost(self, index: int) -> int:
+        """Coste en puntos de la pista `index` (0 si no tiene coste definido)."""
+        if 0 <= index < len(self.hint_costs):
+            return max(0, int(self.hint_costs[index] or 0))
+        return 0
+
+    def set_hint_costs(self, costs: List[int]) -> None:
+        """Fija los costes alineados con `hints` (se recorta o rellena con 0)."""
+        normalized = [max(0, int(c or 0)) for c in (costs or [])][: len(self.hints)]
+        normalized += [0] * (len(self.hints) - len(normalized))
+        self.hint_costs = normalized
+        self.updated_at = datetime.utcnow()
+
     def add_hint(self, hint: str) -> None:
         """Añade una pista al CTF."""
         if hint not in self.hints:

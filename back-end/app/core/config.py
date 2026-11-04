@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     # Public self-registration (personal portfolio: keep false in production)
     # Admin bootstrap remains create_admin.py — this only gates POST /auth/register
     ALLOW_PUBLIC_REGISTER: bool = False
+
+    # Registro de jugadores del CTF (solo alias + contraseña, sin email, nunca admin).
+    # Gatea POST /auth/register-player. Activar en Render para el tablero de retos.
+    ALLOW_PLAYER_REGISTER: bool = False
     
     # Storage
     STORAGE_TYPE: str = "local"  # local, s3

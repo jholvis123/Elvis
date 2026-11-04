@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 class User:
     """Entidad de dominio para usuarios."""
     
-    email: str
+    email: Optional[str]  # None para jugadores registrados solo con alias
     username: str
     hashed_password: str
     id: UUID = field(default_factory=uuid4)

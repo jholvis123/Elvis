@@ -4,6 +4,7 @@ Implementación SQL del repositorio de usuarios.
 
 from typing import List, Optional
 from uuid import UUID
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ....domain.entities.user import User
@@ -58,7 +59,11 @@ class UserSqlRepository(UserRepository):
     
     def get_by_username(self, username: str) -> Optional[User]:
         """Obtiene un usuario por su username."""
-        db_user = self.db.query(UserModel).filter(UserModel.username == username).first()
+        db_user = (
+            self.db.query(UserModel)
+            .filter(func.lower(UserModel.username) == username.lower())
+            .first()
+        )
         return self._to_entity(db_user) if db_user else None
     
     def get_all(self, skip: int = 0, limit: int = 100) -> List[User]:
@@ -78,7 +83,13 @@ class UserSqlRepository(UserRepository):
     
     def exists_by_username(self, username: str) -> bool:
         """Verifica si existe un usuario con el username dado."""
-        return self.db.query(UserModel).filter(UserModel.username == username).first() is not None
+        # Sin distinguir mayúsculas: "Elvis" y "elvis" no pueden coexistir
+        return (
+            self.db.query(UserModel)
+            .filter(func.lower(UserModel.username) == username.lower())
+            .first()
+            is not None
+        )
     
     def _to_entity(self, model: UserModel) -> User:
         """Convierte un modelo a entidad de dominio."""

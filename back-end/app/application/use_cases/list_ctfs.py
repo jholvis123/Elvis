@@ -184,6 +184,7 @@ class ListCTFsUseCase:
             machine_os=ctf.machine_os,
             skills=ctf.skills,
             hints=ctf.hints,
+            hint_costs=ctf.hint_costs,
             author=ctf.author,
             solved_count=ctf.solved_count,
             is_active=ctf.is_active,

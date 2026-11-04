@@ -42,6 +42,7 @@ RATE_LIMITS = {
     "api_write": "30/minute",   # Operaciones de escritura
     "api_read": "100/minute",   # Operaciones de lectura
     "contact": "5/hour",        # Formulario de contacto por IP
+    "hint_unlock": "30/minute",  # Desbloqueo de pistas por jugador
 }
 
 # Métodos que no mutan estado no requieren CSRF
@@ -50,6 +51,7 @@ _CSRF_SAFE_METHODS = {"GET", "HEAD", "OPTIONS", "TRACE"}
 _CSRF_EXEMPT_SUFFIXES = (
     "/auth/login",
     "/auth/register",
+    "/auth/register-player",
     "/auth/logout",
     "/auth/refresh",
 )

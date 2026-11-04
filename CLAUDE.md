@@ -65,12 +65,14 @@ Gotchas:
 1. **Same-origin (local/Docker)**: login emite cookies HttpOnly `access_token`, `refresh_token` (path `/api/v1/auth`) y `csrf_token` legible. Las mutaciones exigen double-submit: header `X-CSRF-Token` igual a la cookie (`csrf_protect_middleware`).
 2. **Cross-origin (GitHub Pages → Render)**: login/refresh con `token_in_body: true` devuelven los JWT en el JSON; el FE los guarda en `sessionStorage` y envía `Authorization: Bearer`. Un Bearer **válido** salta CSRF.
 
-Reglas que los tests de seguridad protegen: si llega un header `Authorization: Bearer` (aunque vacío o inválido) no se cae a la cookie → 401. `get_current_admin` comprueba `is_admin`. `POST /auth/register` está cerrado salvo `ALLOW_PUBLIC_REGISTER=true`. Rate limiting con slowapi en memoria (`RATE_LIMITS` en `core/security_middleware.py`), con clave hash IP+User-Agent. Los errores no controlados devuelven un 500 genérico en español.
+Reglas que los tests de seguridad protegen: si llega un header `Authorization: Bearer` (aunque vacío o inválido) no se cae a la cookie → 401. `get_current_admin` comprueba `is_admin`. `POST /auth/register` está cerrado salvo `ALLOW_PUBLIC_REGISTER=true`. Los jugadores del CTF se registran con `POST /auth/register-player` (solo alias + contraseña, `email` NULL, nunca admin; requiere `ALLOW_PLAYER_REGISTER=true`) y hacen login con `username` en lugar de `email`. Los alias son únicos sin distinguir mayúsculas y hay alias reservados (`RESERVED_ALIASES` en `user_dto.py`). Rate limiting con slowapi en memoria (`RATE_LIMITS` en `core/security_middleware.py`), con clave hash IP+User-Agent. Los errores no controlados devuelven un 500 genérico en español.
 
 ### Dominio CTF
 
 - Flags: estáticas se guardan como SHA-256 en `flag_hash`; con `is_flag_regex=True` se guarda el patrón y se evalúa con timeout. El formato exigido es `flag{...}` y los intentos se guardan hasheados.
 - `solved`/`solved_at` = lo resolvió el owner (admin). `solved_count` = aciertos de visitantes, deduplicados por `user_id` o por IP si es anónimo, y sin IP no cuenta. Lo cubre `test_ctf_solve_integrity.py` y la migración `c8a41e0b7d22`.
+- Tablero estilo CTFd: `GET /ctfs/board` (retos por categoría + `solved_by_me`), `GET /ctfs/{id}/solves` (primera sangre = primero) y `/ctfs/leaderboard/*`, todo calculado en `domain/services/scoreboard_service.py` a partir del primer acierto por (jugador, CTF) en `flag_submissions`. Puntuación = puntos de CTFs publicados − coste de pistas; excluye admins e inactivos; empate → quien llegó antes.
+- Pistas con coste: `ctfs.hint_costs` (JSON alineado con `hints`) y tabla `hint_unlocks` (coste copiado al desbloquear, único por usuario+CTF+índice). Las respuestas públicas devuelven `None` en las pistas de pago no desbloqueadas (`_apply_hint_visibility` en `api/routers/ctf.py`); se desbloquean con `POST /ctfs/{id}/hints/{index}/unlock`.
 - CTFs no `PUBLISHED` responden 404 a quien no es admin (no se filtra su existencia). La misma idea de IDOR aplica a proyectos (`test_idor_projects_ctfs.py`).
 
 ## Arquitectura del frontend

@@ -3,7 +3,7 @@ Router de CTFs.
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
@@ -22,6 +22,12 @@ from ...application.dto.flag_dto import (
     LeaderboardResponseDTO,
     UserStatsDTO,
     SolvedCTFDTO,
+    HintUnlockResponseDTO,
+    CTFSolveDTO,
+    CTFSolvesResponseDTO,
+    BoardChallengeDTO,
+    BoardCategoryDTO,
+    BoardResponseDTO,
 )
 from ...application.use_cases import (
     CreateCTFUseCase,
@@ -38,6 +44,9 @@ from ...domain.repositories.writeup_repo import WriteupRepository
 from ...domain.repositories.flag_submission_repo import FlagSubmissionRepository
 from ...domain.services.ctf_service import CTFService
 from ...domain.services.flag_service import FlagService
+from ...domain.services.scoreboard_service import ScoreboardService
+from ...domain.entities.hint_unlock import HintUnlock
+from ...domain.repositories.hint_unlock_repo import HintUnlockRepository
 from ..dependencies import (
     get_ctf_repository,
     get_writeup_repository,
@@ -47,6 +56,8 @@ from ..dependencies import (
     get_current_admin,
     get_current_user_optional,
     get_flag_submission_repository,
+    get_hint_unlock_repository,
+    get_scoreboard_service,
 )
 
 router = APIRouter(prefix="/ctfs", tags=["CTFs"])
@@ -62,6 +73,38 @@ def _ensure_ctf_visible(ctf: CTF, current_user: Optional[User]) -> None:
         status_code=status.HTTP_404_NOT_FOUND,
         detail="CTF not found",
     )
+
+
+def _apply_hint_visibility(
+    items: List[CTFResponseDTO],
+    current_user: Optional[User],
+    hint_repo: HintUnlockRepository,
+) -> None:
+    """Oculta (None) las pistas con coste que quien consulta no desbloqueó.
+
+    Admin ve todas. Pistas con coste 0 son siempre visibles.
+    """
+    if current_user is not None and current_user.is_admin:
+        for item in items:
+            item.unlocked_hints = list(range(len(item.hints)))
+        return
+    unlocked = (
+        hint_repo.unlocked_indexes(current_user.id, [i.id for i in items])
+        if current_user is not None
+        else {}
+    )
+    for item in items:
+        mine = set(unlocked.get(item.id, []))
+        costs = item.hint_costs
+        visible = []
+        for index, text in enumerate(item.hints):
+            cost = costs[index] if index < len(costs) else 0
+            visible.append(text if cost <= 0 or index in mine else None)
+        item.hints = visible
+        item.unlocked_hints = sorted(
+            i for i in range(len(item.hints))
+            if (costs[i] if i < len(costs) else 0) <= 0 or i in mine
+        )
 
 
 @router.get("/admin/all", response_model=CTFListResponseDTO)
@@ -101,17 +144,65 @@ async def list_ctfs(
     search: Optional[str] = None,
     ctf_repo: CTFRepository = Depends(get_ctf_repository),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    hint_repo: HintUnlockRepository = Depends(get_hint_unlock_repository),
 ):
     """Lista CTFs con filtros y paginación."""
     use_case = ListCTFsUseCase(ctf_repo, writeup_repo)
     
-    return use_case.execute(
+    result = use_case.execute(
         page=page,
         size=size,
         level=level,
         category=category,
         platform=platform,
         search=search,
+    )
+    _apply_hint_visibility(result.items, current_user, hint_repo)
+    return result
+
+
+@router.get("/board", response_model=BoardResponseDTO)
+async def get_board(
+    ctf_repo: CTFRepository = Depends(get_ctf_repository),
+    writeup_repo: WriteupRepository = Depends(get_writeup_repository),
+    scoreboard: ScoreboardService = Depends(get_scoreboard_service),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """Tablero estilo CTFd: retos publicados y activos agrupados por categoría."""
+    ctfs = [c for c in ctf_repo.get_published(limit=1000) if c.is_active]
+    counts = scoreboard.solve_counts()
+    mine = scoreboard.solved_ctf_ids(current_user.id) if current_user else set()
+
+    by_category: dict = {}
+    for ctf in sorted(ctfs, key=lambda c: (c.points, c.title.lower())):
+        by_category.setdefault(ctf.category.value, []).append(
+            BoardChallengeDTO(
+                id=ctf.id,
+                title=ctf.title,
+                level=ctf.level.value,
+                points=ctf.points,
+                solves=counts.get(ctf.id, 0),
+                solved_by_me=ctf.id in mine,
+                has_writeup=writeup_repo.get_by_ctf_id(ctf.id) is not None,
+            )
+        )
+
+    my_score = my_rank = None
+    if current_user is not None and not current_user.is_admin:
+        entry = scoreboard.user_entry(current_user.id)
+        my_score = entry.score if entry else 0
+        my_rank = entry.rank if entry else None
+
+    return BoardResponseDTO(
+        categories=[
+            BoardCategoryDTO(category=cat, challenges=items)
+            for cat, items in sorted(by_category.items())
+        ],
+        total=len(ctfs),
+        solved_by_me=len(mine & {c.id for c in ctfs}),
+        my_score=my_score,
+        my_rank=my_rank,
     )
 
 
@@ -131,6 +222,7 @@ async def get_ctf(
     ctf_repo: CTFRepository = Depends(get_ctf_repository),
     writeup_repo: WriteupRepository = Depends(get_writeup_repository),
     current_user: Optional[User] = Depends(get_current_user_optional),
+    hint_repo: HintUnlockRepository = Depends(get_hint_unlock_repository),
 ):
     """Obtiene un CTF por su ID."""
     is_admin = current_user is not None and current_user.is_admin
@@ -143,7 +235,78 @@ async def get_ctf(
             detail="CTF not found",
         )
     
+    _apply_hint_visibility([result], current_user, hint_repo)
     return result
+
+
+@router.get("/{ctf_id}/solves", response_model=CTFSolvesResponseDTO)
+async def get_ctf_solves(
+    ctf_id: UUID,
+    ctf_repo: CTFRepository = Depends(get_ctf_repository),
+    scoreboard: ScoreboardService = Depends(get_scoreboard_service),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """Jugadores que resolvieron el reto, del primero (primera sangre) al último."""
+    ctf = ctf_repo.get_by_id(ctf_id)
+    if not ctf:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CTF not found")
+    _ensure_ctf_visible(ctf, current_user)
+
+    solves = scoreboard.ctf_solves(ctf_id)
+    return CTFSolvesResponseDTO(
+        items=[
+            CTFSolveDTO(username=s.username, solved_at=s.solved_at, first_blood=i == 0)
+            for i, s in enumerate(solves)
+        ],
+        total=len(solves),
+    )
+
+
+@router.post("/{ctf_id}/hints/{index}/unlock", response_model=HintUnlockResponseDTO)
+@limiter.limit(RATE_LIMITS["hint_unlock"])
+async def unlock_hint(
+    request: Request,
+    ctf_id: UUID,
+    index: int,
+    ctf_repo: CTFRepository = Depends(get_ctf_repository),
+    hint_repo: HintUnlockRepository = Depends(get_hint_unlock_repository),
+    current_user: User = Depends(get_current_user),
+):
+    """Desbloquea una pista. Su coste se resta del puntaje del jugador en el ranking.
+
+    Idempotente: repetir no cobra dos veces. El admin la ve sin coste.
+    """
+    ctf = ctf_repo.get_by_id(ctf_id)
+    if not ctf:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CTF not found")
+    _ensure_ctf_visible(ctf, current_user)
+    if not ctf.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This challenge is not active",
+        )
+    if index < 0 or index >= len(ctf.hints):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Hint not found")
+
+    cost = ctf.hint_cost(index)
+    if current_user.is_admin or cost <= 0:
+        return HintUnlockResponseDTO(index=index, hint=ctf.hints[index], cost=0)
+
+    existing = hint_repo.get(current_user.id, ctf_id, index)
+    if existing is not None:
+        return HintUnlockResponseDTO(
+            index=index, hint=ctf.hints[index], cost=existing.cost, already_unlocked=True
+        )
+
+    new_unlock = HintUnlock(user_id=current_user.id, ctf_id=ctf_id, hint_index=index, cost=cost)
+    saved = hint_repo.save(new_unlock)
+    return HintUnlockResponseDTO(
+        index=index,
+        hint=ctf.hints[index],
+        cost=saved.cost,
+        # Otra petición simultánea pudo crear la fila primero: no se cobra dos veces
+        already_unlocked=saved.id != new_unlock.id,
+    )
 
 
 @router.post("", response_model=CTFResponseDTO, status_code=status.HTTP_201_CREATED)
@@ -318,115 +481,93 @@ async def delete_ctf(
 # LEADERBOARD / RANKING ENDPOINTS
 # =============================================
 
+def _solved_ctf_dtos(entry) -> List[SolvedCTFDTO]:
+    return [
+        SolvedCTFDTO(
+            id=str(solve.ctf_id),
+            title=solve.ctf_title,
+            points=solve.points,
+            category=solve.category,
+            level=solve.level,
+            solved_at=solve.solved_at.isoformat() if solve.solved_at else None,
+        )
+        for solve in sorted(entry.solves, key=lambda x: x.solved_at, reverse=True)
+    ]
+
+
 @router.get("/leaderboard/top", response_model=LeaderboardResponseDTO, tags=["Leaderboard"])
 async def get_leaderboard(
-    limit: int = Query(10, ge=1, le=100, description="Número de usuarios en el ranking"),
-    submission_repo: FlagSubmissionRepository = Depends(get_flag_submission_repository),
+    limit: int = Query(10, ge=1, le=100, description="Número de jugadores en el ranking"),
+    scoreboard: ScoreboardService = Depends(get_scoreboard_service),
 ):
     """
-    Obtiene el ranking de usuarios por puntos de CTF.
-    
-    Retorna los mejores jugadores ordenados por puntos totales.
+    Ranking de jugadores: puntos de retos publicados menos coste de pistas.
+
+    Excluye admins e inactivos. Empate: gana quien llegó antes a su puntuación.
     """
-    leaderboard_data = submission_repo.get_leaderboard(limit=limit)
-    
+    ranking = scoreboard.ranking()
     entries = [
         LeaderboardEntryDTO(
-            rank=entry['rank'],
-            user_id=entry['user_id'],
-            username=entry['username'],
-            total_points=entry['total_points'],
-            solved_count=entry['solved_count']
+            rank=entry.rank,
+            user_id=str(entry.user_id),
+            username=entry.username,
+            total_points=entry.score,
+            solved_count=entry.solved_count,
+            hint_penalty=entry.hint_penalty,
+            last_solve_at=entry.last_solve_at,
         )
-        for entry in leaderboard_data
+        for entry in ranking[:limit]
     ]
-    
     return LeaderboardResponseDTO(
         entries=entries,
-        total_players=len(entries),
-        updated_at=datetime.utcnow()
+        total_players=len(ranking),
+        updated_at=datetime.utcnow(),
     )
 
 
 @router.get("/leaderboard/me", response_model=UserStatsDTO, tags=["Leaderboard"])
 async def get_my_stats(
     current_user: User = Depends(get_current_user),
-    submission_repo: FlagSubmissionRepository = Depends(get_flag_submission_repository),
+    scoreboard: ScoreboardService = Depends(get_scoreboard_service),
 ):
-    """
-    Obtiene las estadísticas de CTF del usuario autenticado.
-    
-    Incluye puntos totales, ranking, y CTFs resueltos.
-    """
-    stats = submission_repo.get_user_stats(current_user.id)
-    
-    if not stats:
+    """Estadísticas del jugador autenticado: puntos, posición y retos resueltos."""
+    entry = scoreboard.user_entry(current_user.id)
+    if entry is None:
         return UserStatsDTO(
             user_id=str(current_user.id),
             username=current_user.username,
             total_points=0,
             solved_count=0,
             rank=None,
-            solved_ctfs=[]
+            solved_ctfs=[],
         )
-    
-    solved_ctfs = [
-        SolvedCTFDTO(
-            id=ctf['id'],
-            title=ctf['title'],
-            points=ctf['points'],
-            category=ctf['category'],
-            level=ctf['level'],
-            solved_at=ctf.get('solved_at')
-        )
-        for ctf in stats.get('solved_ctfs', [])
-    ]
-    
     return UserStatsDTO(
-        user_id=stats['user_id'],
-        username=stats['username'],
-        total_points=stats['total_points'],
-        solved_count=stats['solved_count'],
-        rank=stats.get('rank'),
-        solved_ctfs=solved_ctfs
+        user_id=str(entry.user_id),
+        username=entry.username,
+        total_points=entry.score,
+        solved_count=entry.solved_count,
+        rank=entry.rank,
+        solved_ctfs=_solved_ctf_dtos(entry),
     )
 
 
 @router.get("/leaderboard/user/{user_id}", response_model=UserStatsDTO, tags=["Leaderboard"])
 async def get_user_stats(
     user_id: UUID,
-    submission_repo: FlagSubmissionRepository = Depends(get_flag_submission_repository),
+    scoreboard: ScoreboardService = Depends(get_scoreboard_service),
 ):
-    """
-    Obtiene las estadísticas de CTF de un usuario específico.
-    
-    Endpoint público para ver stats de cualquier usuario.
-    """
-    stats = submission_repo.get_user_stats(user_id)
-    
-    if not stats:
+    """Estadísticas públicas de un jugador del ranking."""
+    entry = scoreboard.user_entry(user_id)
+    if entry is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found or has no CTF activity"
+            detail="User not found or has no CTF activity",
         )
-    
-    solved_ctfs = [
-        SolvedCTFDTO(
-            id=ctf['id'],
-            title=ctf['title'],
-            points=ctf['points'],
-            category=ctf['category'],
-            level=ctf['level'],
-            solved_at=ctf.get('solved_at')
-        )
-        for ctf in stats.get('solved_ctfs', [])
-    ]
-    
     return UserStatsDTO(
-        user_id=stats['user_id'],
-        username=stats['username'],
-        total_points=stats['total_points'],
-        solved_count=stats['solved_count'],
-        rank=stats.get('rank'),
-        solved_ctfs=solved_ctfs
+        user_id=str(entry.user_id),
+        username=entry.username,
+        total_points=entry.score,
+        solved_count=entry.solved_count,
+        rank=entry.rank,
+        solved_ctfs=_solved_ctf_dtos(entry),
     )

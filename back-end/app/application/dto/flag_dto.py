@@ -67,6 +67,8 @@ class LeaderboardEntryDTO(BaseModel):
     username: str
     total_points: int
     solved_count: int
+    hint_penalty: int = 0
+    last_solve_at: Optional[datetime] = None
     
     class Config:
         json_schema_extra = {
@@ -134,3 +136,54 @@ class UserStatsDTO(BaseModel):
                 ]
             }
         }
+
+
+class HintUnlockResponseDTO(BaseModel):
+    """Respuesta al desbloquear una pista."""
+
+    index: int
+    hint: str
+    cost: int
+    already_unlocked: bool = False
+
+
+class CTFSolveDTO(BaseModel):
+    """Un jugador que resolvió un reto."""
+
+    username: str
+    solved_at: datetime
+    first_blood: bool = False
+
+
+class CTFSolvesResponseDTO(BaseModel):
+    """Resoluciones de un reto, de la primera a la última."""
+
+    items: List[CTFSolveDTO]
+    total: int
+
+
+class BoardChallengeDTO(BaseModel):
+    """Casilla del tablero de retos."""
+
+    id: UUID
+    title: str
+    level: str
+    points: int
+    solves: int
+    solved_by_me: bool = False
+    has_writeup: bool = False
+
+
+class BoardCategoryDTO(BaseModel):
+    category: str
+    challenges: List[BoardChallengeDTO]
+
+
+class BoardResponseDTO(BaseModel):
+    """Tablero estilo CTFd: retos publicados y activos agrupados por categoría."""
+
+    categories: List[BoardCategoryDTO]
+    total: int
+    solved_by_me: int = 0
+    my_score: Optional[int] = None
+    my_rank: Optional[int] = None
