@@ -19,6 +19,9 @@ REGEX_TIMEOUT_SECONDS = 1.0
 # Longitud máxima de input de flag
 MAX_FLAG_LENGTH = 256
 
+# Longitud máxima del patrón regex guardado en flag_hash (columna String(512))
+MAX_FLAG_PATTERN_LENGTH = 512
+
 
 class CTFLevel(str, Enum):
     """Niveles de dificultad de CTF."""
@@ -108,6 +111,10 @@ class CTF:
         """
         self.is_flag_regex = is_regex
         if is_regex:
+            if len(flag) > MAX_FLAG_PATTERN_LENGTH:
+                raise ValueError(
+                    f"Regex pattern too long (max {MAX_FLAG_PATTERN_LENGTH} characters)"
+                )
             # Validar que el regex es válido antes de guardarlo
             try:
                 re.compile(flag)

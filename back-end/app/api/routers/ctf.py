@@ -177,7 +177,14 @@ async def update_ctf(
     """Actualiza un CTF existente (requiere admin)."""
     use_case = UpdateCTFUseCase(ctf_repo, writeup_repo, ctf_service)
     
-    result = use_case.execute(ctf_id, data, user_id=current_user.id)
+    try:
+        result = use_case.execute(ctf_id, data, user_id=current_user.id)
+    except ValueError as e:
+        # Regex de flag inválido o demasiado largo → 400, no 500
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
     
     if not result:
         raise HTTPException(
