@@ -28,6 +28,7 @@ class CTFModel(Base):
     # Campos alineados con frontend
     skills = Column(Text)  # JSON string - antes: tags
     hints = Column(Text)   # JSON string
+    hint_costs = Column(Text)  # JSON list[int] alineada con hints (null = todas gratis)
     flag_hash = Column(String(512))  # SHA256 hex (64) o patrón regex si is_flag_regex=True (máx. MAX_FLAG_PATTERN_LENGTH)
     is_flag_regex = Column(Boolean, default=False)
     author = Column(String(100))

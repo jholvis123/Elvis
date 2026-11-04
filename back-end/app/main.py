@@ -48,6 +48,7 @@ from .infrastructure.persistence.models import (
     FlagSubmissionModel,
     PortfolioProfileModel,
     ExperienceModel,
+    HintUnlockModel,
 )
 
 

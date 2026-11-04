@@ -24,6 +24,7 @@ from app.infrastructure.persistence.models import (
     attachment_model, contact_model, flag_submission_model,
     portfolio_model,
     experience_model,
+    hint_unlock_model,
 )
 
 # Sobrescribir la URL de la base de datos con la de la configuración

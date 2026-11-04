@@ -73,6 +73,10 @@ class UpdateCTFUseCase:
         if data.hints is not None:
             ctf.hints = data.hints
 
+        if data.hints is not None or data.hint_costs is not None:
+            costs = data.hint_costs if data.hint_costs is not None else ctf.hint_costs
+            ctf.set_hint_costs(costs)
+
         if data.flag is not None:
              is_regex = data.is_flag_regex if data.is_flag_regex is not None else ctf.is_flag_regex
              ctf.set_flag(data.flag.strip(), is_regex=is_regex)
@@ -109,6 +113,7 @@ class UpdateCTFUseCase:
             machine_os=saved_ctf.machine_os,
             skills=saved_ctf.skills,
             hints=saved_ctf.hints,
+            hint_costs=saved_ctf.hint_costs,
             author=saved_ctf.author,
             solved_count=saved_ctf.solved_count,
             is_active=saved_ctf.is_active,
@@ -157,6 +162,7 @@ class UpdateCTFUseCase:
             machine_os=saved_ctf.machine_os,
             skills=saved_ctf.skills,
             hints=saved_ctf.hints,
+            hint_costs=saved_ctf.hint_costs,
             author=saved_ctf.author,
             solved_count=saved_ctf.solved_count,
             is_active=saved_ctf.is_active,

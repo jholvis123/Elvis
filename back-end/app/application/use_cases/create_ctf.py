@@ -96,6 +96,8 @@ class CreateCTFUseCase:
             updated_by_id=user_id
         )
         
+        ctf.set_hint_costs(data.hint_costs)
+
         # Establecer flag
         if data.flag:
             ctf.set_flag(data.flag.strip(), is_regex=data.is_flag_regex)
@@ -136,6 +138,7 @@ class CreateCTFUseCase:
             machine_os=ctf.machine_os,
             skills=ctf.skills,
             hints=ctf.hints,
+            hint_costs=ctf.hint_costs,
             author=ctf.author,
             solved_count=ctf.solved_count,
             is_active=ctf.is_active,

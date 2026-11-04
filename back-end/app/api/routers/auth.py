@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ...application.dto.user_dto import (
     UserCreateDTO,
     UserResponseDTO,
+    PlayerRegisterDTO,
     UserLoginDTO,
     TokenDTO,
     AuthStatusDTO,
@@ -81,6 +82,48 @@ async def register(
     )
 
 
+@router.post(
+    "/register-player",
+    response_model=UserResponseDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+@limiter.limit("5/hour")
+async def register_player(
+    request: Request,
+    data: PlayerRegisterDTO,
+    user_repo: UserRepository = Depends(get_user_repository),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    """Registra un jugador del CTF con alias + contraseña. Nunca crea admins."""
+    if not settings.ALLOW_PLAYER_REGISTER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Player registration is disabled",
+        )
+    if not auth_service.validate_unique_username(data.username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"username": "Username already taken"},
+        )
+
+    user = User(
+        email=None,
+        username=data.username,
+        hashed_password=get_password_hash(data.password),
+        is_admin=False,
+    )
+    saved_user = user_repo.save(user)
+
+    return UserResponseDTO(
+        id=saved_user.id,
+        email=None,
+        username=saved_user.username,
+        is_active=saved_user.is_active,
+        is_admin=False,
+        created_at=saved_user.created_at,
+    )
+
+
 @router.post("/login", response_model=AuthStatusDTO, response_model_exclude_none=True)
 @limiter.limit("10/minute")  # Limitar intentos de login a 10 por minuto por IP
 async def login(
@@ -100,8 +143,12 @@ async def login(
     - Si `token_in_body=true`, también devuelve access_token + refresh_token
       en el JSON para Authorization: Bearer (GitHub Pages → Render).
     """
-    # Buscar usuario
-    user = user_repo.get_by_email(data.email)
+    # Buscar usuario: email (admin) o alias (jugador). Mismo error en ambos casos.
+    user = (
+        user_repo.get_by_email(data.email)
+        if data.email
+        else user_repo.get_by_username(data.username)
+    )
     
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(

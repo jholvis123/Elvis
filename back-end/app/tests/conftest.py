@@ -19,6 +19,7 @@ from ..infrastructure.persistence.models import (  # noqa: F401 - register metad
     FlagSubmissionModel,
     PortfolioProfileModel,
     ExperienceModel,
+    HintUnlockModel,
 )
 
 

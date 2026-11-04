@@ -7,6 +7,9 @@ from typing import List, Optional
 from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
+# Coste máximo de una pista (mismo techo que los puntos de un reto en CTFUpdateDTO)
+MAX_HINT_COST = 1000
+
 
 class AttachmentDTO(BaseModel):
     """DTO para adjuntos de CTF."""
@@ -31,6 +34,10 @@ class CTFCreateDTO(BaseModel):
     # Campos alineados con frontend
     skills: List[str] = Field(default_factory=list)
     hints: List[str] = Field(default_factory=list)
+    hint_costs: List[int] = Field(
+        default_factory=list,
+        description="Coste en puntos de cada pista (mismo índice que hints; falta = 0)",
+    )
     flag: Optional[str] = Field(None, description="Flag del reto (se almacenará como hash o regex)")
     is_flag_regex: bool = Field(False, description="Si True, flag es un patrón Regex")
     author: Optional[str] = None
@@ -41,6 +48,11 @@ class CTFCreateDTO(BaseModel):
     @classmethod
     def remove_duplicates(cls, v: List[str]) -> List[str]:
         return list(dict.fromkeys(v)) if v else []
+
+    @field_validator('hint_costs')
+    @classmethod
+    def validate_hint_costs(cls, v: List[int]) -> List[int]:
+        return _validate_hint_costs(v) or []
     
     class Config:
         json_schema_extra = {
@@ -60,6 +72,15 @@ class CTFCreateDTO(BaseModel):
         }
 
 
+def _validate_hint_costs(v: Optional[List[int]]) -> Optional[List[int]]:
+    if v is None:
+        return None
+    for cost in v:
+        if cost < 0 or cost > MAX_HINT_COST:
+            raise ValueError(f"hint cost must be between 0 and {MAX_HINT_COST}")
+    return v
+
+
 class CTFUpdateDTO(BaseModel):
     """DTO para actualizar un CTF."""
     
@@ -72,11 +93,17 @@ class CTFUpdateDTO(BaseModel):
     machine_os: Optional[str] = None
     skills: Optional[List[str]] = None
     hints: Optional[List[str]] = None
+    hint_costs: Optional[List[int]] = None
     flag: Optional[str] = None
     is_flag_regex: Optional[bool] = None
     author: Optional[str] = None
     is_active: Optional[bool] = None
     solved: Optional[bool] = None
+
+    @field_validator('hint_costs')
+    @classmethod
+    def validate_hint_costs(cls, v: Optional[List[int]]) -> Optional[List[int]]:
+        return _validate_hint_costs(v)
 
 
 class CTFResponseDTO(BaseModel):
@@ -94,7 +121,10 @@ class CTFResponseDTO(BaseModel):
     machine_os: Optional[str]
     # Campos alineados con frontend
     skills: List[str]
-    hints: List[str]  # Solo primeras pistas, o vacío si no autenticado
+    # Pista bloqueada (coste > 0, no desbloqueada por quien consulta) → None
+    hints: List[Optional[str]]
+    hint_costs: List[int] = []
+    unlocked_hints: List[int] = []
     author: Optional[str]
     solved_count: int
     is_active: bool

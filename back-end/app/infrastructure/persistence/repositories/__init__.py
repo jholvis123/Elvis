@@ -10,6 +10,7 @@ from .attachment_sql_repo import AttachmentSqlRepository
 from .contact_sql_repo import ContactSqlRepository
 from .flag_submission_sql_repo import FlagSubmissionSqlRepository
 from .portfolio_sql_repo import PortfolioSqlRepository
+from .hint_unlock_sql_repo import HintUnlockSqlRepository
 
 __all__ = [
     "UserSqlRepository",
@@ -20,4 +21,5 @@ __all__ = [
     "ContactSqlRepository",
     "FlagSubmissionSqlRepository",
     "PortfolioSqlRepository",
+    "HintUnlockSqlRepository",
 ]

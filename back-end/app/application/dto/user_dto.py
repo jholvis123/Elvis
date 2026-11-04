@@ -5,7 +5,17 @@ DTOs para Usuarios y Autenticación.
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, EmailStr
+import re
+
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+
+# Alias de jugador: 3-30 caracteres, letras, números, guion y guion bajo.
+PLAYER_ALIAS_RE = re.compile(r"^[A-Za-z0-9_-]{3,30}$")
+# Alias que podrían hacerse pasar por el dueño o el sistema (comparación sin mayúsculas).
+RESERVED_ALIASES = frozenset(
+    {"admin", "administrator", "administrador", "root", "owner", "system", "sistema",
+     "moderator", "moderador", "support", "soporte", "elvis", "jholvis123"}
+)
 
 
 class UserCreateDTO(BaseModel):
@@ -29,7 +39,7 @@ class UserResponseDTO(BaseModel):
     """DTO para respuesta de usuario."""
     
     id: UUID
-    email: str
+    email: Optional[str] = None
     username: str
     is_active: bool
     is_admin: bool
@@ -40,13 +50,37 @@ class UserResponseDTO(BaseModel):
 
 
 class UserLoginDTO(BaseModel):
-    """DTO para login de usuario."""
+    """DTO para login de usuario: por email (admin) o por alias (jugador)."""
     
-    email: EmailStr
+    email: Optional[EmailStr] = None
+    username: Optional[str] = Field(None, min_length=1, max_length=50)
     password: str
     # Cross-origin admin (GitHub Pages → Render): pedir tokens en el body.
     # Cookies HttpOnly siguen emitiéndose para same-origin (local/docker).
     token_in_body: bool = False
+
+    @model_validator(mode="after")
+    def require_identifier(self):
+        if not self.email and not self.username:
+            raise ValueError("email or username is required")
+        return self
+
+
+class PlayerRegisterDTO(BaseModel):
+    """Registro de jugador del CTF: solo alias + contraseña (sin email)."""
+
+    username: str = Field(..., min_length=3, max_length=30)
+    password: str = Field(..., min_length=8, max_length=72)  # bcrypt usa 72 bytes
+
+    @field_validator("username")
+    @classmethod
+    def validate_alias(cls, v: str) -> str:
+        v = v.strip()
+        if not PLAYER_ALIAS_RE.match(v):
+            raise ValueError("alias: 3-30 caracteres, solo letras, números, - y _")
+        if v.lower() in RESERVED_ALIASES:
+            raise ValueError("alias reservado")
+        return v
 
 
 class TokenDTO(BaseModel):

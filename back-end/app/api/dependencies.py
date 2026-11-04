@@ -20,6 +20,7 @@ from ..domain.repositories.attachment_repo import AttachmentRepository
 from ..domain.repositories.contact_repo import ContactRepository
 from ..domain.repositories.flag_submission_repo import FlagSubmissionRepository
 from ..domain.repositories.portfolio_repo import PortfolioRepository
+from ..domain.repositories.hint_unlock_repo import HintUnlockRepository
 from ..domain.services.ctf_service import CTFService
 from ..domain.services.writeup_service import WriteupService
 from ..domain.services.auth_service import AuthService
@@ -28,6 +29,7 @@ from ..domain.services.flag_service import FlagService
 from ..domain.services.contact_service import ContactService
 from ..domain.services.attachment_service import AttachmentService
 from ..domain.services.portfolio_service import PortfolioService
+from ..domain.services.scoreboard_service import ScoreboardService
 from ..infrastructure.persistence.repositories import (
     CTFSqlRepository,
     WriteupSqlRepository,
@@ -37,6 +39,7 @@ from ..infrastructure.persistence.repositories import (
     ContactSqlRepository,
     FlagSubmissionSqlRepository,
     PortfolioSqlRepository,
+    HintUnlockSqlRepository,
 )
 from ..infrastructure.storage.local_storage import FileSystemStorage
 from ..domain.services.storage_service import StorageService
@@ -95,7 +98,20 @@ def get_flag_submission_repository(db: Session = Depends(get_db)) -> FlagSubmiss
     return FlagSubmissionSqlRepository(db)
 
 
+def get_hint_unlock_repository(db: Session = Depends(get_db)) -> HintUnlockRepository:
+    """Obtiene el repositorio de pistas desbloqueadas."""
+    return HintUnlockSqlRepository(db)
+
+
 # Service dependencies
+def get_scoreboard_service(
+    submission_repo: FlagSubmissionRepository = Depends(get_flag_submission_repository),
+    hint_repo: HintUnlockRepository = Depends(get_hint_unlock_repository),
+) -> ScoreboardService:
+    """Obtiene el servicio de ranking de jugadores."""
+    return ScoreboardService(submission_repo, hint_repo)
+
+
 def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> AuthService:
