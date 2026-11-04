@@ -307,7 +307,7 @@ class TestAdminPutSolvedFlag:
 
 
 def test_solved_semantics_revision_is_head_and_noop():
-    """Nueva revisión sobre el head: sin columnas y sin reescritura de filas."""
+    """Revisión no-op en la cadena lineal: sin columnas ni reescritura de filas."""
     import importlib.util
 
     from alembic.config import Config
@@ -330,4 +330,7 @@ def test_solved_semantics_revision_is_head_and_noop():
     config = Config(str(backend_root / "alembic.ini"))
     config.set_main_option("script_location", str(backend_root / "alembic"))
     script = ScriptDirectory.from_config(config)
-    assert script.get_heads() == ["c8a41e0b7d22"]
+    heads = script.get_heads()
+    assert len(heads) == 1, heads  # historia lineal, sin ramas
+    ancestors = {rev.revision for rev in script.walk_revisions(base="base", head=heads[0])}
+    assert "c8a41e0b7d22" in ancestors

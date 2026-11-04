@@ -140,23 +140,47 @@ async def upload_attachment(
 async def add_url_attachment(
     attachment_data: AttachmentCreateDTO,
     attachment_service: AttachmentService = Depends(get_attachment_service),
+    ctf_repo: CTFRepository = Depends(get_ctf_repository),
 ) -> AttachmentResponseDTO:
-    """Agrega una URL como adjunto (Admin)."""
-    # ... (Misma lógica, o mover a UseCase si fuera necesario)
-    from uuid import uuid4
-    from datetime import datetime
-    
+    """Agrega una URL o imagen Docker como adjunto de un CTF (Admin)."""
+    try:
+        attachment_type = AttachmentType(attachment_data.attachment_type)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="attachment_type must be one of: url, docker",
+        )
+    if attachment_type == AttachmentType.FILE:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Use /attachments/upload for file attachments",
+        )
+    if not attachment_data.url or not attachment_data.url.strip():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="url is required",
+        )
+    if ctf_repo.get_by_id(attachment_data.ctf_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="CTF not found")
+
+    url = attachment_data.url.strip()
     attachment = Attachment(
-        id=uuid4(),
+        name=(attachment_data.filename or url).strip(),
+        type=attachment_type,
         ctf_id=attachment_data.ctf_id,
-        filename=attachment_data.filename or attachment_data.url,
-        type=AttachmentType(attachment_data.attachment_type),
-        url=attachment_data.url,
-        created_at=datetime.utcnow(),
+        url=url,
     )
-    
     saved = attachment_service.attachment_repository.save(attachment)
-    return saved
+    return AttachmentResponseDTO(
+        id=saved.id,
+        ctf_id=saved.ctf_id,
+        filename=saved.name,
+        attachment_type=saved.type.value,
+        url=saved.url,
+        size=saved.size,
+        mime_type=saved.mime_type,
+        created_at=saved.created_at,
+    )
 
 
 @router.get(

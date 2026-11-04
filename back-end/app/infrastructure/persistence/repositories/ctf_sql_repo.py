@@ -37,23 +37,15 @@ class CTFSqlRepository(CTFRepository):
             existing.skills = json.dumps(ctf.skills)
             existing.hints = json.dumps(ctf.hints)
             existing.flag_hash = ctf.flag_hash
+            existing.is_flag_regex = ctf.is_flag_regex
             existing.author = ctf.author
             existing.solved_count = ctf.solved_count
             existing.is_active = ctf.is_active
             existing.status = ctf.status.value
             existing.updated_at = ctf.updated_at
             existing.updated_by_id = str(ctf.updated_by_id) if ctf.updated_by_id else None
-            
-            # Actualizar adjuntos si es necesario (simplificado: recrear)
-            # Nota: Esto es destructivo, idealmente se debería comparar
-            if ctf.attachments:
-                # Eliminar existentes para evitar duplicados si la lógica de negocio lo requiere,
-                # pero aquí asumimos que ctf.attachments es la verdad absoluta.
-                # Sin embargo, SQLAlchemy gestiona la colección.
-                # Una estrategia simple es limpiar y agregar.
-                # existing.attachments.clear() # Cuidado con orphans
-                pass 
-                # TODO: Implementar lógica de actualización de adjuntos más robusta si se requiere edición
+            # Los adjuntos de un CTF existente se gestionan con AttachmentRepository
+            # (/attachments/upload, /attachments/url); aquí no se tocan.
         else:
             # Crear modelos de adjuntos
             from ..models.attachment_model import AttachmentModel
@@ -84,6 +76,7 @@ class CTFSqlRepository(CTFRepository):
                 skills=json.dumps(ctf.skills),
                 hints=json.dumps(ctf.hints),
                 flag_hash=ctf.flag_hash,
+                is_flag_regex=ctf.is_flag_regex,
                 author=ctf.author,
                 solved_count=ctf.solved_count,
                 is_active=ctf.is_active,
@@ -263,6 +256,7 @@ class CTFSqlRepository(CTFRepository):
             skills=json.loads(model.skills) if model.skills else [],
             hints=json.loads(model.hints) if model.hints else [],
             flag_hash=model.flag_hash,
+            is_flag_regex=bool(model.is_flag_regex),
             author=model.author,
             solved_count=model.solved_count or 0,
             is_active=model.is_active if model.is_active is not None else True,
