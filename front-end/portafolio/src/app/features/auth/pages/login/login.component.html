@@ -19,23 +19,24 @@
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
         <div class="mb-5">
-          <label for="email" class="block text-sm font-medium text-textPrimary mb-2">
-            Correo electrónico
+          <label for="identifier" class="block text-sm font-medium text-textPrimary mb-2">
+            Correo o alias
           </label>
           <input
-            type="email"
-            id="email"
-            formControlName="email"
+            type="text"
+            id="identifier"
+            formControlName="identifier"
             class="input min-h-[44px]"
-            placeholder="tu&#64;email.com"
+            placeholder="tu&#64;email.com o tu alias"
             autocomplete="username"
-            [attr.aria-invalid]="email?.invalid && email?.touched"
-            [attr.aria-describedby]="email?.invalid && email?.touched ? 'email-error' : null"
-            [class.border-red-500]="email?.invalid && email?.touched"
+            autocapitalize="none"
+            spellcheck="false"
+            [attr.aria-invalid]="identifier?.invalid && identifier?.touched"
+            [attr.aria-describedby]="identifier?.invalid && identifier?.touched ? 'identifier-error' : null"
+            [class.border-red-500]="identifier?.invalid && identifier?.touched"
           />
-          <div *ngIf="email?.invalid && email?.touched" id="email-error" class="mt-1 text-red-400 text-sm" role="alert">
-            <span *ngIf="email?.errors?.['required']">El email es requerido</span>
-            <span *ngIf="email?.errors?.['email']">Email inválido</span>
+          <div *ngIf="identifier?.invalid && identifier?.touched" id="identifier-error" class="mt-1 text-red-400 text-sm" role="alert">
+            <span *ngIf="identifier?.errors?.['required']">Escribe tu correo o tu alias</span>
           </div>
         </div>
 
@@ -76,7 +77,12 @@
       </form>
     </div>
 
-    <div class="mt-6 text-center">
+    <p class="mt-6 text-center text-sm muted-text">
+      ¿Quieres jugar los retos?
+      <a routerLink="/auth/register" class="text-primary hover:underline font-semibold">Crea tu alias</a>
+    </p>
+
+    <div class="mt-2 text-center">
       <a routerLink="/" class="muted-text hover:text-primary text-sm inline-flex items-center min-h-[44px] px-2 transition-colors">
         Volver al inicio
       </a>

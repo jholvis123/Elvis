@@ -16,7 +16,9 @@ export interface CTFChallenge {
   difficulty: CTFDifficulty;
   points: number;
   skills: string[];
-  hints?: string[];
+  hints?: (string | null)[];  // null = pista de pago aún bloqueada
+  hintCosts?: number[];       // Coste en puntos por pista (mismo índice)
+  unlockedHints?: number[];   // Índices visibles para quien consulta
   flag?: string;              // Solo visible para admin
   author: string;
   createdAt: Date;
@@ -68,6 +70,7 @@ export interface CTFChallengeForm {
   points: number;
   skills: string[];
   hints: string[];
+  hintCosts?: number[];       // Coste en puntos por pista (0 = gratis)
   flag: string;
   isActive: boolean;
   attachments: CTFAttachment[];

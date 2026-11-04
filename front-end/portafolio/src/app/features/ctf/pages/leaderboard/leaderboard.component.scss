@@ -1,67 +1,37 @@
-// Leaderboard Component Styles
+.join-banner {
+  @apply flex flex-wrap items-center justify-between gap-4 p-5 rounded-xl border border-primary/30 bg-surface text-textSecondary;
+}
 
-// Podium animations
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
+.podium {
+  @apply grid gap-4 list-none p-0 m-0;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+  &__card {
+    @apply flex flex-col gap-2 p-6 rounded-xl border bg-surface;
+
+    &--1 { @apply border-amber-400; .podium__rank { @apply text-amber-400; } }
+    &--2 { @apply border-slate-400; .podium__rank { @apply text-slate-300; } }
+    &--3 { @apply border-orange-700; .podium__rank { @apply text-orange-400; } }
+    &--me { @apply ring-2 ring-primary/60; }
   }
-  50% {
-    transform: translateY(-10px);
-  }
+
+  &__rank { @apply font-mono text-sm font-bold; }
+  &__name { @apply font-mono text-xl font-bold text-textPrimary break-all; }
+  &__meta { @apply text-sm text-textSecondary; }
 }
 
-.podium-first {
-  animation: float 3s ease-in-out infinite;
+.table-wrap {
+  @apply overflow-x-auto rounded-xl border border-slate-800;
+
+  th { @apply px-5 py-3 text-left font-semibold text-textSecondary bg-surface; }
+  th.text-right { text-align: right; }
+  td { @apply px-5 py-3 border-t border-slate-800 text-textPrimary; }
 }
 
-// Rank badge styles
-.rank-gold {
-  background: linear-gradient(135deg, #ffd700, #ffec8b);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+.row--me td {
+  @apply bg-cyan-950/60 text-cyan-200;
 }
 
-.rank-silver {
-  background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
-  box-shadow: 0 0 15px rgba(192, 192, 192, 0.5);
-}
-
-.rank-bronze {
-  background: linear-gradient(135deg, #cd7f32, #daa06d);
-  box-shadow: 0 0 15px rgba(205, 127, 50, 0.5);
-}
-
-// Highlight current user row
-.current-user-row {
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
-  border-left: 4px solid rgb(59, 130, 246);
-}
-
-// Table hover effect
-tbody tr {
-  transition: all 0.2s ease;
-  
-  &:hover {
-    transform: translateX(4px);
-  }
-}
-
-// Responsive adjustments
-@media (max-width: 768px) {
-  .podium-container {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  table {
-    font-size: 0.875rem;
-  }
-}
-
-// Points animation on hover
-.points-value {
-  transition: transform 0.2s ease;
-  
-  &:hover {
-    transform: scale(1.1);
-  }
+.me-tag {
+  @apply ml-2 px-2 py-0.5 rounded-full text-xs font-sans font-semibold bg-primary/20 text-primary;
 }

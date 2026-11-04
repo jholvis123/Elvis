@@ -187,8 +187,17 @@ export class CtfUploadComponent implements OnDestroy {
     this.challengeForm.patchValue({ skills });
   }
 
+  /** Coste en puntos de cada pista (mismo índice que hints; 0 = gratis). */
+  hintCosts: number[] = [];
+
   onHintsChange(hints: string[]): void {
     this.challengeForm.patchValue({ hints });
+    this.hintCosts = hints.map((_, i) => this.hintCosts[i] ?? 0);
+  }
+
+  onHintCostChange(index: number, value: string): void {
+    const cost = Math.max(0, Math.min(1000, Math.floor(Number(value) || 0)));
+    this.hintCosts = this.hintCosts.map((c, i) => (i === index ? cost : c));
   }
 
   // ============================================
@@ -238,6 +247,7 @@ export class CtfUploadComponent implements OnDestroy {
 
       const formValue: CTFChallengeForm = {
         ...this.challengeForm.value,
+        hintCosts: this.hintCosts,
         attachments
       };
 

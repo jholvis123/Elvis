@@ -6,17 +6,27 @@ import { ApiAvailabilityService } from './api-availability.service';
 
 export interface User {
     id: string;
-    email: string;
+    email: string | null;   // null para jugadores registrados solo con alias
     username: string;
     is_active: boolean;
     is_admin: boolean;
     created_at: string;
 }
 
+/** Login por email (admin) o por alias (jugador del CTF). */
 export interface LoginCredentials {
-    email: string;
+    email?: string;
+    username?: string;
     password: string;
 }
+
+export interface PlayerRegisterData {
+    username: string;
+    password: string;
+}
+
+/** Alias de jugador: 3-30 caracteres, letras, números, guion y guion bajo (igual que el BE). */
+export const PLAYER_ALIAS_PATTERN = /^[A-Za-z0-9_-]{3,30}$/;
 
 export interface RegisterData {
     email: string;
@@ -64,7 +74,10 @@ export class AuthService {
     ) {
         // Verificar autenticación al iniciar SOLO si hay sesión previa (user y/o Bearer tokens)
         if (this.getUserFromStorage() || (this.usesBearerAuth() && this.getAccessToken())) {
-            this.checkAuthStatus().subscribe();
+            // Diferido: la petición pasa por authInterceptor, que hace inject(AuthService).
+            // Llamarla dentro del constructor dispara NG0200 (dependencia circular),
+            // catchError borraba la sesión y cada recarga cerraba sesión.
+            setTimeout(() => this.checkAuthStatus().subscribe());
         }
     }
 
@@ -148,10 +161,7 @@ export class AuthService {
     }
 
     private applyAuthResponse(response: AuthStatus): void {
-        if (response.authenticated && response.user) {
-            this.setCurrentUser(response.user);
-            this.scheduleTokenRefresh(response.expires_in);
-        }
+        // Tokens primero: setCurrentUser notifica a suscriptores que pueden pedir datos ya
         if (this.usesBearerAuth()) {
             if (response.access_token && response.refresh_token) {
                 this.persistTokens(response.access_token, response.refresh_token);
@@ -159,6 +169,10 @@ export class AuthService {
         } else {
             // Same-origin: never keep Bearer leftovers
             this.clearTokens();
+        }
+        if (response.authenticated && response.user) {
+            this.setCurrentUser(response.user);
+            this.scheduleTokenRefresh(response.expires_in);
         }
     }
 
@@ -200,6 +214,13 @@ export class AuthService {
                     password: data.password
                 })
             )
+        );
+    }
+
+    /** Registro de jugador del CTF (alias + contraseña) y login inmediato. */
+    registerPlayer(data: PlayerRegisterData): Observable<User> {
+        return this.api.post<User>('/auth/register-player', data, { withCredentials: true }).pipe(
+            switchMap(() => this.login({ username: data.username, password: data.password }))
         );
     }
 
@@ -273,8 +294,16 @@ export class AuthService {
                     this.setCurrentUser(response.user);
                 }
             }),
-            catchError(() => {
-                this.clearLocalAuth();
+            catchError((error: unknown) => {
+                const status = (error as { status?: number })?.status;
+                if (status === 401) {
+                    // Access token caducado: intentar refresh (limpia la sesión si falla)
+                    return this.refreshToken();
+                }
+                if (status === 403) {
+                    this.clearLocalAuth();
+                }
+                // Red caída / API dormida: conservar la sesión local, no desloguear
                 return of({ authenticated: false, user: null, expires_in: null });
             })
         );

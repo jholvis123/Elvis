@@ -24,7 +24,9 @@ interface CTFApiResponse {
   solved_at?: string;
   machine_os?: string;
   skills: string[];
-  hints: string[];
+  hints: (string | null)[];
+  hint_costs?: number[];
+  unlocked_hints?: number[];
   author?: string;
   solved_count: number;
   is_active: boolean;
@@ -75,6 +77,7 @@ export interface CTFUpdateDTO {
   machine_os?: string;
   skills?: string[];
   hints?: string[];
+  hint_costs?: number[];
   flag?: string;
   is_flag_regex?: boolean;
   author?: string;
@@ -187,6 +190,7 @@ export class CtfService {
       flag: form.flag,
       skills: form.skills || [],
       hints: form.hints || [],
+      hint_costs: form.hintCosts || [],
       is_active: form.isActive ?? true,
       attachments: form.attachments || [] // IDs or objects, backend handles mapping
     };
@@ -305,6 +309,8 @@ export class CtfService {
     points: api.points,
     skills: api.skills || [],
     hints: api.hints || [],
+    hintCosts: api.hint_costs || [],
+    unlockedHints: api.unlocked_hints || [],
     author: api.author || 'Unknown',
     createdAt: new Date(api.created_at),
     solvedCount: api.solved_count || 0,
@@ -329,7 +335,8 @@ export class CtfService {
     level: api.level,
     points: api.points,
     skills: api.skills || [],
-    hints: api.hints || [],
+    hints: (api.hints || []).map(h => h ?? ''),
+    hintCosts: api.hint_costs || [],
     author: api.author || 'Unknown',
     createdAt: new Date(api.created_at),
     updatedAt: api.updated_at ? new Date(api.updated_at) : undefined,
@@ -354,7 +361,7 @@ export class CtfService {
       'easy': 'easy',
       'medium': 'medium',
       'hard': 'hard',
-      'insane': 'hard'
+      'insane': 'insane'
     };
     return mapping[level] || 'medium';
   }
@@ -372,7 +379,24 @@ export class CtfService {
    * Obtiene las estadísticas del usuario autenticado
    */
   getMyStats(): Observable<UserStats> {
-    return this.api.get<UserStats>('/ctfs/leaderboard/me', { withCredentials: true });
+    return this.api.get<UserStats>('/ctfs/leaderboard/me');
+  }
+
+  // ==================== TABLERO (estilo CTFd) ====================
+
+  /** Retos publicados y activos agrupados por categoría, con lo resuelto por mí. */
+  getBoard(): Observable<BoardResponse> {
+    return this.api.get<BoardResponse>('/ctfs/board');
+  }
+
+  /** Jugadores que resolvieron un reto, del primero (primera sangre) al último. */
+  getSolves(challengeId: string): Observable<CTFSolvesResponse> {
+    return this.api.get<CTFSolvesResponse>(`/ctfs/${challengeId}/solves`);
+  }
+
+  /** Desbloquea una pista; su coste se resta del puntaje en el ranking. */
+  unlockHint(challengeId: string, index: number): Observable<HintUnlockResult> {
+    return this.api.post<HintUnlockResult>(`/ctfs/${challengeId}/hints/${index}/unlock`, {});
   }
 
   /**
@@ -399,6 +423,50 @@ export interface LeaderboardEntry {
   username: string;
   total_points: number;
   solved_count: number;
+  hint_penalty?: number;
+  last_solve_at?: string | null;
+}
+
+// Interfaces del tablero estilo CTFd
+export interface BoardChallenge {
+  id: string;
+  title: string;
+  level: CTFDifficulty;
+  points: number;
+  solves: number;
+  solved_by_me: boolean;
+  has_writeup: boolean;
+}
+
+export interface BoardCategory {
+  category: CTFCategory;
+  challenges: BoardChallenge[];
+}
+
+export interface BoardResponse {
+  categories: BoardCategory[];
+  total: number;
+  solved_by_me: number;
+  my_score: number | null;
+  my_rank: number | null;
+}
+
+export interface CTFSolve {
+  username: string;
+  solved_at: string;
+  first_blood: boolean;
+}
+
+export interface CTFSolvesResponse {
+  items: CTFSolve[];
+  total: number;
+}
+
+export interface HintUnlockResult {
+  index: number;
+  hint: string;
+  cost: number;
+  already_unlocked: boolean;
 }
 
 export interface LeaderboardResponse {

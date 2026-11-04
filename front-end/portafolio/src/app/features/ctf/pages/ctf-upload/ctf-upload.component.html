@@ -175,6 +175,18 @@
           [addButtonText]="'Agregar pista'" [maxItems]="5" [minLength]="10" [variant]="'default'" [showIndex]="true"
           (itemsChange)="onHintsChange($event)">
         </app-dynamic-list>
+
+        <div *ngIf="hintCosts.length" class="mt-4 space-y-2">
+          <p class="text-sm text-textSecondary">
+            Coste de cada pista en puntos (0 = gratis). Al desbloquearla se resta del puntaje del jugador.
+          </p>
+          <div *ngFor="let cost of hintCosts; let i = index" class="flex items-center gap-3">
+            <label [for]="'hint-cost-' + i" class="text-sm text-textPrimary w-24">Pista {{ i + 1 }}</label>
+            <input type="number" min="0" max="1000" step="10" [id]="'hint-cost-' + i" [value]="cost"
+              (input)="onHintCostChange(i, $any($event.target).value)" class="input w-32">
+            <span class="text-sm text-textSecondary">pts</span>
+          </div>
+        </div>
       </section>
 
       <!-- Status -->

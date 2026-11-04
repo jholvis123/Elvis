@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, Router, Routes } from '@angular/router';
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { AdminGuard } from '../../core/guards/admin.guard';
 
@@ -6,7 +7,7 @@ export const CTF_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/ctf-list/ctf-list.component').then(m => m.CtfListComponent)
+      import('./pages/ctf-board/ctf-board.component').then(m => m.CtfBoardComponent)
   },
   {
     path: 'leaderboard',
@@ -20,8 +21,12 @@ export const CTF_ROUTES: Routes = [
       import('./pages/ctf-upload/ctf-upload.component').then(m => m.CtfUploadComponent)
   },
   {
+    // Enlaces antiguos /ctf/:id → tablero con la modal del reto abierta
     path: ':id',
-    loadComponent: () =>
-      import('./pages/ctf-detail/ctf-detail.component').then(m => m.CtfDetailComponent)
+    canActivate: [
+      (route: ActivatedRouteSnapshot) =>
+        inject(Router).createUrlTree(['/ctf'], { queryParams: { reto: route.paramMap.get('id') } })
+    ],
+    children: []
   }
 ];

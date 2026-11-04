@@ -1,27 +1,69 @@
 <div class="auth-page min-h-screen flex items-center justify-center bg-background px-4 py-12">
-  <div class="pointer-events-none fixed inset-0 bg-gradient-to-b from-cyan-500/10 via-transparent to-primary/5 blur-3xl" aria-hidden="true"></div>
-
   <div class="relative w-full max-w-md">
     <div class="text-center mb-8">
-      <p class="eyebrow">Cuenta</p>
-      <h1 class="section-heading text-3xl md:text-4xl mb-2">Crear cuenta</h1>
-      <p class="muted-text">Registro público deshabilitado</p>
+      <p class="eyebrow">CTF Lab</p>
+      <h1 class="section-heading text-3xl md:text-4xl mb-2">Crea tu alias</h1>
+      <p class="muted-text">Sin correo: solo un alias y una contraseña para guardar tu progreso y aparecer en el ranking.</p>
     </div>
 
     <div class="auth-card">
-      <div class="mb-6 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200 text-sm" role="status">
-        El registro público está deshabilitado. Si ya tienes cuenta, inicia sesión.
+      <div *ngIf="errorMessage" class="mb-6 p-4 rounded-lg border text-sm" role="alert" aria-live="assertive"
+        [ngClass]="registrationDisabled ? 'bg-amber-500/10 border-amber-500/30 text-amber-200' : 'bg-red-500/10 border-red-500/40 text-red-300'">
+        {{ errorMessage }}
       </div>
 
-      <a routerLink="/auth/login" class="btn-primary w-full">
-        Ir a iniciar sesión
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="mb-5">
+          <label for="username" class="block text-sm font-medium text-textPrimary mb-2">Alias</label>
+          <input type="text" id="username" formControlName="username" class="input min-h-[44px] font-mono"
+            placeholder="neo_1337" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30"
+            aria-describedby="username-help"
+            [attr.aria-invalid]="username?.invalid && username?.touched"
+            [class.border-red-500]="username?.invalid && username?.touched" />
+          <p id="username-help" class="mt-1 text-sm"
+            [ngClass]="username?.invalid && username?.touched ? 'text-red-400' : 'text-textSecondary'">
+            3-30 caracteres: letras, números, guion o guion bajo. Será público en el ranking.
+          </p>
+        </div>
+
+        <div class="mb-5">
+          <label for="password" class="block text-sm font-medium text-textPrimary mb-2">Contraseña</label>
+          <input type="password" id="password" formControlName="password" class="input min-h-[44px]"
+            autocomplete="new-password" aria-describedby="password-help"
+            [attr.aria-invalid]="password?.invalid && password?.touched"
+            [class.border-red-500]="password?.invalid && password?.touched" />
+          <p id="password-help" class="mt-1 text-sm"
+            [ngClass]="password?.invalid && password?.touched ? 'text-red-400' : 'text-textSecondary'">
+            Mínimo 8 caracteres. No hay recuperación por correo: guárdala bien.
+          </p>
+        </div>
+
+        <div class="mb-6">
+          <label for="confirm" class="block text-sm font-medium text-textPrimary mb-2">Repite la contraseña</label>
+          <input type="password" id="confirm" formControlName="confirm" class="input min-h-[44px]"
+            autocomplete="new-password"
+            [attr.aria-invalid]="form.errors?.['mismatch'] && confirm?.touched"
+            [class.border-red-500]="form.errors?.['mismatch'] && confirm?.touched" />
+          <p *ngIf="form.errors?.['mismatch'] && confirm?.touched" class="mt-1 text-sm text-red-400" role="alert">
+            Las contraseñas no coinciden.
+          </p>
+        </div>
+
+        <button type="submit" class="btn-primary w-full" [disabled]="loading || registrationDisabled" [attr.aria-busy]="loading">
+          {{ loading ? 'Creando alias…' : 'Crear alias y jugar' }}
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-sm muted-text">
+        ¿Ya tienes alias?
+        <a routerLink="/auth/login" class="text-primary hover:underline font-semibold">Inicia sesión</a>
+      </p>
+    </div>
+
+    <div class="mt-4 text-center">
+      <a routerLink="/ctf" class="muted-text hover:text-primary text-sm inline-flex items-center min-h-[44px] px-2 transition-colors">
+        Volver a los retos
       </a>
-
-      <div class="mt-6 text-center">
-        <a routerLink="/" class="muted-text hover:text-primary text-sm inline-flex items-center min-h-[44px] px-2 transition-colors">
-          Volver al inicio
-        </a>
-      </div>
     </div>
   </div>
 </div>

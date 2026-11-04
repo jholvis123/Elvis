@@ -1,0 +1,128 @@
+<div class="modal-backdrop" (click)="onBackdrop($event)">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="challenge-modal-title">
+    <div class="modal-header">
+      <div class="modal-tabs" role="tablist" aria-label="Secciones del reto">
+        <button type="button" role="tab" class="modal-tab" id="tab-challenge" aria-controls="panel-challenge"
+          [attr.aria-selected]="tab === 'challenge'" [class.modal-tab--active]="tab === 'challenge'"
+          (click)="selectTab('challenge')">Reto</button>
+        <button type="button" role="tab" class="modal-tab" id="tab-solves" aria-controls="panel-solves"
+          [attr.aria-selected]="tab === 'solves'" [class.modal-tab--active]="tab === 'solves'"
+          (click)="selectTab('solves')">Resoluciones</button>
+      </div>
+      <button #closeBtn type="button" class="modal-close" aria-label="Cerrar" (click)="close()">
+        <app-icon name="x-mark" cssClass="w-5 h-5"></app-icon>
+      </button>
+    </div>
+
+    <div *ngIf="loading" class="modal-body text-center text-textSecondary" aria-busy="true">Cargando reto…</div>
+
+    <div *ngIf="!loading && loadError" class="modal-body text-center">
+      <p class="text-textSecondary mb-4">No se pudo cargar este reto.</p>
+      <button type="button" class="btn-outline" (click)="close()">Cerrar</button>
+    </div>
+
+    <ng-container *ngIf="!loading && challenge as ch">
+      <!-- Pestaña Reto -->
+      <div *ngIf="tab === 'challenge'" id="panel-challenge" role="tabpanel" aria-labelledby="tab-challenge" class="modal-body space-y-5">
+        <header class="text-center space-y-2">
+          <p class="text-xs font-mono uppercase tracking-widest text-textSecondary">{{ categoryLabel }}</p>
+          <h2 id="challenge-modal-title" class="text-2xl font-bold text-textPrimary">{{ ch.title }}</h2>
+          <p class="text-2xl font-mono font-bold text-primary">{{ ch.points }}</p>
+          <div class="flex flex-wrap justify-center gap-2">
+            <span *ngIf="difficulty" class="level-pill" [ngClass]="'level-pill--' + ch.difficulty">{{ difficulty.label }}</span>
+            <span *ngFor="let skill of ch.skills" class="skill-pill">{{ skill }}</span>
+          </div>
+        </header>
+
+        <div class="modal-description">
+          <app-markdown-viewer [content]="ch.description"></app-markdown-viewer>
+        </div>
+
+        <div *ngIf="ch.attachments?.length" class="flex flex-wrap gap-2">
+          <a *ngFor="let att of ch.attachments" class="resource-link" [href]="att.url" target="_blank" rel="noopener noreferrer"
+            [attr.download]="att.type === 'file' ? att.name : null">
+            <app-icon [name]="att.type === 'url' ? 'link' : (att.type === 'docker' ? 'cube' : 'arrow-down-tray')" cssClass="w-4 h-4"></app-icon>
+            {{ att.name }}
+          </a>
+        </div>
+
+        <!-- Pistas -->
+        <div *ngIf="ch.hints?.length" class="space-y-2">
+          <ng-container *ngFor="let hint of ch.hints; let i = index">
+            <p *ngIf="isHintVisible(i)" class="hint-text">
+              <app-icon name="light-bulb" cssClass="w-4 h-4 text-amber-400 inline mr-1"></app-icon>{{ hint }}
+            </p>
+            <button *ngIf="!isHintVisible(i) && !isHintLocked(i)" type="button" class="hint-button" (click)="revealFree(i)">
+              <app-icon name="light-bulb" cssClass="w-4 h-4 inline mr-1"></app-icon>Ver pista {{ i + 1 }} (gratis)
+            </button>
+            <ng-container *ngIf="isHintLocked(i)">
+              <button *ngIf="isAuthenticated; else loginForHint" type="button" class="hint-button" [disabled]="unlocking === i" (click)="unlockHint(i)">
+                <app-icon name="lock-closed" cssClass="w-4 h-4 inline mr-1"></app-icon>
+                {{ unlocking === i ? 'Desbloqueando…' : 'Desbloquear pista ' + (i + 1) + ' (−' + hintCost(i) + ' pts)' }}
+              </button>
+              <ng-template #loginForHint>
+                <p class="hint-locked">
+                  <app-icon name="lock-closed" cssClass="w-4 h-4 inline mr-1"></app-icon>
+                  Pista {{ i + 1 }} cuesta {{ hintCost(i) }} pts.
+                  <a routerLink="/auth/register" (click)="close()">Crea tu alias</a> para desbloquearla.
+                </p>
+              </ng-template>
+            </ng-container>
+          </ng-container>
+          <p *ngIf="hintError" class="text-sm text-amber-300" role="alert">{{ hintError }}</p>
+        </div>
+
+        <!-- Flag -->
+        <form class="space-y-2" (ngSubmit)="submit()">
+          <div class="flex flex-wrap gap-2">
+            <label for="modal-flag" class="sr-only">Flag</label>
+            <input id="modal-flag" name="flag" type="text" class="input flex-1 min-w-0 font-mono min-h-[48px]"
+              placeholder="flag{...}" autocomplete="off" spellcheck="false" maxlength="256"
+              [(ngModel)]="flagInput" [disabled]="solvedByMe || submitting"
+              [class.border-amber-400]="flagFormatState === 'bad'" [class.border-emerald-400]="solvedByMe"
+              aria-describedby="modal-flag-help" />
+            <button type="submit" class="btn-primary min-h-[48px] px-6" [disabled]="solvedByMe || submitting || flagFormatState === 'empty'">
+              {{ solvedByMe ? 'Resuelto' : (submitting ? 'Enviando…' : 'Enviar') }}
+            </button>
+          </div>
+          <p id="modal-flag-help" class="text-xs" aria-live="polite"
+            [ngClass]="flagFormatState === 'bad' ? 'text-amber-300' : 'text-textSecondary'">
+            {{ flagFormatState === 'bad' ? 'Falta el formato flag{...}' : 'Formato: flag{...} · 20 intentos por minuto' }}
+          </p>
+          <p *ngIf="result" role="status" class="result" [class.result--ok]="result.success" [class.result--bad]="!result.success">
+            {{ result.message }}
+          </p>
+          <p *ngIf="solvedByMe && !result" role="status" class="result result--ok">Ya resolviste este reto.</p>
+          <p *ngIf="!isAuthenticated && !solvedByMe" class="text-xs text-textSecondary">
+            Juegas como anónimo: tu acierto no sumará en el ranking.
+            <a routerLink="/auth/register" (click)="close()">Crea tu alias</a>
+          </p>
+        </form>
+      </div>
+
+      <!-- Pestaña Resoluciones -->
+      <div *ngIf="tab === 'solves'" id="panel-solves" role="tabpanel" aria-labelledby="tab-solves" class="modal-body">
+        <h2 id="challenge-modal-title" class="sr-only">Resoluciones de {{ ch.title }}</h2>
+        <p *ngIf="solvesLoading" class="text-textSecondary text-center">Cargando…</p>
+        <p *ngIf="solvesLoaded && !solves.length" class="text-textSecondary text-center">Nadie lo ha resuelto todavía. ¿Primera sangre?</p>
+        <table *ngIf="solves.length" class="w-full text-sm">
+          <thead>
+            <tr class="text-textSecondary text-left">
+              <th scope="col" class="py-2 font-semibold">Jugador</th>
+              <th scope="col" class="py-2 font-semibold text-right">Cuándo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let solve of solves" class="border-t border-slate-800">
+              <td class="py-3 font-mono">
+                {{ solve.username }}
+                <span *ngIf="solve.first_blood" class="first-blood">primera sangre</span>
+              </td>
+              <td class="py-3 text-right text-textSecondary">{{ solve.solved_at | date:'d MMM y, HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</div>

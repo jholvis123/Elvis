@@ -1,17 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { 
-  CtfService, 
-  LeaderboardEntry, 
-  LeaderboardResponse, 
-  UserStats, 
-  SolvedCTF 
-} from '../../../../core/services/ctf.service';
+import { CtfService, LeaderboardEntry, UserStats } from '../../../../core/services/ctf.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { IconComponent } from '@shared/icons/icon.component';
 import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
 
+/** Ranking de jugadores: puntos de retos menos pistas, empate para quien llegó antes. */
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
@@ -20,48 +15,58 @@ import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/load
   styleUrls: ['./leaderboard.component.scss']
 })
 export class LeaderboardComponent implements OnInit {
+  private readonly ctfService = inject(CtfService);
+  private readonly authService = inject(AuthService);
+
   leaderboard: LeaderboardEntry[] = [];
+  totalPlayers = 0;
   myStats: UserStats | null = null;
   loading = true;
-  
-  constructor(
-    private ctfService: CtfService,
-    private authService: AuthService
-  ) {}
-  
+  loadError = false;
+
+  get isAuthenticated(): boolean {
+    return this.authService.isAuthenticated;
+  }
+
+  get podium(): LeaderboardEntry[] {
+    return this.leaderboard.slice(0, 3);
+  }
+
+  get rest(): LeaderboardEntry[] {
+    return this.leaderboard.slice(3);
+  }
+
+  /** True si el jugador actual está en el ranking pero fuera de la lista mostrada. */
+  get meOutsideList(): boolean {
+    return !!this.myStats?.rank && !this.leaderboard.some(e => this.isMe(e));
+  }
+
   ngOnInit(): void {
-    this.loadLeaderboard();
-    this.loadMyStats();
-  }
-  
-  loadLeaderboard(): void {
-    this.loading = true;
     this.ctfService.getLeaderboard(50).subscribe({
-      next: (response) => {
+      next: response => {
         this.leaderboard = response.entries;
+        this.totalPlayers = response.total_players;
         this.loading = false;
       },
-      error: (err) => {
-        console.error('Error loading leaderboard:', err);
+      error: () => {
+        this.loadError = true;
         this.loading = false;
       }
     });
-  }
-  
-  loadMyStats(): void {
-    // Solo cargar si el usuario está autenticado
-    if (!this.authService.isAuthenticated) {
-      return;
+
+    if (this.authService.isAuthenticated && !this.authService.isAdmin) {
+      this.ctfService.getMyStats().subscribe({
+        next: stats => (this.myStats = stats),
+        error: () => (this.myStats = null)
+      });
     }
-    
-    this.ctfService.getMyStats().subscribe({
-      next: (stats) => {
-        this.myStats = stats;
-      },
-      error: (err) => {
-        // Silenciar error si no está autenticado
-        console.log('Could not load user stats:', err);
-      }
-    });
+  }
+
+  isMe(entry: LeaderboardEntry): boolean {
+    return !!this.myStats && entry.user_id === this.myStats.user_id;
+  }
+
+  trackByUser(_: number, entry: LeaderboardEntry): string {
+    return entry.user_id;
   }
 }
