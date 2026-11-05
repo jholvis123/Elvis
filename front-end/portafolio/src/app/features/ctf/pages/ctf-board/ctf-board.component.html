@@ -34,7 +34,8 @@
     </div>
   </section>
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10" [attr.aria-busy]="loading">
+    <p class="sr-only" role="status" aria-live="polite">{{ loading ? 'Cargando retos…' : '' }}</p>
     <div *ngIf="!isAuthenticated && !apiUnavailable" class="join-banner" role="note">
       <p class="m-0">
         <strong class="text-textPrimary">Crea un alias</strong> para guardar tu progreso, desbloquear pistas y aparecer en el ranking. Sin correo.
@@ -50,7 +51,7 @@
       Ocultar resueltos
     </label>
 
-    <div *ngIf="loading" class="tiles" aria-busy="true">
+    <div *ngIf="loading" class="tiles" aria-hidden="true">
       <app-skeleton-loader *ngFor="let i of [1,2,3,4,5,6,7,8]" type="card"></app-skeleton-loader>
     </div>
 

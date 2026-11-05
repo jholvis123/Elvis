@@ -1,23 +1,26 @@
 <div class="modal-backdrop" (click)="onBackdrop($event)">
-  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="challenge-modal-title">
+  <div #panel class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="challenge-modal-title"
+    (keydown.tab)="trapFocus($event)" (keydown.shift.tab)="trapFocus($event)">
+    <!-- Nombre accesible siempre presente (también mientras carga o si falla) -->
+    <span id="challenge-modal-title" class="sr-only">{{ challenge?.title ? 'Reto: ' + challenge?.title : 'Reto' }}</span>
     <div class="modal-header">
-      <div class="modal-tabs" role="tablist" aria-label="Secciones del reto">
-        <button type="button" role="tab" class="modal-tab" id="tab-challenge" aria-controls="panel-challenge"
-          [attr.aria-selected]="tab === 'challenge'" [class.modal-tab--active]="tab === 'challenge'"
-          (click)="selectTab('challenge')">Reto</button>
-        <button type="button" role="tab" class="modal-tab" id="tab-solves" aria-controls="panel-solves"
-          [attr.aria-selected]="tab === 'solves'" [class.modal-tab--active]="tab === 'solves'"
-          (click)="selectTab('solves')">Resoluciones</button>
+      <div class="modal-tabs" role="tablist" aria-label="Secciones del reto" (keydown)="onTabKeydown($event)">
+        <button #tabBtn type="button" role="tab" class="modal-tab" id="tab-challenge" aria-controls="panel-challenge"
+          [attr.aria-selected]="tab === 'challenge'" [attr.tabindex]="tab === 'challenge' ? 0 : -1"
+          [class.modal-tab--active]="tab === 'challenge'" (click)="selectTab('challenge')">Reto</button>
+        <button #tabBtn type="button" role="tab" class="modal-tab" id="tab-solves" aria-controls="panel-solves"
+          [attr.aria-selected]="tab === 'solves'" [attr.tabindex]="tab === 'solves' ? 0 : -1"
+          [class.modal-tab--active]="tab === 'solves'" (click)="selectTab('solves')">Resoluciones</button>
       </div>
       <button #closeBtn type="button" class="modal-close" aria-label="Cerrar" (click)="close()">
         <app-icon name="x-mark" cssClass="w-5 h-5"></app-icon>
       </button>
     </div>
 
-    <div *ngIf="loading" class="modal-body text-center text-textSecondary" aria-busy="true">Cargando reto…</div>
+    <div *ngIf="loading" class="modal-body text-center text-textSecondary" role="status" aria-live="polite">Cargando reto…</div>
 
     <div *ngIf="!loading && loadError" class="modal-body text-center">
-      <p class="text-textSecondary mb-4">No se pudo cargar este reto.</p>
+      <p class="text-textSecondary mb-4" role="alert">No se pudo cargar este reto.</p>
       <button type="button" class="btn-outline" (click)="close()">Cerrar</button>
     </div>
 
@@ -26,7 +29,7 @@
       <div *ngIf="tab === 'challenge'" id="panel-challenge" role="tabpanel" aria-labelledby="tab-challenge" class="modal-body space-y-5">
         <header class="text-center space-y-2">
           <p class="text-xs font-mono uppercase tracking-widest text-textSecondary">{{ categoryLabel }}</p>
-          <h2 id="challenge-modal-title" class="text-2xl font-bold text-textPrimary">{{ ch.title }}</h2>
+          <h2 class="text-2xl font-bold text-textPrimary">{{ ch.title }}</h2>
           <p class="text-2xl font-mono font-bold text-primary">{{ ch.points }}</p>
           <div class="flex flex-wrap justify-center gap-2">
             <span *ngIf="difficulty" class="level-pill" [ngClass]="'level-pill--' + ch.difficulty">{{ difficulty.label }}</span>
@@ -102,8 +105,12 @@
 
       <!-- Pestaña Resoluciones -->
       <div *ngIf="tab === 'solves'" id="panel-solves" role="tabpanel" aria-labelledby="tab-solves" class="modal-body">
-        <h2 id="challenge-modal-title" class="sr-only">Resoluciones de {{ ch.title }}</h2>
-        <p *ngIf="solvesLoading" class="text-textSecondary text-center">Cargando…</p>
+        <h2 class="sr-only">Resoluciones de {{ ch.title }}</h2>
+        <p *ngIf="solvesLoading" class="text-textSecondary text-center" role="status" aria-live="polite">Cargando resoluciones…</p>
+        <div *ngIf="solvesError && !solvesLoading" class="text-center space-y-3" role="alert">
+          <p class="text-textSecondary m-0">No se pudieron cargar las resoluciones.</p>
+          <button type="button" class="btn-outline" (click)="retrySolves()">Reintentar</button>
+        </div>
         <p *ngIf="solvesLoaded && !solves.length" class="text-textSecondary text-center">Nadie lo ha resuelto todavía. ¿Primera sangre?</p>
         <table *ngIf="solves.length" class="w-full text-sm">
           <thead>

@@ -8,9 +8,22 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  QueryList,
   ViewChild,
+  ViewChildren,
   inject
 } from '@angular/core';
+
+const TABS: Tab[] = ['challenge', 'solves'];
+
+const FOCUSABLE = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])'
+].join(',');
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -49,6 +62,8 @@ export class ChallengeModalComponent implements OnInit, AfterViewInit, OnDestroy
   @Output() scoreChanged = new EventEmitter<void>();
 
   @ViewChild('closeBtn') closeBtn?: ElementRef<HTMLButtonElement>;
+  @ViewChild('panel') panel?: ElementRef<HTMLElement>;
+  @ViewChildren('tabBtn') tabButtons?: QueryList<ElementRef<HTMLButtonElement>>;
 
   challenge: CTFChallenge | null = null;
   loading = true;
@@ -58,6 +73,7 @@ export class ChallengeModalComponent implements OnInit, AfterViewInit, OnDestroy
   solves: CTFSolve[] = [];
   solvesLoaded = false;
   solvesLoading = false;
+  solvesError = false;
 
   flagInput = '';
   submitting = false;
@@ -124,9 +140,49 @@ export class ChallengeModalComponent implements OnInit, AfterViewInit, OnDestroy
 
   selectTab(tab: Tab): void {
     this.tab = tab;
-    if (tab === 'solves' && !this.solvesLoaded) {
+    if (tab === 'solves' && !this.solvesLoaded && !this.solvesLoading) {
       this.loadSolves();
     }
+  }
+
+  /** Patrón WAI-ARIA de pestañas: flechas, Inicio y Fin mueven selección y foco. */
+  onTabKeydown(event: KeyboardEvent): void {
+    const current = TABS.indexOf(this.tab);
+    let next = current;
+    switch (event.key) {
+      case 'ArrowRight': next = (current + 1) % TABS.length; break;
+      case 'ArrowLeft': next = (current - 1 + TABS.length) % TABS.length; break;
+      case 'Home': next = 0; break;
+      case 'End': next = TABS.length - 1; break;
+      default: return;
+    }
+    event.preventDefault();
+    this.selectTab(TABS[next]);
+    setTimeout(() => this.tabButtons?.get(next)?.nativeElement.focus());
+  }
+
+  /** Mantiene Tab / Shift+Tab dentro de la modal (aria-modal no lo hace por sí solo). */
+  trapFocus(event: Event): void {
+    const panel = this.panel?.nativeElement;
+    if (!panel) return;
+    const focusables = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE))
+      .filter(el => el.offsetParent !== null || el === document.activeElement);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    const backwards = (event as KeyboardEvent).shiftKey;
+    if (backwards && (active === first || !panel.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!backwards && (active === last || !panel.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  retrySolves(): void {
+    this.loadSolves();
   }
 
   private load(): void {
@@ -146,6 +202,7 @@ export class ChallengeModalComponent implements OnInit, AfterViewInit, OnDestroy
 
   private loadSolves(): void {
     this.solvesLoading = true;
+    this.solvesError = false;
     this.ctfService.getSolves(this.challengeId).subscribe({
       next: response => {
         // El backend guarda UTC sin zona ("2026-11-04T17:20:00"): marcarlo como UTC
@@ -158,6 +215,7 @@ export class ChallengeModalComponent implements OnInit, AfterViewInit, OnDestroy
       },
       error: () => {
         this.solvesLoading = false;
+        this.solvesError = true;
       }
     });
   }
