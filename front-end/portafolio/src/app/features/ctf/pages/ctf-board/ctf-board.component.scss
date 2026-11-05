@@ -1,0 +1,41 @@
+.board-hero {
+  @apply border-b border-slate-800 bg-surface/60;
+}
+
+.board-stat {
+  @apply m-0 font-mono text-2xl font-bold text-textPrimary;
+}
+
+.board-stat-label {
+  @apply m-0 text-sm text-textSecondary;
+}
+
+.join-banner {
+  @apply flex flex-wrap items-center justify-between gap-4 p-5 rounded-xl border border-primary/30 bg-surface text-textSecondary;
+}
+
+.tiles {
+  @apply grid gap-3 sm:gap-4;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.tile {
+  @apply flex flex-col items-center justify-center gap-1.5 min-h-[128px] px-3 py-4 rounded-xl border border-slate-700 bg-surface text-center text-textPrimary transition;
+
+  &:hover { @apply border-primary -translate-y-0.5; }
+  &:focus-visible { @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background; }
+
+  &__title { @apply text-base font-semibold leading-snug; }
+  &__points { @apply font-mono text-2xl font-bold; }
+  &__meta { @apply text-xs text-textSecondary; }
+
+  &--solved {
+    @apply bg-primary border-primary text-background;
+
+    .tile__meta { @apply text-background/80; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile { @apply transition-none; &:hover { transform: none; } }
+}

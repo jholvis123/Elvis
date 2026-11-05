@@ -31,13 +31,14 @@ export class LoginComponent implements OnInit {
         }
 
         this.loginForm = this.fb.group({
-            email: ['', [Validators.required, Validators.email]],
+            // Correo (admin) o alias (jugador del CTF)
+            identifier: ['', [Validators.required, Validators.maxLength(255)]],
             password: ['', [Validators.required, Validators.minLength(6)]]
         });
     }
 
-    get email() {
-        return this.loginForm.get('email');
+    get identifier() {
+        return this.loginForm.get('identifier');
     }
 
     get password() {
@@ -53,7 +54,13 @@ export class LoginComponent implements OnInit {
         this.loading = true;
         this.errorMessage = '';
 
-        this.authService.login(this.loginForm.value).subscribe({
+        const identifier = String(this.loginForm.value.identifier || '').trim();
+        const password = this.loginForm.value.password;
+        const credentials = identifier.includes('@')
+            ? { email: identifier, password }
+            : { username: identifier, password };
+
+        this.authService.login(credentials).subscribe({
             next: () => {
                 this.notificationService.success('¡Bienvenido! Sesión iniciada correctamente');
                 // Redirigir: si hay URL guardada se usa, si no, los admin van al dashboard y el resto al home
@@ -68,7 +75,9 @@ export class LoginComponent implements OnInit {
             },
             error: (error) => {
                 this.loading = false;
-                this.errorMessage = error.message || 'Error al iniciar sesión. Verifica tus credenciales.';
+                this.errorMessage = error?.status === 401
+                    ? 'Correo, alias o contraseña incorrectos.'
+                    : (error.message || 'Error al iniciar sesión. Verifica tus credenciales.');
             },
             complete: () => {
                 this.loading = false;

@@ -1,156 +1,76 @@
-<div class="min-h-screen bg-background py-12 px-4">
-  <div class="max-w-4xl mx-auto">
-    <!-- Header -->
-    <div class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 inline-flex items-center justify-center gap-3">
-        <app-icon name="trophy" cssClass="w-10 h-10 text-primary" ariaLabel="Leaderboard"></app-icon>
-        Leaderboard
-      </h1>
-      <p class="text-textSecondary text-lg">Ranking de los mejores hackers por puntos de CTF</p>
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 space-y-8">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div class="space-y-2">
+      <p class="font-mono text-sm text-primary">$ ./scoreboard</p>
+      <h1 class="text-3xl sm:text-4xl font-bold text-textPrimary m-0">Ranking</h1>
+      <p class="text-textSecondary m-0">
+        {{ totalPlayers }} {{ totalPlayers === 1 ? 'jugador' : 'jugadores' }} · puntos de retos menos pistas · en empate gana quien llegó antes
+      </p>
+    </div>
+    <a routerLink="/ctf" class="btn-outline inline-flex items-center gap-2 min-h-[44px]">
+      <app-icon name="puzzle-piece" cssClass="w-5 h-5"></app-icon>Ir a los retos
+    </a>
+  </header>
+
+  <div *ngIf="!isAuthenticated" class="join-banner" role="note">
+    <p class="m-0">¿Quieres aparecer aquí? Crea un alias (sin correo) y resuelve tu primer reto.</p>
+    <a routerLink="/auth/register" class="btn-primary min-h-[44px] inline-flex items-center">Crear alias</a>
+  </div>
+
+  <app-loading-spinner *ngIf="loading" size="lg" label="Cargando ranking"></app-loading-spinner>
+
+  <p *ngIf="loadError" class="text-center text-textSecondary">No se pudo cargar el ranking. Inténtalo más tarde.</p>
+
+  <ng-container *ngIf="!loading && !loadError">
+    <div *ngIf="!leaderboard.length" class="card text-center py-12 max-w-lg mx-auto">
+      <app-icon name="trophy" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
+      <p class="text-textSecondary mb-6">Todavía nadie ha puntuado. La primera sangre está libre.</p>
+      <a routerLink="/ctf" class="btn-primary inline-flex min-h-[44px] items-center">Resolver un reto</a>
     </div>
 
-    <!-- My Stats Card (if logged in) -->
-    <div *ngIf="myStats" class="bg-gradient-to-r from-primary/10 to-primary/5 backdrop-blur-lg rounded-xl border border-primary/30 p-6 mb-8">
-      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-cyan-400 flex items-center justify-center text-2xl font-bold text-background">
-            {{ myStats.rank || '?' }}
-          </div>
-          <div>
-            <h3 class="text-xl font-bold text-white">{{ myStats.username }}</h3>
-            <p class="text-textSecondary">Tu posición en el ranking</p>
-          </div>
-        </div>
-        <div class="flex gap-6 text-center">
-          <div>
-            <p class="text-3xl font-bold text-primary">{{ myStats.total_points }}</p>
-            <p class="text-textSecondary text-sm">Puntos</p>
-          </div>
-          <div>
-            <p class="text-3xl font-bold text-primary/80">{{ myStats.solved_count }}</p>
-            <p class="text-textSecondary text-sm">CTFs Resueltos</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ol *ngIf="podium.length" class="podium" aria-label="Podio">
+      <li *ngFor="let entry of podium; trackBy: trackByUser" class="podium__card" [ngClass]="'podium__card--' + entry.rank" [class.podium__card--me]="isMe(entry)">
+        <span class="podium__rank">#{{ entry.rank }}</span>
+        <span class="podium__name">{{ entry.username }}<span *ngIf="isMe(entry)" class="me-tag">tú</span></span>
+        <span class="podium__meta">
+          {{ entry.total_points }} pts · {{ entry.solved_count }} {{ entry.solved_count === 1 ? 'reto' : 'retos' }}
+          <ng-container *ngIf="entry.hint_penalty"> · −{{ entry.hint_penalty }} en pistas</ng-container>
+        </span>
+      </li>
+    </ol>
 
-    <!-- Loading State -->
-    <app-loading-spinner *ngIf="loading" size="lg" label="Cargando ranking"></app-loading-spinner>
-
-    <!-- Leaderboard Table -->
-    <div *ngIf="!loading" class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden">
-      <!-- Top 3 Podium -->
-      <div *ngIf="leaderboard.length >= 3" class="p-8 bg-gradient-to-b from-primary/10 to-transparent">
-        <div class="flex justify-center items-end gap-4">
-          <!-- 2nd Place -->
-          <ng-container *ngIf="leaderboard[1] as second">
-            <div class="text-center transform hover:scale-105 transition">
-              <div class="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-r from-gray-400 to-gray-300 flex items-center justify-center">
-                <app-icon name="trophy" cssClass="w-8 h-8 text-slate-800" ariaLabel="Segundo lugar"></app-icon>
-              </div>
-              <p class="text-white font-bold">{{ second.username }}</p>
-              <p class="text-primary font-semibold">{{ second.total_points }} pts</p>
-              <p class="text-gray-500 text-sm">{{ second.solved_count }} CTFs</p>
-            </div>
-          </ng-container>
-          
-          <!-- 1st Place -->
-          <ng-container *ngIf="leaderboard[0] as first">
-            <div class="text-center transform hover:scale-105 transition -mt-4">
-              <div class="w-24 h-24 mx-auto mb-2 rounded-full bg-gradient-to-r from-primary to-cyan-400 flex items-center justify-center shadow-lg shadow-primary/30">
-                <app-icon name="trophy" cssClass="w-10 h-10 text-background" ariaLabel="Primer lugar"></app-icon>
-              </div>
-              <p class="text-white font-bold text-lg">{{ first.username }}</p>
-              <p class="text-primary font-semibold text-xl">{{ first.total_points }} pts</p>
-              <p class="text-gray-500 text-sm">{{ first.solved_count }} CTFs</p>
-            </div>
-          </ng-container>
-          
-          <!-- 3rd Place -->
-          <ng-container *ngIf="leaderboard[2] as third">
-            <div class="text-center transform hover:scale-105 transition">
-              <div class="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-r from-amber-600 to-amber-500 flex items-center justify-center">
-                <app-icon name="trophy" cssClass="w-8 h-8 text-amber-100" ariaLabel="Tercer lugar"></app-icon>
-              </div>
-              <p class="text-white font-bold">{{ third.username }}</p>
-              <p class="text-primary font-semibold">{{ third.total_points }} pts</p>
-              <p class="text-gray-500 text-sm">{{ third.solved_count }} CTFs</p>
-            </div>
-          </ng-container>
-        </div>
-      </div>
-
-      <!-- Full Table -->
-      <table class="w-full">
-        <thead class="bg-white/10">
+    <div *ngIf="rest.length || meOutsideList" class="table-wrap">
+      <table class="w-full min-w-[560px] text-sm">
+        <thead>
           <tr>
-            <th class="text-center px-6 py-4 text-white font-semibold w-20">Rank</th>
-            <th class="text-left px-6 py-4 text-white font-semibold">Usuario</th>
-            <th class="text-center px-6 py-4 text-white font-semibold">Puntos</th>
-            <th class="text-center px-6 py-4 text-white font-semibold">CTFs Resueltos</th>
+            <th scope="col" class="w-20">Pos.</th>
+            <th scope="col">Jugador</th>
+            <th scope="col" class="text-right">Retos</th>
+            <th scope="col" class="text-right">Pistas</th>
+            <th scope="col" class="text-right">Puntos</th>
           </tr>
         </thead>
         <tbody>
-          <tr 
-            *ngFor="let entry of leaderboard; let i = index" 
-            class="border-t border-white/10 hover:bg-white/5 transition"
-            [ngClass]="{
-              'bg-yellow-500/10': entry.rank === 1,
-              'bg-gray-400/10': entry.rank === 2,
-              'bg-amber-600/10': entry.rank === 3,
-              'bg-blue-500/10': myStats && entry.user_id === myStats.user_id
-            }">
-            <td class="px-6 py-4 text-center">
-              <span 
-                class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold"
-                [ngClass]="{
-                  'bg-primary text-background': entry.rank === 1,
-                  'bg-primary/70 text-background': entry.rank === 2,
-                  'bg-primary/50 text-background': entry.rank === 3,
-                  'bg-white/20 text-white': entry.rank > 3
-                }">
-                {{ entry.rank }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <a 
-                [routerLink]="['/ctf/leaderboard/user', entry.user_id]"
-                class="text-white font-medium hover:text-primary transition flex items-center gap-2"
-              >
-                <app-icon *ngIf="entry.rank === 1" name="trophy" cssClass="w-4 h-4 text-primary"></app-icon>
-                <app-icon *ngIf="entry.rank === 2" name="trophy" cssClass="w-4 h-4 text-slate-300"></app-icon>
-                <app-icon *ngIf="entry.rank === 3" name="trophy" cssClass="w-4 h-4 text-amber-500"></app-icon>
-                {{ entry.username }}
-                <span *ngIf="myStats && entry.user_id === myStats.user_id" class="text-primary text-sm">(Tú)</span>
-              </a>
-            </td>
-            <td class="px-6 py-4 text-center">
-              <span class="text-primary font-bold text-lg">{{ entry.total_points }}</span>
-            </td>
-            <td class="px-6 py-4 text-center">
-              <span class="text-primary/80">{{ entry.solved_count }}</span>
-            </td>
+          <tr *ngFor="let entry of rest; trackBy: trackByUser" [class.row--me]="isMe(entry)">
+            <td class="font-mono">{{ entry.rank }}</td>
+            <td class="font-mono">{{ entry.username }}<span *ngIf="isMe(entry)" class="me-tag">tú</span></td>
+            <td class="text-right">{{ entry.solved_count }}</td>
+            <td class="text-right text-textSecondary">{{ entry.hint_penalty ? '−' + entry.hint_penalty : '—' }}</td>
+            <td class="text-right font-mono font-bold">{{ entry.total_points }}</td>
           </tr>
-          <tr *ngIf="leaderboard.length === 0">
-            <td colspan="4" class="px-6 py-12 text-center text-gray-500">
-              <div class="flex flex-col items-center gap-4">
-                <p>No hay jugadores en el ranking todavía</p>
-                <a routerLink="/ctf" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                  Resolver tu primer CTF
-                </a>
-              </div>
-            </td>
+          <tr *ngIf="meOutsideList && myStats" class="row--me">
+            <td class="font-mono">{{ myStats.rank }}</td>
+            <td class="font-mono">{{ myStats.username }}<span class="me-tag">tú</span></td>
+            <td class="text-right">{{ myStats.solved_count }}</td>
+            <td class="text-right text-textSecondary">—</td>
+            <td class="text-right font-mono font-bold">{{ myStats.total_points }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Legend / Info -->
-    <div class="mt-8 text-center text-gray-500 text-sm">
-      <p class="inline-flex items-center justify-center gap-2">
-        <app-icon name="light-bulb" cssClass="w-4 h-4 text-primary"></app-icon>
-        Los puntos se otorgan al resolver CTFs correctamente. ¡Resuelve más para subir en el ranking!
-      </p>
-    </div>
-  </div>
+    <p *ngIf="isAuthenticated && myStats && !myStats.rank" class="text-center text-textSecondary">
+      Aún no tienes puntos. Resuelve un reto para entrar en el ranking.
+    </p>
+  </ng-container>
 </div>

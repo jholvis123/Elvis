@@ -1,0 +1,98 @@
+<div class="board-page">
+  <section class="board-hero">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 flex flex-wrap items-end justify-between gap-6">
+      <div class="space-y-2 min-w-0">
+        <p class="font-mono text-sm text-primary">$ ./challenges</p>
+        <h1 class="text-3xl sm:text-4xl font-bold text-textPrimary">Retos</h1>
+        <p class="text-textSecondary">Elige una casilla, descarga los archivos y envía la flag.</p>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-6 sm:gap-8">
+        <ng-container *ngIf="board && board.my_score !== null">
+          <div>
+            <p class="board-stat">{{ board.my_score }}</p>
+            <p class="board-stat-label">puntos</p>
+          </div>
+          <div>
+            <p class="board-stat">{{ board.my_rank ? '#' + board.my_rank : '—' }}</p>
+            <p class="board-stat-label">posición</p>
+          </div>
+        </ng-container>
+        <div *ngIf="board">
+          <p class="board-stat">{{ board.solved_by_me }}/{{ board.total }}</p>
+          <p class="board-stat-label">resueltos</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a routerLink="/ctf/leaderboard" class="btn-outline inline-flex items-center gap-2 min-h-[44px]">
+            <app-icon name="trophy" cssClass="w-5 h-5"></app-icon>Ranking
+          </a>
+          <a *ngIf="isAdmin" routerLink="/ctf/admin/new" class="btn-primary inline-flex items-center gap-2 min-h-[44px]">
+            <app-icon name="plus" cssClass="w-5 h-5"></app-icon>Nuevo reto
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10" [attr.aria-busy]="loading">
+    <p class="sr-only" role="status" aria-live="polite">{{ loading ? 'Cargando retos…' : '' }}</p>
+    <div *ngIf="!isAuthenticated && !apiUnavailable" class="join-banner" role="note">
+      <p class="m-0">
+        <strong class="text-textPrimary">Crea un alias</strong> para guardar tu progreso, desbloquear pistas y aparecer en el ranking. Sin correo.
+      </p>
+      <div class="flex gap-2">
+        <a routerLink="/auth/register" class="btn-primary min-h-[44px] inline-flex items-center">Crear alias</a>
+        <a routerLink="/auth/login" class="btn-outline min-h-[44px] inline-flex items-center">Entrar</a>
+      </div>
+    </div>
+
+    <label *ngIf="board?.total" class="inline-flex items-center gap-3 min-h-[44px] text-sm text-textSecondary cursor-pointer">
+      <input type="checkbox" [(ngModel)]="hideSolved" class="w-5 h-5 accent-cyan-400" />
+      Ocultar resueltos
+    </label>
+
+    <div *ngIf="loading" class="tiles" aria-hidden="true">
+      <app-skeleton-loader *ngFor="let i of [1,2,3,4,5,6,7,8]" type="card"></app-skeleton-loader>
+    </div>
+
+    <section *ngFor="let cat of visibleCategories; trackBy: trackByCategory" class="space-y-4" [attr.aria-labelledby]="'cat-' + cat.category">
+      <div class="flex items-center gap-4">
+        <h2 [id]="'cat-' + cat.category" class="font-mono text-lg font-bold uppercase tracking-widest text-textPrimary m-0">
+          {{ categoryLabel(cat.category) }}
+        </h2>
+        <span class="text-sm text-textSecondary">{{ solvedIn(cat) }} / {{ totalIn(cat.category) }}</span>
+        <span class="flex-1 h-px bg-slate-800" aria-hidden="true"></span>
+      </div>
+      <div class="tiles">
+        <button *ngFor="let ch of cat.challenges; trackBy: trackById" type="button" class="tile"
+          [class.tile--solved]="ch.solved_by_me" [attr.aria-label]="tileLabel(ch)" (click)="open(ch.id)">
+          <span class="tile__title">{{ ch.title }}</span>
+          <span class="tile__points">{{ ch.points }}</span>
+          <span class="tile__meta">
+            <ng-container *ngIf="ch.solved_by_me; else unsolved">
+              <app-icon name="check-circle" cssClass="w-4 h-4 inline"></app-icon> Resuelto
+            </ng-container>
+            <ng-template #unsolved>{{ levelLabel(ch.level) }} · {{ ch.solves }} {{ ch.solves === 1 ? 'resolución' : 'resoluciones' }}</ng-template>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <div *ngIf="!loading && (apiUnavailable || !board?.total)" class="empty card max-w-lg mx-auto text-center py-12">
+      <app-icon name="puzzle-piece" cssClass="w-12 h-12 text-primary mx-auto mb-4"></app-icon>
+      <h2 class="text-xl font-semibold text-textPrimary mb-2">{{ apiUnavailable ? 'API no disponible' : 'Sin retos publicados' }}</h2>
+      <p class="text-textSecondary mb-6">
+        {{ apiUnavailable ? 'No se pueden cargar los retos en este momento.' : 'Todavía no hay retos en el laboratorio. Vuelve pronto.' }}
+      </p>
+      <a routerLink="/" class="btn-primary inline-flex items-center gap-2 min-h-[44px]">Volver al inicio</a>
+    </div>
+
+    <p *ngIf="board?.total && hideSolved && !visibleCategories.length" class="text-center text-textSecondary">
+      Resolviste todos los retos. Buen trabajo.
+    </p>
+  </div>
+
+  <app-challenge-modal *ngIf="openChallenge as ch" [challengeId]="ch.id" [solvedByMe]="ch.solved_by_me"
+    (closed)="close()" (solved)="onSolved()" (scoreChanged)="load()">
+  </app-challenge-modal>
+</div>

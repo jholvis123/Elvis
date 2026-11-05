@@ -1,0 +1,85 @@
+.modal-backdrop {
+  @apply fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 py-10 sm:py-16;
+  background: rgb(2 6 23 / 0.8);
+}
+
+.modal-panel {
+  @apply w-full max-w-2xl rounded-2xl border border-slate-700 bg-surface;
+  box-shadow: var(--shadow-card);
+}
+
+.modal-header {
+  @apply flex items-center justify-between border-b border-slate-800 pl-4 pr-2;
+}
+
+.modal-tabs {
+  @apply flex gap-1;
+}
+
+.modal-tab {
+  @apply min-h-[48px] px-4 text-sm font-semibold text-textSecondary border-b-2 border-transparent transition-colors;
+
+  &:hover { @apply text-textPrimary; }
+  &--active { @apply text-textPrimary border-primary; }
+}
+
+.modal-close {
+  @apply w-11 h-11 inline-flex items-center justify-center rounded-lg text-textSecondary hover:text-textPrimary;
+}
+
+.modal-body {
+  @apply p-6 sm:p-8;
+}
+
+.modal-description {
+  @apply text-textSecondary leading-relaxed min-w-0 overflow-hidden;
+}
+
+.level-pill {
+  @apply px-3 py-0.5 text-xs font-semibold rounded-full border;
+
+  &--easy { @apply text-emerald-400 border-emerald-500/40; }
+  &--medium { @apply text-amber-400 border-amber-500/40; }
+  &--hard { @apply text-orange-400 border-orange-500/40; }
+  &--insane { @apply text-red-400 border-red-500/40; }
+}
+
+.skill-pill {
+  @apply px-3 py-0.5 text-xs font-mono rounded-full bg-slate-800 text-slate-300;
+}
+
+.resource-link {
+  @apply inline-flex items-center gap-2 min-h-[44px] px-4 rounded-lg border border-slate-700 text-sm font-mono text-textPrimary;
+
+  &:hover { @apply border-primary text-primary; }
+}
+
+.hint-text {
+  @apply m-0 px-4 py-3 rounded-lg bg-background border border-slate-800 text-sm text-slate-300;
+}
+
+.hint-button {
+  @apply w-full text-left min-h-[44px] px-4 rounded-lg border border-dashed border-slate-600 text-sm text-slate-300;
+
+  &:hover:not(:disabled) { @apply border-amber-400 text-amber-200; }
+  &:disabled { @apply opacity-60 cursor-wait; }
+}
+
+.hint-locked {
+  @apply m-0 px-4 py-3 rounded-lg border border-dashed border-slate-700 text-sm text-textSecondary;
+
+  a { @apply text-primary font-semibold; }
+}
+
+.result {
+  @apply m-0 px-4 py-3 rounded-lg text-sm font-semibold text-center;
+
+  &--ok { @apply bg-emerald-950 text-emerald-300; }
+  &--bad { @apply bg-amber-950/60 text-amber-300; }
+}
+
+.first-blood {
+  @apply ml-2 px-2 py-0.5 rounded-full text-xs font-sans font-semibold bg-red-500/15 text-red-300;
+}
+
+a { @apply text-primary; }

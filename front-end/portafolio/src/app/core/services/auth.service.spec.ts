@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService, LoginCredentials, RegisterData, AuthStatus, User } from './auth.service';
 import { ApiService } from './api.service';
@@ -327,31 +327,33 @@ describe('AuthService', () => {
     });
 
     describe('Admin Check', () => {
-        it('should return true for admin user', () => {
+        it('should return true for admin user', fakeAsync(() => {
             setup(false);
             const adminUser = { ...mockUser, is_admin: true };
             localStorage.setItem('current_user', JSON.stringify(adminUser));
 
             const api = TestBed.inject(ApiService);
             service = new AuthService(api, apiAvailability);
+            tick(); // checkAuthStatus se difiere para evitar NG0200 con authInterceptor
 
             const req = httpMock.expectOne(r => r.url.includes('/auth/me'));
             req.flush(adminUser);
 
             expect(service.isAdmin).toBeTrue();
-        });
+        }));
 
-        it('should return false for non-admin user', () => {
+        it('should return false for non-admin user', fakeAsync(() => {
             setup(false);
             localStorage.setItem('current_user', JSON.stringify(mockUser));
 
             const api = TestBed.inject(ApiService);
             service = new AuthService(api, apiAvailability);
+            tick(); // checkAuthStatus se difiere para evitar NG0200 con authInterceptor
 
             const req = httpMock.expectOne(r => r.url.includes('/auth/me'));
             req.flush(mockUser);
 
             expect(service.isAdmin).toBeFalse();
-        });
+        }));
     });
 });
