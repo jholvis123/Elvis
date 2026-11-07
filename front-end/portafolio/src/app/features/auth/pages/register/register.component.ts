@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { IconComponent } from '@shared/icons/icon.component';
 
 /**
  * Public register is disabled (backend #42 / CICLO A Pages honest).
@@ -10,7 +11,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 @Component({
     selector: 'app-register',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, IconComponent],
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.scss']
 })
