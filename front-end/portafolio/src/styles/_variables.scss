@@ -23,4 +23,11 @@
   --radius-lg: 0.75rem;
   --shadow-card: 0 10px 25px rgba(2, 6, 23, 0.35);
   --shadow-primary: 0 8px 24px rgba(34, 211, 238, 0.12);
+
+  // Movimiento (criterio Emil Kowalski): curvas fuertes, nunca ease-in en UI
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);       // entradas y respuestas
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);   // movimiento en pantalla
+  --dur-press: 160ms;   // feedback al pulsar
+  --dur-ui: 200ms;      // hover, color, bordes
+  --dur-enter: 600ms;   // entradas de marketing (se ven una vez por visita)
 }

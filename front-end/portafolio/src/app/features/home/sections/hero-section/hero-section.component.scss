@@ -1,39 +1,76 @@
-.typing-cursor {
-  animation: blink 1s infinite;
-  margin-left: 2px;
+// ---------------------------------------------------------------------------
+// Entrada del hero (se ve una vez por visita → puede ser más amplia que la UI).
+// Coreografía: el titular es el protagonista; párrafo, botones, estadísticas y
+// tarjeta lo siguen solapándose (--d con pasos que se acortan); la etiqueta y
+// el eyebrow son decoración y solo aparecen con fundido, sin desplazarse.
+// `both` evita que los elementos con retraso muestren su estado final antes.
+// ---------------------------------------------------------------------------
+.enter {
+  animation-duration: var(--dur-enter, 600ms);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: both;
+  animation-delay: var(--d, 0ms);
 }
 
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+.enter--fade { animation-name: hero-fade; animation-duration: 400ms; }
+.enter--lead { animation-name: hero-rise-12; }
+.enter--support { animation-name: hero-rise-8; animation-duration: 500ms; }
+.enter--stats { animation-name: hero-rise-4; animation-duration: 400ms; }
+.enter--card { animation-name: hero-rise-12; }
+
+@keyframes hero-fade { from { opacity: 0; } }
+@keyframes hero-rise-12 { from { opacity: 0; transform: translateY(12px); } }
+@keyframes hero-rise-8 { from { opacity: 0; transform: translateY(8px); } }
+@keyframes hero-rise-4 { from { opacity: 0; transform: translateY(4px); } }
+
+// Punto de disponibilidad: pulso lento como señal de estado
+.hero-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-primary, #22d3ee);
+  animation: hero-pulse 2.4s ease-out infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .typing-cursor {
-    animation: none;
-    opacity: 1;
-  }
+@keyframes hero-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(34 211 238 / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 8px rgb(34 211 238 / 0); }
+}
 
-  .animate-pulse {
-    animation: none !important;
+.profile-card {
+  box-shadow: var(--shadow-card);
+}
+
+// "Hablemos →": la flecha acompaña el hover (solo con ratón)
+.hero-link {
+  transition: color var(--dur-ui, 200ms) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hero-link__arrow {
+  display: inline-block;
+  transition: transform var(--dur-ui, 200ms) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-link:hover .hero-link__arrow {
+    transform: translateX(3px);
   }
 }
 
 .hero-avatar {
-  width: 10rem;
-  height: 10rem;
+  width: 4.5rem;
+  height: 4.5rem;
   border-radius: 9999px;
   overflow: hidden;
   border: 2px solid rgb(34 211 238 / 0.55);
   background: rgb(15 23 42);
-  box-shadow:
-    0 0 0 6px rgb(8 145 178 / 0.12),
-    0 18px 40px rgb(0 0 0 / 0.35);
+  box-shadow: 0 0 0 5px rgb(8 145 178 / 0.12);
   flex-shrink: 0;
 
-  @media (min-width: 768px) {
-    width: 12rem;
-    height: 12rem;
+  @media (min-width: 640px) {
+    width: 6rem;
+    height: 6rem;
   }
 }
 
@@ -50,5 +87,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(160deg, rgb(15 23 42), rgb(8 145 178 / 0.18));
+  background: rgb(15 23 42);
+}
+
+// Reducir movimiento: sin desplazamientos ni retrasos; se conserva un fundido corto
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    animation-name: hero-fade !important;
+    animation-duration: 200ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  .hero-dot {
+    animation: none;
+  }
 }

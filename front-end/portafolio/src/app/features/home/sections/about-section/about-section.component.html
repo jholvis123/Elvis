@@ -2,17 +2,6 @@
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="grid md:grid-cols-2 gap-10 items-start">
       <div class="space-y-4 reveal-left">
-        <div class="about-avatar">
-          <img
-            *ngIf="avatarUrl && !avatarBroken"
-            [src]="avatarUrl"
-            alt="Avatar"
-            class="about-avatar__img"
-            (error)="onAvatarError()" />
-          <div *ngIf="!avatarUrl || avatarBroken" class="about-avatar__placeholder" role="img" aria-label="Sin avatar">
-            <app-icon name="user" cssClass="w-10 h-10 text-primary"></app-icon>
-          </div>
-        </div>
         <p class="eyebrow">Sobre mí</p>
         <h2 id="about" class="section-heading">Desarrollo con mentalidad de seguridad</h2>
         <p class="muted-text">
@@ -27,24 +16,20 @@
         </ul>
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
           <a href="#contact" class="btn-primary">Hablemos</a>
-          <a *ngIf="showCtfLink" routerLink="/ctf" class="text-primary hover:text-primaryHover transition-all duration-300 flex items-center gap-1 group">
+          <a *ngIf="showCtfLink" routerLink="/ctf" class="text-primary hover:text-primaryHover transition-colors duration-200 flex items-center gap-1 group">
             Ver laboratorio
             <app-icon name="arrow-right" cssClass="w-4 h-4 group-hover:translate-x-1 transition-transform" ariaLabel=""></app-icon>
           </a>
         </div>
       </div>
 
-      <div class="bg-surface border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4 reveal-right hover:border-primary/30 transition-all duration-500">
-        <div>
-          <p class="text-sm text-textSecondary">Stack principal</p>
-          <p *ngIf="stackLine" class="text-xl font-semibold text-textPrimary">{{ stackLine }}</p>
-        </div>
-        <div class="grid grid-cols-2 gap-3 text-sm" role="list" aria-label="Stack tecnológico">
-          <app-tech-badge 
-            *ngFor="let item of stackItems" 
-            [name]="item"
-            variant="outline">
-          </app-tech-badge>
+      <div class="reveal-right flex flex-col gap-4">
+        <p *ngIf="stackLine" class="m-0 text-sm text-textSecondary">{{ stackLine }}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list" aria-label="Stack tecnológico por áreas">
+          <div *ngFor="let group of stackGroups; trackBy: trackByArea" class="stack-group rounded-xl bg-card border border-slate-700 p-5 flex flex-col gap-3" role="listitem">
+            <span class="text-sm font-semibold text-primary">{{ group.area }}</span>
+            <span class="text-slate-300 leading-relaxed">{{ group.items.join(', ') }}</span>
+          </div>
         </div>
         <div class="rounded-xl bg-card/80 border border-slate-800 p-4">
           <p class="text-sm text-textSecondary">Mentorizo equipos en prácticas seguras, threat modeling y respuesta a incidentes.</p>

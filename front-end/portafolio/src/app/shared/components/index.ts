@@ -4,6 +4,7 @@ export * from './contact-link/contact-link.component';
 export * from './ctf-card/ctf-card.component';
 export * from './stat-card/stat-card.component';
 export * from './code-block/code-block.component';
+export * from './live-terminal/live-terminal.component';
 export * from './scroll-to-top/scroll-to-top.component';
 export * from './contact-form/contact-form.component';
 

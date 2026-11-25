@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between gap-3">
       <a routerLink="/" class="flex items-center gap-3 group min-w-0">
         <div
-          class="w-10 h-10 rounded-full overflow-hidden border border-slate-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center bg-slate-800 shrink-0">
+          class="w-10 h-10 rounded-full overflow-hidden border border-slate-800 group-hover:border-primary transition-colors duration-200 flex items-center justify-center bg-slate-800 shrink-0">
           <img [src]="avatarSrc" alt="Elvis Dev" class="w-full h-full object-cover"
             (error)="onAvatarError()">
         </div>
@@ -21,7 +21,7 @@
         <a *ngIf="sections.showCtfNav()" routerLink="/ctf" routerLinkActive="text-primary" class="nav-link">CTF Lab</a>
         <a *ngIf="sections.showWriteupsNav()" routerLink="/writeups" routerLinkActive="text-primary" class="nav-link">Writeups</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/dashboard" routerLinkActive="text-primary"
-          class="nav-link text-primary font-semibold border border-primary/30 px-2 py-1 rounded hover:bg-primary/10 transition-all">Admin</a>
+          class="nav-link text-primary font-semibold border border-primary/30 px-2 py-1 rounded hover:bg-primary/10 transition-colors">Admin</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/contact" routerLinkActive="text-primary"
           class="nav-link">Bandeja</a>
         <a *ngIf="authService.isAdmin" routerLink="/admin/profile" routerLinkActive="text-primary"

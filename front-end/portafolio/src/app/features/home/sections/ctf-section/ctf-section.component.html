@@ -1,0 +1,45 @@
+<section class="section" aria-labelledby="lab">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+    <div class="flex flex-col gap-5 reveal">
+      <p class="eyebrow m-0">CTF Lab</p>
+      <h2 id="lab" class="section-heading m-0">Pon a prueba tus habilidades</h2>
+      <p class="muted-text m-0 text-lg leading-relaxed">
+        Retos de seguridad por categoría. Crea un alias, envía la flag, desbloquea pistas y compite en el ranking.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a routerLink="/ctf" class="btn-primary">Entrar al laboratorio</a>
+        <a routerLink="/ctf/leaderboard" class="btn-outline">Ver ranking</a>
+      </div>
+    </div>
+
+    <div class="lab-card reveal rounded-2xl border border-slate-800 bg-surface p-5 sm:p-6 flex flex-col gap-5">
+      <div class="flex justify-between text-sm text-textSecondary">
+        <span class="font-mono tracking-widest">RETOS</span>
+        <span *ngIf="total">{{ total }} publicados</span>
+      </div>
+
+      <div *ngIf="challenges.length; else noChallenges" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <a *ngFor="let ch of challenges; trackBy: trackById" [routerLink]="['/ctf']" [queryParams]="{ reto: ch.id }"
+          class="lab-tile flex sm:flex-col items-center justify-between sm:justify-center gap-1 rounded-xl border border-slate-700 px-4 py-4 text-center text-textPrimary"
+          [attr.aria-label]="ch.title + ', ' + ch.points + ' puntos, ' + ch.categoryLabel">
+          <span class="text-xs font-mono uppercase tracking-wider text-textSecondary">{{ ch.categoryLabel }}</span>
+          <span class="text-sm font-semibold">{{ ch.title }}</span>
+          <span class="font-mono text-xl font-bold text-primary">{{ ch.points }}</span>
+        </a>
+      </div>
+      <ng-template #noChallenges>
+        <p *ngIf="loaded" class="m-0 text-sm text-textSecondary">Pronto habrá retos publicados.</p>
+      </ng-template>
+
+      <ol *ngIf="top.length; else noPlayers" class="list-none m-0 p-0 border-t border-slate-800 text-sm" aria-label="Top 3 del ranking">
+        <li *ngFor="let p of top; trackBy: trackByUser; let i = index" class="flex justify-between py-3 border-b border-slate-800 last:border-b-0">
+          <span><span class="rank font-bold" [ngClass]="'rank--' + p.rank">#{{ p.rank }}</span>&nbsp; <span class="font-mono">{{ p.username }}</span></span>
+          <span class="font-mono tabular-nums">{{ p.total_points }} pts</span>
+        </li>
+      </ol>
+      <ng-template #noPlayers>
+        <p class="m-0 pt-4 border-t border-slate-800 text-sm text-textSecondary">El ranking está vacío: la primera sangre es tuya.</p>
+      </ng-template>
+    </div>
+  </div>
+</section>

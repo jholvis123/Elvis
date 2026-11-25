@@ -3,14 +3,33 @@
 <div class="home-sections">
 <!-- Hero Section -->
 <app-hero-section
-  [highlights]="highlights"
   [technologies]="technologies"
   [roles]="roles"
   [avatarUrl]="avatarUrl"
+  [githubUrl]="githubUrl"
+  [linkedinUrl]="linkedinUrl"
+  [projectTitles]="projectTitles"
+  [projectsCount]="sections.projectsCount()"
+  [ctfCount]="sections.ctfCount()"
+  [writeupsCount]="sections.writeupsCount()"
   [showProjectsCta]="sections.showProjectsNav()"
-  [showCtfCta]="sections.showCtfNav()"
-  [showWriteupsCta]="sections.showWriteupsNav()">
+  [showCtfCta]="sections.showCtfNav()">
 </app-hero-section>
+
+<!-- Franja del stack: movimiento constante (linear), se pausa al pasar el ratón -->
+<div *ngIf="technologies.length" class="stack-strip" role="region" aria-label="Stack tecnológico">
+  <ul class="sr-only">
+    <li *ngFor="let tech of technologies">{{ tech }}</li>
+  </ul>
+  <div class="stack-strip__track" aria-hidden="true">
+    <div *ngFor="let copy of stripCopies" class="stack-strip__group">
+      <ng-container *ngFor="let tech of technologies">
+        <span class="stack-strip__item">{{ tech }}</span>
+        <span class="stack-strip__sep">◆</span>
+      </ng-container>
+    </div>
+  </div>
+</div>
 
 <!-- About Section -->
 <app-about-section
@@ -40,6 +59,9 @@
   [loading]="loadingProjects"
   [apiUnavailable]="apiUnavailable">
 </app-projects-section>
+
+<!-- CTF Lab: adelanto con retos y ranking reales -->
+<app-ctf-section *ngIf="sections.showCtfNav()"></app-ctf-section>
 
 <!-- Contact Section -->
 <app-contact-section

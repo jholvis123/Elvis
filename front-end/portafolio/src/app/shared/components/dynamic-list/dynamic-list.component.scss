@@ -31,14 +31,14 @@
     @apply flex-1 bg-slate-800 border border-slate-700 rounded-lg
            px-3 py-2.5 text-sm text-textPrimary placeholder:text-slate-400
            focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none
-           transition-all duration-200
+           transition-colors duration-200
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   &__add-btn {
     @apply inline-flex items-center gap-1.5 px-4 py-2.5
            bg-primary text-background text-sm font-medium rounded-lg
-           hover:bg-primary/90 transition-all duration-200
+           hover:bg-primary/90 transition-colors duration-200
            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary;
   }
   
