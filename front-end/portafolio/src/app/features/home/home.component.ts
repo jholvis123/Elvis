@@ -11,7 +11,8 @@ import {
   AboutSectionComponent,
   ExperienceSectionComponent,
   ProjectsSectionComponent,
-  ContactSectionComponent
+  ContactSectionComponent,
+  CtfSectionComponent
 } from './sections';
 
 @Component({
@@ -24,7 +25,8 @@ import {
     AboutSectionComponent,
     ExperienceSectionComponent,
     ProjectsSectionComponent,
-    ContactSectionComponent
+    ContactSectionComponent,
+    CtfSectionComponent
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
@@ -47,11 +49,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   stackItems: string[] = [];
   roles: string[] = [];
   avatarUrl: string | null = null;
+  githubUrl: string | null = null;
+  linkedinUrl: string | null = null;
 
   experienceItems: ExperienceItem[] = [];
   capabilities: CapabilityChip[] = [];
 
   showScrollTop = false;
+
+  /** Dos copias de la franja: el bucle desplaza la mitad y no se nota el corte. */
+  readonly stripCopies = [0, 1];
+
+  /** Campo (no getter): un array nuevo en cada ciclo reiniciaría la terminal del hero. */
+  projectTitles: string[] = [];
 
   /** Single live region for home skeletons (experience, capabilities, projects). */
   get homeLoadingStatus(): string {
@@ -146,6 +156,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         if (profile.about_points?.length) this.aboutPoints = profile.about_points;
         if (profile.highlights?.length) this.highlights = profile.highlights;
+        this.githubUrl = profile.social_links?.github || null;
+        this.linkedinUrl = profile.social_links?.linkedin || null;
         if (!this.contactInfo.length && profile.social_links) {
           this.contactInfo = this.contactService.mapSocialLinks(profile.social_links);
         }
@@ -231,6 +243,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (projects) => {
         this.apiAvailability.markNetworkOk();
         this.projects = projects;
+        this.projectTitles = projects.map(p => p.title);
         this.loadingProjects = false;
       },
       error: (err) => {
@@ -260,6 +273,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.aboutPoints = [];
     this.highlights = [];
     this.avatarUrl = null;
+    this.githubUrl = null;
+    this.linkedinUrl = null;
     this.experienceItems = [];
     this.capabilities = [];
   }

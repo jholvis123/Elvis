@@ -5,6 +5,30 @@ import { RouterLink } from '@angular/router';
 import { TechBadgeComponent } from '@shared/components';
 import { IconComponent } from '@shared/icons/icon.component';
 
+const AREAS: { area: string; match: RegExp }[] = [
+  { area: 'Backend', match: /^(python|fastapi|django|flask|sqlalchemy|alembic|node|express|java|spring|go)/i },
+  { area: 'Frontend', match: /^(typescript|javascript|angular|react|vue|tailwind|html|css|scss|rxjs)/i },
+  { area: 'Datos', match: /^(postgres|mysql|sql ?server|sqlite|redis|mongo|sqlmodel)/i },
+  { area: 'Seguridad y operación', match: /^(docker|jwt|devsecops|ci\/?cd|owasp|nginx|linux|kubernetes|github actions|security)/i }
+];
+
+export interface StackGroup {
+  area: string;
+  items: string[];
+}
+
+/** Agrupa el stack plano del perfil por áreas; lo que no encaja va a "Otros". */
+export function groupStack(items: string[]): StackGroup[] {
+  const groups = new Map<string, string[]>();
+  items.forEach(item => {
+    const area = AREAS.find(a => a.match.test(item.trim()))?.area ?? 'Otros';
+    groups.set(area, [...(groups.get(area) ?? []), item]);
+  });
+  return [...AREAS.map(a => a.area), 'Otros']
+    .filter(area => groups.has(area))
+    .map(area => ({ area, items: groups.get(area) ?? [] }));
+}
+
 @Component({
   selector: 'app-about-section',
   standalone: true,
@@ -22,11 +46,20 @@ export class AboutSectionComponent implements OnChanges {
   @Input() showCtfLink = false;
 
   avatarBroken = false;
+  /** Campo calculado en ngOnChanges (un getter crearía arrays nuevos en cada ciclo). */
+  stackGroups: StackGroup[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['avatarUrl']) {
       this.avatarBroken = false;
     }
+    if (changes['stackItems']) {
+      this.stackGroups = groupStack(this.stackItems);
+    }
+  }
+
+  trackByArea(_: number, group: StackGroup): string {
+    return group.area;
   }
 
   onAvatarError(): void {

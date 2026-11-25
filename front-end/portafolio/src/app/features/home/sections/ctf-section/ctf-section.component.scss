@@ -1,0 +1,23 @@
+.lab-card {
+  box-shadow: var(--shadow-card);
+}
+
+.lab-tile {
+  background: rgb(2 6 23 / 0.6);
+  transition: border-color var(--dur-ui) ease, transform var(--dur-press) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lab-tile:hover {
+    border-color: var(--color-primary, #22d3ee);
+  }
+}
+
+.rank--1 { color: #fbbf24; }
+.rank--2 { color: #cbd5e1; }
+.rank--3 { color: #fb923c; }

@@ -3,3 +3,4 @@ export * from './about-section/about-section.component';
 export * from './experience-section/experience-section.component';
 export * from './projects-section/projects-section.component';
 export * from './contact-section/contact-section.component';
+export * from './ctf-section/ctf-section.component';

@@ -4,27 +4,43 @@
   .btn-primary {
     @apply bg-primary text-black px-6 py-2 rounded font-semibold min-h-[44px]
            inline-flex items-center justify-center
-           hover:bg-primaryHover transition-all duration-300
+           hover:bg-primaryHover
            hover:shadow-lg hover:shadow-primary/20
            focus:outline-none
            focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2
            focus-visible:ring-offset-slate-900;
+    transition: background-color var(--dur-ui) ease, box-shadow var(--dur-ui) ease,
+      transform var(--dur-press) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+
+    &:active:not(:disabled) {
+      transform: scale(0.97);
+    }
   }
 
   .btn-outline {
     @apply border border-primary text-primary px-6 py-2 rounded min-h-[44px]
            inline-flex items-center justify-center
-           hover:bg-primary hover:text-black transition-all duration-300
+           hover:bg-primary hover:text-black
            focus:outline-none
            focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
            focus-visible:ring-offset-slate-900;
+    transition: background-color var(--dur-ui) ease, color var(--dur-ui) ease,
+      transform var(--dur-press) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+
+    &:active:not(:disabled) {
+      transform: scale(0.97);
+    }
   }
 
   // Cards
   .card {
-    @apply bg-card border border-slate-700 p-5 
-           transition-all duration-300 hover:border-primary/50 
+    @apply bg-card border border-slate-700 p-5
+           hover:border-primary/50
            hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1;
+    transition: border-color var(--dur-ui) ease, box-shadow var(--dur-ui) ease,
+      transform var(--dur-ui) var(--ease-out);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
   }
@@ -94,7 +110,7 @@
   .pill {
     @apply px-3 py-1 rounded-full bg-card border border-slate-800 
            text-textSecondary hover:border-primary/50 hover:text-primary 
-           transition-all duration-300;
+           transition-colors duration-200;
   }
 
 

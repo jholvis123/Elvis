@@ -44,7 +44,7 @@ import { IconComponent } from '../../icons/icon.component';
           <button
             #confirmBtn
             type="button"
-            class="w-full sm:w-auto px-6 py-2 rounded font-semibold bg-danger text-white hover:bg-red-600 transition-all duration-300 min-h-[44px] inline-flex items-center justify-center"
+            class="w-full sm:w-auto px-6 py-2 rounded font-semibold bg-danger text-white hover:bg-red-600 transition-colors duration-200 min-h-[44px] inline-flex items-center justify-center"
             (click)="confirmed.emit()">
             {{ confirmLabel }}
           </button>

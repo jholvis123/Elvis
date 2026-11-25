@@ -1,7 +1,4 @@
-<article
-  class="card h-full flex flex-col gap-4 reveal"
-  [style.transition-delay.ms]="index * 100"
-  role="listitem">
+<article class="card h-full flex flex-col gap-4" role="listitem">
 
   <div class="rounded-xl bg-gradient-to-br from-primary/10 via-surface to-surface p-4 border border-slate-800">
     <div class="flex items-center justify-between text-sm text-textSecondary gap-2">
@@ -24,11 +21,10 @@
   <div class="flex items-center justify-between mt-auto gap-2">
     <a
       [routerLink]="['/projects', project.id]"
-      class="text-primary hover:text-primaryHover text-sm font-semibold inline-flex items-center gap-1 group transition-all duration-300 min-h-[44px]"
+      class="text-primary hover:text-primaryHover text-sm font-semibold inline-flex items-center gap-1 group transition-colors duration-200 min-h-[44px]"
       [attr.aria-label]="'Ver proyecto ' + project.title">
       Ver proyecto
       <app-icon name="arrow-right" cssClass="w-4 h-4 group-hover:translate-x-1 transition-transform" ariaLabel=""></app-icon>
     </a>
-    <span class="text-xs text-textSecondary shrink-0">Entrega end-to-end</span>
   </div>
 </article>

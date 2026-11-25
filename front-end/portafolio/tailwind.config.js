@@ -1,5 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // hover: solo en dispositivos con puntero que pueden hacer hover (evita estados "pegados" al tocar)
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   content: [
     "./src/**/*.{html,ts}",
   ],

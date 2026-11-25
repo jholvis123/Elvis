@@ -60,64 +60,28 @@
   opacity: 0;
 }
 
-// Reveal on scroll
-.reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.6s ease-out;
-
-  &.active {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// Horizontal reveals expand document scrollWidth while inactive (translateX).
-// On narrow viewports use vertical motion; on md+ keep lateral slide but clip at .section.
-.reveal-left {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-
-  &.active {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  @media (min-width: 768px) {
-    transform: translateX(-30px);
-
-    &.active {
-      transform: translateX(0);
-    }
-  }
-}
-
+// Reveal on scroll — una sola entrada por contenedor (la sección), vertical y corta.
+// Las variantes -left/-right ya no se desplazan en horizontal: el lateral ensanchaba
+// el documento en móvil y competía con el movimiento vertical del resto.
+.reveal,
+.reveal-left,
 .reveal-right {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateY(16px);
+  transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out);
 
   &.active {
     opacity: 1;
-    transform: translateY(0);
-  }
-
-  @media (min-width: 768px) {
-    transform: translateX(30px);
-
-    &.active {
-      transform: translateX(0);
-    }
+    transform: none;
   }
 }
 
 // Delays
-.delay-100 { transition-delay: 0.1s; }
-.delay-200 { transition-delay: 0.2s; }
-.delay-300 { transition-delay: 0.3s; }
-.delay-400 { transition-delay: 0.4s; }
-.delay-500 { transition-delay: 0.5s; }
+.delay-100 { transition-delay: 80ms; }
+.delay-200 { transition-delay: 140ms; }
+.delay-300 { transition-delay: 190ms; }
+.delay-400 { transition-delay: 230ms; }
+.delay-500 { transition-delay: 260ms; }
 
 
 // Accesibilidad: reducir movimiento
@@ -131,12 +95,13 @@
     transform: none !important;
   }
 
+  // Reducir movimiento ≠ cero: se conserva el fundido, se elimina el desplazamiento
   .reveal,
   .reveal-left,
   .reveal-right {
-    opacity: 1;
-    transform: none;
-    transition: none;
+    transform: none !important;
+    transition: opacity 200ms ease !important;
+    transition-delay: 0ms !important;
   }
 
   .animate-pulse,

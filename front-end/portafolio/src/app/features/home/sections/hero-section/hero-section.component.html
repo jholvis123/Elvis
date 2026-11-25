@@ -1,87 +1,74 @@
-<section id="hero" class="relative overflow-hidden bg-slate-950" aria-label="Sección principal">
-  <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-cyan-500/10 via-transparent to-primary/5 blur-3xl" aria-hidden="true"></div>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12 md:pb-24 relative z-10">
-    <div class="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
-      <div class="space-y-6 animate-fade-in-up min-w-0">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold border border-primary/20">
-          <span class="sr-only">Estado:</span>
-          Disponible para proyectos
-          <span class="w-2 h-2 rounded-full bg-primary animate-pulse" aria-hidden="true"></span>
-        </div>
+<section id="hero" class="hero relative overflow-hidden bg-slate-950" aria-labelledby="hero-title">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-14 md:pb-24 relative">
+    <div class="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-10 lg:gap-14 items-center">
 
-        <div class="space-y-3">
-          <p class="eyebrow">Quién soy</p>
-          <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-textPrimary leading-tight">
-            Yhon Elvis Siñani Pocoata
+      <!-- Columna de mensaje -->
+      <div class="flex flex-col gap-7 min-w-0">
+        <span class="enter enter--fade self-start inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-cyan-300 text-sm font-semibold border border-primary/20">
+          <span class="hero-dot" aria-hidden="true"></span>
+          Disponible para proyectos · La Paz, Bolivia
+        </span>
+
+        <div class="flex flex-col gap-4">
+          <p class="eyebrow enter enter--fade m-0">Ingeniero de Sistemas</p>
+          <h1 id="hero-title" class="enter enter--lead m-0 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-textPrimary leading-[1.05] tracking-tight">
+            Construyo software <span class="text-primary">seguro</span> de punta a punta.
           </h1>
-          <p class="text-lg sm:text-xl text-primary min-h-8 flex items-center" aria-live="polite">
-            <span class="typing-text">{{ currentRole }}</span>
-            <span class="typing-cursor" *ngIf="!prefersReducedMotion" aria-hidden="true">|</span>
+          <p class="enter enter--support m-0 text-base sm:text-lg text-textSecondary max-w-xl leading-relaxed" style="--d: 80ms">
+            Soy Yhon Elvis Siñani Pocoata. Desarrollo APIs con FastAPI y aplicaciones con Angular,
+            aplicando ciberseguridad desde el diseño hasta el despliegue.
           </p>
-          <p class="text-base sm:text-lg text-textSecondary max-w-xl">
-            Ingeniero de Sistemas con conocimientos en ciberseguridad. Construyo productos digitales seguros,
-            escalables y centrados en la experiencia.
-          </p>
-          <p *ngIf="evidenceLine" class="text-sm text-textSecondary/80 max-w-xl">{{ evidenceLine }}</p>
         </div>
 
-        <div class="flex flex-col sm:flex-row flex-wrap gap-3" role="group" aria-label="Acciones principales">
-          <a *ngIf="showProjectsCta" href="#projects" class="btn-primary" aria-label="Ver proyectos">
-            <span class="flex items-center justify-center gap-2">
-              <app-icon name="folder" cssClass="w-5 h-5"></app-icon>
-              Ver proyectos
-            </span>
+        <div class="enter enter--support flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3" style="--d: 140ms" role="group" aria-label="Acciones principales">
+          <a *ngIf="showProjectsCta" href="#projects" class="btn-primary gap-2">
+            <app-icon name="folder" cssClass="w-5 h-5"></app-icon>
+            Ver proyectos
           </a>
-          <a *ngIf="showCtfCta" routerLink="/ctf" class="btn-outline" aria-label="Explorar CTF">
-            <span class="flex items-center justify-center gap-2">
-              <app-icon name="puzzle-piece" cssClass="w-5 h-5"></app-icon>
-              Explorar CTF
-            </span>
+          <a *ngIf="showCtfCta" routerLink="/ctf" class="btn-outline gap-2">
+            <app-icon name="puzzle-piece" cssClass="w-5 h-5"></app-icon>
+            Explorar CTF Lab
           </a>
-          <a *ngIf="showWriteupsCta" routerLink="/writeups" class="btn-outline" aria-label="Ver writeups">
-            <span class="flex items-center justify-center gap-2">
-              <app-icon name="document-text" cssClass="w-5 h-5"></app-icon>
-              Ver writeups
-            </span>
-          </a>
-          <a href="#contact" class="border border-slate-700 text-textSecondary px-6 py-2 rounded hover:border-primary hover:text-primary transition-all duration-300 inline-flex items-center justify-center gap-2 min-h-[44px]" aria-label="Ir a contacto">
-            <app-icon name="envelope" cssClass="w-5 h-5"></app-icon>
-            Contacto
+          <a href="#contact" class="hero-link inline-flex items-center justify-center sm:justify-start gap-1 min-h-[44px] px-1 text-slate-300 hover:text-primary">
+            Hablemos <span class="hero-link__arrow" aria-hidden="true">→</span>
           </a>
         </div>
 
-        <div *ngIf="highlights.length" class="grid grid-cols-3 gap-2 sm:gap-4 max-w-md" role="list" aria-label="Evidencia destacada">
-          <app-stat-card
-            *ngFor="let item of highlights; let i = index"
-            [value]="item.value"
-            [label]="item.label"
-            [delay]="i * 100">
-          </app-stat-card>
-        </div>
-
-        <div *ngIf="technologies.length" class="flex flex-wrap gap-2 text-sm" role="list" aria-label="Tecnologías">
-          <app-tech-badge
-            *ngFor="let tech of technologies"
-            [name]="tech">
-          </app-tech-badge>
-        </div>
+        <dl *ngIf="stats.length" class="enter enter--stats grid grid-cols-3 gap-3 max-w-md m-0" style="--d: 190ms">
+          <div *ngFor="let stat of stats; trackBy: trackByLabel" class="rounded-xl bg-surface border border-slate-800 px-4 py-3">
+            <dd class="m-0 text-2xl sm:text-3xl font-extrabold text-textPrimary tabular-nums">{{ stat.value }}</dd>
+            <dt class="text-xs sm:text-sm text-textSecondary">{{ stat.label }}</dt>
+          </div>
+        </dl>
       </div>
 
-      <div class="flex flex-col items-center gap-6" role="group" aria-label="Panel de perfil">
-        <div class="hero-avatar">
-          <img
-            *ngIf="avatarUrl && !avatarBroken"
-            [src]="avatarUrl"
-            alt="Avatar del perfil"
-            class="hero-avatar__img"
-            (error)="onAvatarError()" />
-          <div *ngIf="!avatarUrl || avatarBroken" class="hero-avatar__placeholder" role="img" aria-label="Sin avatar">
-            <app-icon name="user" cssClass="w-16 h-16 text-primary"></app-icon>
+      <!-- Tarjeta de perfil + terminal -->
+      <div class="enter enter--card min-w-0 rounded-2xl border border-slate-800 bg-surface overflow-hidden profile-card" style="--d: 120ms">
+        <div class="flex items-center gap-4 sm:gap-5 p-5 sm:p-6 border-b border-slate-800">
+          <div class="hero-avatar">
+            <img
+              *ngIf="avatarUrl && !avatarBroken"
+              [src]="avatarUrl"
+              alt="Foto de Yhon Elvis Siñani"
+              class="hero-avatar__img"
+              width="96"
+              height="96"
+              (error)="onAvatarError()" />
+            <div *ngIf="!avatarUrl || avatarBroken" class="hero-avatar__placeholder" role="img" aria-label="Sin foto de perfil">
+              <app-icon name="user" cssClass="w-10 h-10 text-primary"></app-icon>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1 min-w-0">
+            <strong class="text-lg sm:text-xl text-textPrimary">Elvis Siñani</strong>
+            <span class="text-sm text-textSecondary">{{ cardRole }}</span>
+            <span class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <a *ngIf="githubUrl" [href]="githubUrl" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-cyan-300 inline-flex items-center min-h-[32px]">GitHub</a>
+              <a *ngIf="linkedinUrl" [href]="linkedinUrl" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-cyan-300 inline-flex items-center min-h-[32px]">LinkedIn</a>
+              <a href="#contact" class="text-primary hover:text-cyan-300 inline-flex items-center min-h-[32px]">Contacto</a>
+            </span>
           </div>
         </div>
-        <div class="hidden md:block w-full" role="group" aria-label="Panel de perfil tipado">
-          <app-code-block></app-code-block>
-        </div>
+        <app-live-terminal [steps]="terminalSteps"></app-live-terminal>
       </div>
     </div>
   </div>

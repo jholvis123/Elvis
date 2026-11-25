@@ -17,7 +17,7 @@
   // Container
   &__container {
     @apply flex items-center bg-slate-800 border border-slate-700 
-           rounded-lg overflow-hidden transition-all duration-200
+           rounded-lg overflow-hidden transition-colors duration-200
            focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30;
     
     &--error {
